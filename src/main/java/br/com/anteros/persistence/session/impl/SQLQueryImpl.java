@@ -539,7 +539,10 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	}
 
 	private boolean resultIsOneEntity() {
-		if ((resultClassDefinitionsList.size() == 1) || (this.identifier != null)) {
+		if (this.identifier != null)
+			return true;
+		
+		if (resultClassDefinitionsList.size() == 1) {
 			return session.getEntityCacheManager().isEntity(resultClassDefinitionsList.get(0).getResultClass());
 		}
 
