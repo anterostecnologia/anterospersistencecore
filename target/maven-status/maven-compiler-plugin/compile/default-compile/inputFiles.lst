@@ -9,8 +9,8 @@
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/sql/lob/AnterosClob.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/FilteredClause.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/types/path/ComparablePath.java
-/Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/Null.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/sql/command/InsertCommandSQL.java
+/Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/Null.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/proxy/collection/DefaultSQLSet.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/sql/parser/node/SelectNode.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/dml/DeleteClause.java
@@ -20,9 +20,9 @@
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/types/expr/TimeExpression.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/group/GroupByProjection.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/metadata/annotation/Id.java
+/Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/DetachableSQLQuery.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/session/cache/PersistenceMetadataCache.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/metadata/identifier/IdentifierException.java
-/Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/DetachableSQLQuery.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/metadata/converter/AttributeConverter.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/schema/definition/PrimaryKeySchema.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/Tuple.java
