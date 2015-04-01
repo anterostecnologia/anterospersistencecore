@@ -619,6 +619,7 @@
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/proxy/SimpleLazyLoadFactory.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/transaction/impl/NullSynchronizationException.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/metadata/annotation/NamedQueries.java
+/Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/util/AnterosPersistenceHelper.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/handler/BeanHandler.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/dsl/osql/types/template/DateTemplate.java
 /Users/edson/git/anterospersistencecore/src/main/java/br/com/anteros/persistence/sql/dialect/DatabaseDialectException.java
