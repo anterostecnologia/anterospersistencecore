@@ -350,7 +350,12 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			query.setLockOptions(lockOptions);
 			query.allowDuplicateObjects(allowDuplicateObjects);
 			query.nextAliasColumnName(configuration.getNextAliasColumnName());
-			
+
+			/*
+			 * Converte os parâmetros no formato de expressão para o formato da query.
+			 */
+			if (analyser.hasParameters())
+				query.setParameters(getParameters());
 
 		} catch (Exception e) {
 			throw new OSQLQueryException("Não foi possível criar a query. ", e);
