@@ -296,11 +296,11 @@ public class EntityCacheManager {
 							DescriptionColumn referencedColumn = null;
 							for (EntityCache ec : entitiesCache) {
 								referencedColumn = ec.getDescriptionColumnByColumnName(column.getReferencedColumnName());
-								if (referencedColumn != null)
+								if ((referencedColumn != null) && (referencedColumn.isPrimaryKey()))
 									break;
 							}
 
-							if ((referencedColumn == null) || !(referencedColumn.isPrimaryKey())) {
+							if (referencedColumn == null) {
 								throw new EntityCacheException("A coluna " + column.getReferencedColumnName() + " referenciada no campo "
 										+ descriptionField.getName() + " da classe " + descriptionField.getEntityCache().getEntityClass().getName()
 										+ " não foi encontrada na classe " + referencedCache.getEntityClass().getName() + " ou não é um ID.");
