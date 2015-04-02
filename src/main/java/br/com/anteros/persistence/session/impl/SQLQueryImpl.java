@@ -1783,8 +1783,6 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	}
 
 	private ResultSetHandler makeEntityHandler(Class<?> resultClass, Object objectToRefresh) throws Exception {
-		if (resultClassDefinitionsList.size() == 0)
-			throw new SQLQueryException("Defina uma entidade ou coluna de retorno para a consulta SQL.");
 
 		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
 
