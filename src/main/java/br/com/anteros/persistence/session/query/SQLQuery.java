@@ -15,6 +15,7 @@ package br.com.anteros.persistence.session.query;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
+import java.sql.Time;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,10 @@ public interface SQLQuery {
 	public SQLQuery setDate(int parameterIndex, Date value) throws Exception;
 
 	public SQLQuery setDateTime(int parameterIndex, Date value) throws Exception;
+	
+	public SQLQuery setTime(int parameterIndex, Date value) throws Exception;
+	
+	public SQLQuery setTime(int parameterIndex, Time value) throws Exception;
 
 	public SQLQuery setObject(int parameterIndex, Object object) throws Exception;
 
@@ -117,6 +122,10 @@ public interface SQLQuery {
 	public SQLQuery setDate(String parameterName, Date value) throws Exception;
 
 	public SQLQuery setDateTime(String parameterName, Date value) throws Exception;
+	
+	public SQLQuery setTime(String parameterName, Date value) throws Exception;
+	
+	public SQLQuery setTime(String parameterName, Time value) throws Exception;
 
 	public SQLQuery setObject(String parameterName, Object object) throws Exception;
 
