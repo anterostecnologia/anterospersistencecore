@@ -541,7 +541,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	private boolean resultIsOneEntity() {
 		if (this.identifier != null)
 			return true;
-		
+
 		if (resultClassDefinitionsList.size() == 1) {
 			return session.getEntityCacheManager().isEntity(resultClassDefinitionsList.get(0).getResultClass());
 		}
@@ -577,7 +577,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			PersistenceMetadataCache.getInstance().put(resultClass.getName() + ":" + sql, analyzerResult);
 		}
 
-		SQLCache transactionCache = new WeakReferenceSQLCache();
+		SQLCache transactionCache = new SQLCache();
 
 		String parsedSql = analyzerResult.getParsedSql();
 
@@ -809,8 +809,9 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 				result = getResultFromSelect(owner, descriptionFieldOwner, transactionCache, result);
 			else if (FetchMode.ELEMENT_COLLECTION == descriptionFieldOwner.getModeType())
 				result = getResultFromElementCollection(descriptionFieldOwner, columnKeyTarget, result);
-			else if (FetchMode.MANY_TO_MANY == descriptionFieldOwner.getModeType())
+			else if (FetchMode.MANY_TO_MANY == descriptionFieldOwner.getModeType()) {
 				result = getResultFromJoinTable(descriptionFieldOwner, columnKeyTarget, transactionCache);
+			}
 
 		}
 
@@ -925,7 +926,13 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			sql = (String) PersistenceMetadataCache.getInstance().get(sqlKey);
 
 			if (StringUtils.isEmpty(sql)) {
-				sql = makeSelectJoinTable(descriptionFieldOwner, columnKeyTarget, targetEntityCache, params);
+				DescriptionField descriptionFieldMappedBy = null;
+				if (descriptionFieldOwner.isMappedBy()) {
+					EntityCache mappedByEntityCache = descriptionFieldOwner.getTargetEntity();
+					descriptionFieldMappedBy = mappedByEntityCache.getDescriptionField(descriptionFieldOwner.getMappedBy());
+				}
+				sql = makeSelectJoinTable((descriptionFieldMappedBy != null ? descriptionFieldMappedBy : descriptionFieldOwner), columnKeyTarget,
+						targetEntityCache, params);
 				PersistenceMetadataCache.getInstance().put(sqlKey, sql);
 			} else {
 				for (DescriptionColumn column : descriptionFieldOwner.getPrimaryKeys()) {
@@ -960,12 +967,14 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	protected String makeSelectJoinTable(final DescriptionField descriptionFieldOwner, Map<String, Object> columnKeyTarget, EntityCache targetEntityCache,
 			ArrayList<NamedParameter> params) {
 		String sql;
+
 		/*
 		 * Adiciona todas colunas da Entidade alvo
 		 */
 		Select select = new Select(session.getDialect());
 
 		select.addTableName(targetEntityCache.getTableName() + " " + targetEntityCache.getAliasTableName());
+
 		select.addTableName(descriptionFieldOwner.getTableName() + " " + descriptionFieldOwner.getAliasTableName());
 
 		boolean appendOperator = false;
@@ -977,7 +986,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		 * Monta cláusula WHERE
 		 */
 		for (DescriptionColumn column : descriptionFieldOwner.getPrimaryKeys()) {
-			if (!column.isInversedJoinColumn()) {
+			if (columnKeyTarget.containsKey(column.getColumnName())) {
 				if (appendOperator)
 					select.and();
 				select.addCondition(descriptionFieldOwner.getAliasTableName() + "." + column.getColumnName(), "=", ":P" + column.getColumnName());
@@ -1796,7 +1805,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			PersistenceMetadataCache.getInstance().put(resultClass.getName() + ":" + sql, analyzerResult);
 		}
 
-		SQLCache transactionCache = new WeakReferenceSQLCache();
+		SQLCache transactionCache = new SQLCache();
 
 		parsedSql = analyzerResult.getParsedSql();
 

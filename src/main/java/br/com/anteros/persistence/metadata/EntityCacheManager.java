@@ -311,25 +311,27 @@ public class EntityCacheManager {
 					/*
 					 * Verifica se as colunas da chave primária fazem parte da chave estrangeira
 					 */
-//					if (descriptionField.isRelationShip()) {
-//						List<EntityCache> entitiesCache = getEntityCachesByTableName(referencedCache.getTableName());
-//						DescriptionColumn referenceColumn = null;
-//						for (EntityCache ec : entitiesCache) {
-//							for (DescriptionColumn rc : ec.getPrimaryKeyColumns()) {
-//								if (!descriptionField.hasReferencedDescriptionColumn(rc.getColumnName())) {
-//									referenceColumn = rc;
-//									break;
-//								}
-//							}
-//							if (referenceColumn != null)
-//								break;
-//						}
-//						if (referenceColumn != null) {
-//							throw new EntityCacheException("A coluna " + referenceColumn.getColumnName() + " não foi encontrada referenciada no campo "
-//									+ descriptionField.getName() + " da classe " + descriptionField.getEntityCache().getEntityClass().getName()
-//									+ " verifique se as colunas da chave estrangeira estão corretas.");
-//						}
-//					}
+					// if (descriptionField.isRelationShip()) {
+					// List<EntityCache> entitiesCache = getEntityCachesByTableName(referencedCache.getTableName());
+					// DescriptionColumn referenceColumn = null;
+					// for (EntityCache ec : entitiesCache) {
+					// for (DescriptionColumn rc : ec.getPrimaryKeyColumns()) {
+					// if (!descriptionField.hasReferencedDescriptionColumn(rc.getColumnName())) {
+					// referenceColumn = rc;
+					// break;
+					// }
+					// }
+					// if (referenceColumn != null)
+					// break;
+					// }
+					// if (referenceColumn != null) {
+					// throw new EntityCacheException("A coluna " + referenceColumn.getColumnName() +
+					// " não foi encontrada referenciada no campo "
+					// + descriptionField.getName() + " da classe " +
+					// descriptionField.getEntityCache().getEntityClass().getName()
+					// + " verifique se as colunas da chave estrangeira estão corretas.");
+					// }
+					// }
 				}
 			}
 		}
@@ -469,21 +471,38 @@ public class EntityCacheManager {
 						column.setReferencedColumn(refColumn);
 					}
 				} else if (descriptionField.getModeType() == FetchMode.MANY_TO_MANY) {
-					for (DescriptionColumn column : descriptionField.getDescriptionColumns()) {
-						if (column.isInversedJoinColumn())
-							refCache = getEntityCache(descriptionField.getTargetClass());
-						else
-							refCache = descriptionField.getEntityCache();
+					if (descriptionField.isMappedBy()) {
+						DescriptionMappedBy mapped;
+						try {
+							mapped = descriptionField.getDescriptionMappedBy();
+							mapped.setEntityCache(entities.get(descriptionField.getTargetClass()));
+						} catch (Exception ex) {
+							throw new EntityCacheException("Erro lendo classe " + cache.getEntityClass().getName() + ". " + " campo "
+									+ descriptionField.getName() + " " + ex.getMessage());
+						}
+						if (mapped.getEntityCache().getDescriptionField(mapped.getMappedBy()) == null) {
+							throw new EntityCacheException("O mapeamento do campo " + descriptionField.getName() + " da classe "
+									+ cache.getEntityClass().getName() + " está incorreto. O mapeamento configurado em mappedBy=" + mapped.getMappedBy()
+									+ " não foi encontrado na classe " + mapped.getEntityCache().getEntityClass().getName());
+						}
+						descriptionField.setDescriptionMappedBy(mapped);
+					} else {
+						for (DescriptionColumn column : descriptionField.getDescriptionColumns()) {
+							if (column.isInversedJoinColumn())
+								refCache = getEntityCache(descriptionField.getTargetClass());
+							else
+								refCache = descriptionField.getEntityCache();
 
-						descriptionField.setTargetEntity(refCache);
-						DescriptionColumn refColumn = refCache.getDescriptionColumnByColumnName(column.getReferencedColumnName());
-						if (refColumn == null)
-							throw new EntityCacheException("A Coluna referenciada " + column.getReferencedColumnName() + ", do field "
-									+ descriptionField.getField().getName() + " na entidade " + cache.getEntityClass().getName()
-									+ " não foi localizada na entidade " + descriptionField.getTargetClass().getName());
+							descriptionField.setTargetEntity(refCache);
+							DescriptionColumn refColumn = refCache.getDescriptionColumnByColumnName(column.getReferencedColumnName());
+							if (refColumn == null)
+								throw new EntityCacheException("A Coluna referenciada " + column.getReferencedColumnName() + ", do field "
+										+ descriptionField.getField().getName() + " na entidade " + cache.getEntityClass().getName()
+										+ " não foi localizada na entidade " + descriptionField.getTargetClass().getName());
 
-						column.setReferencedColumn(refColumn);
-						column.setReferencedTableName(refCache.getTableName());
+							column.setReferencedColumn(refColumn);
+							column.setReferencedTableName(refCache.getTableName());
+						}
 					}
 				}
 			}
@@ -2044,7 +2063,8 @@ public class EntityCacheManager {
 		if (fieldConfiguration.isAnnotationPresent(Cascade.class))
 			descriptionField.setCascadeTypes(fieldConfiguration.getCascadeTypes());
 
-		if ((descriptionField.getModeType() == FetchMode.ONE_TO_MANY) || (descriptionField.getModeType() == FetchMode.FOREIGN_KEY))
+		if ((descriptionField.getModeType() == FetchMode.ONE_TO_MANY) || (descriptionField.getModeType() == FetchMode.FOREIGN_KEY)
+				|| (descriptionField.getModeType() == FetchMode.MANY_TO_MANY))
 			descriptionField.setDescriptionMappedBy(new DescriptionMappedBy(fieldConfiguration.getFetch().getMappedBy()));
 
 		descriptionField.setFetchType(fieldConfiguration.getFetch().getType());
