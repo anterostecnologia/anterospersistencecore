@@ -597,84 +597,6 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		return false;
 	}
 
-//	protected List getResultListByEntityHandler(Class<?> resultClass, Object objectToRefresh) throws Exception,
-//			SQLQueryAnalyzerException, SQLException {
-//		List result;
-//		if (resultClassDefinitionsList.size() == 0)
-//			throw new SQLQueryException("Defina uma entidade ou coluna de retorno para a consulta SQL.");
-//
-//		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
-//
-//		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
-//		ResultSetHandler handler = null;
-//
-//		SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance().get(
-//				resultClass.getName() + ":" + sql);
-//		if (analyzerResult == null) {
-//			analyzerResult = new SQLQueryAnalyzer(session.getEntityCacheManager(), session.getDialect(),
-//					!SQLQueryAnalyzer.IGNORE_NOT_USED_ALIAS_TABLE).analyze(sql, resultClass);
-//			PersistenceMetadataCache.getInstance().put(resultClass.getName() + ":" + sql, analyzerResult);
-//		}
-//
-//		SQLCache transactionCache = new SQLCache();
-//
-//		String parsedSql = analyzerResult.getParsedSql();
-//
-//		Map<Integer, NamedParameter> tempNamedParameters = new TreeMap<Integer, NamedParameter>(this.namedParameters);
-//		Map<Integer, Object> tempParameters = new TreeMap<Integer, Object>(this.parameters);
-//
-//		parsedSql = appendLimit(parsedSql, tempParameters, tempNamedParameters);
-//
-//		if (readOnly || lockOptions == null)
-//			lockOptions = LockOptions.NONE;
-//
-//		try {
-//			if (entityCache == null)
-//				handler = new BeanHandler(resultClass);
-//			else {
-//				if (sql.toLowerCase().indexOf(entityCache.getTableName().toLowerCase()) < 0) {
-//					throw new SQLException("A tabela " + entityCache.getTableName() + " da classe "
-//							+ resultClass.getName()
-//							+ " não foi localizada no SQL informado. Não será possível executar a consulta.");
-//				}
-//				/*
-//				 * Cria um cópia do LockOptions e adiciona as colunas dos
-//				 * aliases caso o usuário tenha informado pegando o nome das
-//				 * colunas do resultado da análise do SQL.
-//				 */
-//
-//				LockOptions lockOpts = lockOptions.copy(lockOptions, new LockOptions());
-//				lockOpts.setAliasesToLock(analyzerResult.getColumnNamesToLock(lockOptions.getAliasesToLock()));
-//				parsedSql = (session.getDialect().supportsLock() ? session.applyLock(parsedSql, resultClass, lockOpts)
-//						: parsedSql);
-//
-//				handler = session.createNewEntityHandler(resultClass, analyzerResult.getExpressionsFieldMapper(),
-//						analyzerResult.getColumnAliases(), transactionCache, allowDuplicateObjects, objectToRefresh,
-//						firstResult, maxResults, readOnly, lockOptions);
-//			}
-//
-//			if (tempParameters.size() > 0)
-//				result = (List) session.getRunner().query(session.getConnection(), parsedSql, handler,
-//						tempParameters.values().toArray(), showSql, formatSql, timeOut, session.getListeners(),
-//						session.clientId());
-//			else if (tempNamedParameters.size() > 0)
-//				result = (List) session.getRunner().query(session.getConnection(), parsedSql, handler,
-//						tempNamedParameters.values().toArray(new NamedParameter[] {}), showSql, formatSql, timeOut,
-//						session.getListeners(), session.clientId());
-//			else
-//				result = (List) session.getRunner().query(session.getConnection(), parsedSql, handler, showSql,
-//						formatSql, timeOut, session.getListeners(), session.clientId());
-//		} catch (SQLException ex) {
-//			throw session.getDialect().convertSQLException(ex, "Não foi possível executar a consulta " + parsedSql,
-//					parsedSql);
-//		} finally {
-//			transactionCache.clear();
-//			transactionCache = null;
-//			session.getPersistenceContext().clearCache();
-//		}
-//		return result;
-//	}
-
 	protected String appendLimit(String parsedSql, Map<Integer, Object> parameters,
 			Map<Integer, NamedParameter> namedParameters) {
 		if (maxResults > 0) {
@@ -1499,7 +1421,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		}
 
 		handler = session.createNewEntityHandler(resultClass, analyzerResult.getExpressionsFieldMapper(),
-				analyzerResult.getColumnAliases(), transactionCache, false, null, firstResult, maxResults, readOnly,
+				analyzerResult.getColumnAliases(), transactionCache, allowDuplicateObjects, null, firstResult, maxResults, readOnly,
 				lockOptions);
 		/*
 		 * Cria um cópia do LockOptions e adiciona as colunas dos aliases caso o
@@ -1546,7 +1468,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			PersistenceMetadataCache.getInstance().put(resultClass.getName() + ":" + sql, analyzerResult);
 		}
 		handler = session.createNewEntityHandler(resultClass, analyzerResult.getExpressionsFieldMapper(),
-				analyzerResult.getColumnAliases(), transactionCache, false, null, firstResult, maxResults, readOnly,
+				analyzerResult.getColumnAliases(), transactionCache, allowDuplicateObjects, null, firstResult, maxResults, readOnly,
 				lockOptions);
 
 		/*

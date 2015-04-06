@@ -555,6 +555,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 									 * Cria a query e busca novamente o objeto completo
 									 */
 									SQLQuery query = session.createQuery("");
+									query.allowDuplicateObjects(true);
 									/*
 									 * Extende o lock para as coleções e tabelas de junção
 									 */
@@ -576,6 +577,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 									 * Busca o objeto que será atribuido ao campo do objeto alvo
 									 */
 									SQLQuery query = session.createQuery("");
+									query.allowDuplicateObjects(true);
 
 									/*
 									 * Extende o lock para as coleções e tabelas de junção
