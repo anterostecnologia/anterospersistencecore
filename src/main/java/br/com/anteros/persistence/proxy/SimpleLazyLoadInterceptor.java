@@ -81,10 +81,6 @@ public class SimpleLazyLoadInterceptor {
 				target = query.loadData(entityCache, owner, descriptionFieldOwner,
 						columnKeyValuesTarget, transactionCache);
 
-				if (ownerEntityCache != null) {
-					if ((ownerEntityCache.getCacheScope().equals(ScopeType.TRANSACTION)) && (transactionCache != null))
-						transactionCache.clear();
-				}
 
 				EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(owner);
 				if (entityManaged != null) {
