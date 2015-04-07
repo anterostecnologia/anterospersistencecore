@@ -1839,6 +1839,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	private ResultSetHandler makeSingleValueHandler() throws Exception {
 		parsedNamedParameters = new TreeMap<Integer, NamedParameter>(this.namedParameters);
 		parsedParameters = new TreeMap<Integer, Object>(this.parameters);
+		parsedSql = sql;
 
 		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
 		ResultClassColumnInfo simpleColumn = resultClassDefinitionsList.get(0).getSimpleColumn();
