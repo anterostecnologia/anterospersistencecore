@@ -9,16 +9,16 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.types;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import br.com.anteros.persistence.dsl.osql.Function;
 import br.com.anteros.persistence.dsl.osql.types.Template.Element;
-
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 
 /**
  * TemplateFactory is a factory for {@link Template} instances
@@ -168,7 +168,7 @@ public class TemplateFactory {
             return cache.get(template);
         } else {
             Matcher m = elementPattern.matcher(template);
-            final ImmutableList.Builder<Element> elements = ImmutableList.builder();
+            final List<Element> elements = new ArrayList<Element>();
             int end = 0;
             while (m.find()) {
                 if (m.start() > end) {
@@ -228,7 +228,7 @@ public class TemplateFactory {
             if (end < template.length()) {
                 elements.add(new Template.StaticText(template.substring(end)));
             }
-            Template rv = new Template(template, elements.build());
+            Template rv = new Template(template, elements);
             cache.put(template, rv);
             return rv;
         }

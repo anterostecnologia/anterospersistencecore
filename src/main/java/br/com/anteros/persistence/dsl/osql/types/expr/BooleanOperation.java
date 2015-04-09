@@ -11,14 +11,13 @@ package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operation;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Ops;
 import br.com.anteros.persistence.dsl.osql.types.PredicateOperation;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * BooleanOperation represents boolean operations
@@ -31,11 +30,11 @@ public class BooleanOperation extends BooleanExpression implements Operation<Boo
     private static final long serialVersionUID = 7432281499861357581L;
 
     public static BooleanExpression create(Operator<? super Boolean> op, Expression<?> one) {
-        return new BooleanOperation(op, ImmutableList.<Expression<?>>of(one));
+        return new BooleanOperation(op, ListUtils.<Expression<?>>of(one));
     }
     
     public static BooleanExpression create(Operator<? super Boolean> op, Expression<?> one, Expression<?> two) {
-        return new BooleanOperation(op, ImmutableList.of(one, two));
+        return new BooleanOperation(op, ListUtils.of(one, two));
     }
     
     public static BooleanExpression create(Operator<? super Boolean> op, Expression<?>... args) {
@@ -45,10 +44,10 @@ public class BooleanOperation extends BooleanExpression implements Operation<Boo
     private final PredicateOperation opMixin;
 
     protected BooleanOperation(Operator<? super Boolean> op, Expression<?>... args) {
-        this(op, ImmutableList.copyOf(args));
+        this(op, ListUtils.copyOf(args));
     }
     
-    protected BooleanOperation(Operator<? super Boolean> op, ImmutableList<Expression<?>> args) {
+    protected BooleanOperation(Operator<? super Boolean> op, List<Expression<?>> args) {
         super(new PredicateOperation((Operator)op, args));
         opMixin = (PredicateOperation)mixin;
     }

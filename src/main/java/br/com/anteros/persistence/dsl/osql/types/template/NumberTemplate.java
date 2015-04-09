@@ -11,14 +11,13 @@ package br.com.anteros.persistence.dsl.osql.types.template;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Template;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpression;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpressionImpl;
 import br.com.anteros.persistence.dsl.osql.types.TemplateFactory;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.expr.NumberExpression;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * NumberTemplate defines custom numeric expressions
@@ -32,23 +31,23 @@ public class NumberTemplate<T extends Number & Comparable<?>> extends NumberExpr
     private static final long serialVersionUID = 351057421752203377L;
 
     public static <T extends Number & Comparable<?>> NumberExpression<T> create(Class<T> type, String template) {
-        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of());
+        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of());
     }
     
     public static <T extends Number & Comparable<?>> NumberExpression<T> create(Class<T> type, String template, Object one) {
-        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one));
+        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of(one));
     }
     
     public static <T extends Number & Comparable<?>> NumberExpression<T> create(Class<T> type, String template, Object one, Object two) {
-        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one, two));
+        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of(one, two));
     }
     
     public static <T extends Number & Comparable<?>> NumberExpression<T> create(Class<T> type, String template, Object... args) {
-        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.copyOf(args));
+        return new NumberTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.copyOf(args));
     }
 
     public static <T extends Number & Comparable<?>> NumberExpression<T> create(Class<T> type, Template template, Object... args) {
-        return new NumberTemplate<T>(type, template, ImmutableList.copyOf(args));
+        return new NumberTemplate<T>(type, template, ListUtils.copyOf(args));
     }
 
     public static final NumberExpression<Integer> ONE = create(Integer.class, "1");
@@ -61,7 +60,7 @@ public class NumberTemplate<T extends Number & Comparable<?>> extends NumberExpr
 
     private final TemplateExpressionImpl<T> templateMixin;
 
-    public NumberTemplate(Class<T> type, Template template, ImmutableList<?> args) {
+    public NumberTemplate(Class<T> type, Template template, List<?> args) {
         super(new TemplateExpressionImpl<T>(type, template, args));
         templateMixin = (TemplateExpressionImpl<T>)mixin;
     }

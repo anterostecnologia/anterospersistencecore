@@ -11,7 +11,7 @@ package br.com.anteros.persistence.dsl.osql.util;
 
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import br.com.anteros.core.utils.SetUtils;
 
 /**
  * JavaSyntaxUtils defines reserved keywords for Java
@@ -23,7 +23,7 @@ public final class JavaSyntaxUtils {
 
     private JavaSyntaxUtils() {}
 
-    private static final Set<String> reserved = ImmutableSet.of(
+    private static final Set<String> reserved = SetUtils.of(
     "abstract",
     "assert",
     "boolean",

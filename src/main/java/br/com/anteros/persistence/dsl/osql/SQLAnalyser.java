@@ -297,7 +297,6 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 	 *            Caminho
 	 */
 	private void processColumns(Path<?> path, Path<?> keyPath, String aliasTableName) {
-
 		if (path.getMetadata().getParent() instanceof PathBuilder<?>) {
 			Path<?> sourceOfTargetPath = ((PathBuilder<?>) path.getMetadata().getParent()).getSourceOfTargetPath(path);
 			if (sourceOfTargetPath != null) {
@@ -354,8 +353,9 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 			 * for uma propriedade da entidade, pega o pai mais adequado.
 			 */
 			Path<?> entityPath = this.getAppropriateAliasByEntityPath(path);
-			if (aliasTableName == null)
+			if (aliasTableName == null) {
 				aliasTableName = entityPath.getMetadata().getName();
+			}
 			Path<?> targetPath = path;
 			/*
 			 * Verifica se a propriedade é um ID então pega como caminho o pai dela
@@ -976,8 +976,14 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 		if (isEntity) { // PAP.pessoa
 			if (inOperation) {
 				result = createdAliasesForDynamicJoins.get(path.getMetadata().getParent());
-				if (result == null)
-					result = (EntityPath<?>) path.getMetadata().getParent(); // PAP
+				if (result == null) {
+					if (path.getMetadata().getParent().getMetadata().getPathType() == PathType.COLLECTION_ANY) {
+						SetPath parent = (SetPath) path.getMetadata().getParent().getMetadata().getParent();
+						result = createdAliasesForDynamicJoins.get(parent);
+					} else {
+						result = (EntityPath<?>) path.getMetadata().getParent(); // PAP
+					}
+				}
 			} else {
 				result = createdAliasesForDynamicJoins.get(path);
 			}

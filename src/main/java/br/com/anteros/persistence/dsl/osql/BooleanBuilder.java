@@ -9,11 +9,10 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql;
 
+import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.persistence.dsl.osql.types.ExpressionUtils;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.base.Objects;
 
 /**
  * BooleanBuilder is a cascading builder for {@link Predicate} expressions. BooleanBuilder is a mutable
@@ -110,7 +109,7 @@ public final class BooleanBuilder implements Predicate, Cloneable  {
         if (o == this) {
             return true;
         } else if (o instanceof BooleanBuilder) {
-            return Objects.equal(((BooleanBuilder)o).getValue(), predicate);
+            return ObjectUtils.equal(((BooleanBuilder)o).getValue(), predicate);
         } else {
             return false;
         }

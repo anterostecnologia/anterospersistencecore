@@ -9,6 +9,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.support;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,6 @@ import br.com.anteros.persistence.dsl.osql.types.FactoryExpression;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.util.MathUtils;
 
-import com.google.common.collect.Maps;
 
 /**
  * NumberConversions ensures that the results of a projection involving numeric expressions
@@ -34,7 +34,7 @@ public class NumberConversions<T> extends ExpressionBase<T> implements FactoryEx
 
     private final FactoryExpression<T> expr;
 
-    private final Map<Class<?>, Enum<?>[]> values = Maps.newHashMap();
+    private final Map<Class<?>, Enum<?>[]> values = new HashMap<Class<?>, Enum<?>[]>();
 
     public NumberConversions(FactoryExpression<T> expr) {
         super(expr.getType());

@@ -11,14 +11,13 @@ package br.com.anteros.persistence.dsl.osql.types.template;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Template;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpression;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpressionImpl;
 import br.com.anteros.persistence.dsl.osql.types.TemplateFactory;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.expr.DateTimeExpression;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * DateTimeTemplate defines custom dateTime expressions
@@ -32,28 +31,28 @@ public class DateTimeTemplate<T extends Comparable<?>> extends DateTimeExpressio
     private static final long serialVersionUID = -2289699666347576749L;
 
     public static <T extends Comparable<?>> DateTimeExpression<T> create(Class<T> type, String template) {
-        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of());
+        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of());
     }
     
     public static <T extends Comparable<?>> DateTimeExpression<T> create(Class<T> type, String template, Object one) {
-        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one));
+        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of(one));
     }
     
     public static <T extends Comparable<?>> DateTimeExpression<T> create(Class<T> type, String template, Object one, Object two) {
-        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one, two));
+        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of(one, two));
     }
     
     public static <T extends Comparable<?>> DateTimeExpression<T> create(Class<T> type, String template, Object... args) {
-        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.copyOf(args));
+        return new DateTimeTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.copyOf(args));
     }
 
     public static <T extends Comparable<?>> DateTimeExpression<T> create(Class<T> type, Template template, Object... args) {
-        return new DateTimeTemplate<T>(type, template, ImmutableList.copyOf(args));
+        return new DateTimeTemplate<T>(type, template, ListUtils.copyOf(args));
     }
 
     private final TemplateExpressionImpl<T> templateMixin;
 
-    public DateTimeTemplate(Class<T> type, Template template, ImmutableList<?> args) {
+    public DateTimeTemplate(Class<T> type, Template template, List<?> args) {
         super(new TemplateExpressionImpl<T>(type, template, args));
         templateMixin = (TemplateExpressionImpl<T>)mixin;
     }

@@ -9,13 +9,13 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.OperationImpl;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.OperatorImpl;
 
-import com.google.common.collect.ImmutableList;
 
 /**
  * SQLOps provides SQL specific operators
@@ -126,13 +126,13 @@ public final class SQLOps {
     public static final Operator<Object> WITH_COLUMNS = new OperatorImpl<Object>(NS, "WITH_COLUMNS");
 
     public static final QueryFlag FOR_SHARE_FLAG = new QueryFlag(Position.END, new OperationImpl<Object>(
-            Object.class, FOR_SHARE, ImmutableList.<Expression<?>>of()));
+            Object.class, FOR_SHARE, ListUtils.<Expression<?>>of()));
 
     public static final QueryFlag FOR_UPDATE_FLAG = new QueryFlag(Position.END, new OperationImpl<Object>(
-            Object.class, FOR_UPDATE, ImmutableList.<Expression<?>>of()));
+            Object.class, FOR_UPDATE, ListUtils.<Expression<?>>of()));
 
     public static final QueryFlag NO_WAIT_FLAG = new QueryFlag(Position.END, new OperationImpl<Object>(
-            Object.class, NO_WAIT, ImmutableList.<Expression<?>>of()));
+            Object.class, NO_WAIT,  ListUtils.<Expression<?>>of()));
 
     private SQLOps() {}
 

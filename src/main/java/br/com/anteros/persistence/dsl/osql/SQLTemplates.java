@@ -10,28 +10,18 @@
 package br.com.anteros.persistence.dsl.osql;
 
 import java.lang.reflect.Field;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import br.com.anteros.core.utils.Base64.InputStream;
+import br.com.anteros.core.utils.ClassUtils;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Ops;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpressionImpl;
 import br.com.anteros.persistence.dsl.osql.types.Templates;
-
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Primitives;
 
 /**
  * SQLTemplates extends Templates to provides SQL specific extensions and acts as database specific Dialect for Querydsl
@@ -84,7 +74,7 @@ public class SQLTemplates extends Templates {
 
 	}
 
-	private final Map<Class<?>, String> class2type = Maps.newHashMap();
+	private final Map<Class<?>, String> class2type = new HashMap<Class<?>, String>();
 
 	private final String quoteStr;
 
@@ -336,44 +326,44 @@ public class SQLTemplates extends Templates {
 	}
 
 	public String serialize(String literal, int jdbcType) {
-        switch (jdbcType) {
-            case Types.TIMESTAMP:
-                return "(timestamp '" + literal + "')";
-            case Types.DATE:
-                return "(date '" + literal + "')";
-            case Types.TIME:
-                return "(time '" + literal + "')";
-            case Types.CHAR:
-            case Types.CLOB:
-            case Types.LONGNVARCHAR:
-            case Types.LONGVARCHAR:
-            case Types.NCHAR:
-            case Types.NCLOB:
-            case Types.NVARCHAR:
-            case Types.VARCHAR:
-                return "'" + escapeLiteral(literal) + "'";
-            default:
-                return literal;
-        }
-    }
+		switch (jdbcType) {
+		case Types.TIMESTAMP:
+			return "(timestamp '" + literal + "')";
+		case Types.DATE:
+			return "(date '" + literal + "')";
+		case Types.TIME:
+			return "(time '" + literal + "')";
+		case Types.CHAR:
+		case Types.CLOB:
+		case Types.LONGNVARCHAR:
+		case Types.LONGVARCHAR:
+		case Types.NCHAR:
+		case Types.NCLOB:
+		case Types.NVARCHAR:
+		case Types.VARCHAR:
+			return "'" + escapeLiteral(literal) + "'";
+		default:
+			return literal;
+		}
+	}
 
-    public String escapeLiteral(String str) {
-        StringBuilder builder = new StringBuilder();
-        for (char ch : str.toCharArray()) {
-            if (ch == '\n') {
-                builder.append("\\n");
-                continue;
-            } else if (ch == '\r') {
-                builder.append("\\r");
-                continue;
-            } else if (ch == '\'') {
-                builder.append("''");
-                continue;
-            }
-            builder.append(ch);
-        }
-        return builder.toString();
-    }
+	public String escapeLiteral(String str) {
+		StringBuilder builder = new StringBuilder();
+		for (char ch : str.toCharArray()) {
+			if (ch == '\n') {
+				builder.append("\\n");
+				continue;
+			} else if (ch == '\r') {
+				builder.append("\\r");
+				continue;
+			} else if (ch == '\'') {
+				builder.append("''");
+				continue;
+			}
+			builder.append(ch);
+		}
+		return builder.toString();
+	}
 
 	protected void add(Map<Operator<?>, String> ops) {
 		for (Map.Entry<Operator<?>, String> entry : ops.entrySet()) {
@@ -531,7 +521,7 @@ public class SQLTemplates extends Templates {
 	}
 
 	public String getTypeForClass(Class<?> cl) {
-		Class<?> clazz = Primitives.wrap(cl);
+		Class<?> clazz = ClassUtils.primitiveToWrapper(cl);
 		if (class2type.containsKey(clazz)) {
 			return class2type.get(clazz);
 		} else {

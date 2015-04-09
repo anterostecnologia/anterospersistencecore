@@ -9,14 +9,14 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.types;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.QueryException;
-
-import com.google.common.collect.ImmutableList;
 
 
 /**
@@ -296,7 +296,7 @@ public final class ExpressionUtils {
      * @return
      */
     public static <T> Expression<T> list(Class<T> clazz, Expression<?>... exprs) {
-        return list(clazz, ImmutableList.copyOf(exprs));
+        return list(clazz, ListUtils.copyOf(exprs));
     }
 
 
@@ -409,15 +409,15 @@ public final class ExpressionUtils {
      * @param args
      * @return
      */
-    public static ImmutableList<Expression<?>> distinctList(Expression<?>... args) {
-        final ImmutableList.Builder<Expression<?>> builder = ImmutableList.builder();
+    public static List<Expression<?>> distinctList(Expression<?>... args) {
+        final List<Expression<?>> builder = new ArrayList<Expression<?>>();
         final Set<Expression<?>> set = new HashSet<Expression<?>>(args.length);
         for (Expression<?> arg : args) {
             if (set.add(arg)) {
                 builder.add(arg);
             }
         }
-        return builder.build();
+        return builder;
     }
 
     /**
@@ -426,8 +426,8 @@ public final class ExpressionUtils {
      * @param args
      * @return
      */
-    public static ImmutableList<Expression<?>> distinctList(Expression<?>[]... args) {
-        final ImmutableList.Builder<Expression<?>> builder = ImmutableList.builder();
+    public static List<Expression<?>> distinctList(Expression<?>[]... args) {
+        final List<Expression<?>> builder = new ArrayList<Expression<?>>();
         final Set<Expression<?>> set = new HashSet<Expression<?>>();
         for (Expression<?>[] arr : args) {
             for (Expression<?> arg : arr) {
@@ -436,7 +436,7 @@ public final class ExpressionUtils {
                 }
             }
         }
-        return builder.build();
+        return builder;
     }
 
     /**

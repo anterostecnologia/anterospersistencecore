@@ -11,13 +11,12 @@ package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operation;
 import br.com.anteros.persistence.dsl.osql.types.OperationImpl;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * TimeOperation represents Time operations
@@ -31,11 +30,11 @@ public class TimeOperation<T extends Comparable<?>> extends TimeExpression<T> im
     private static final long serialVersionUID = 9051606798649239240L;
 
     public static <D extends Comparable<?>> TimeExpression<D> create(Class<D> type, Operator<? super D> op, Expression<?> one) {
-        return new TimeOperation<D>(type, op, ImmutableList.<Expression<?>>of(one));
+        return new TimeOperation<D>(type, op, ListUtils.<Expression<?>>of(one));
     }
     
     public static <D extends Comparable<?>> TimeExpression<D> create(Class<D> type, Operator<? super D> op, Expression<?> one, Expression<?> two) {
-        return new TimeOperation<D>(type, op, ImmutableList.of(one, two));
+        return new TimeOperation<D>(type, op, ListUtils.of(one, two));
     }
         
     public static <D extends Comparable<?>> TimeExpression<D> create(Class<D> type, Operator<? super D> op, Expression<?>... args) {
@@ -45,10 +44,10 @@ public class TimeOperation<T extends Comparable<?>> extends TimeExpression<T> im
     private final OperationImpl<T> opMixin;
 
     protected TimeOperation(Class<T> type, Operator<? super T> op, Expression<?>... args) {
-        this(type, op, ImmutableList.copyOf(args));
+        this(type, op, ListUtils.copyOf(args));
     }
 
-    protected TimeOperation(Class<T> type, Operator<? super T> op, ImmutableList<Expression<?>> args) {
+    protected TimeOperation(Class<T> type, Operator<? super T> op, List<Expression<?>> args) {
         super(new OperationImpl<T>(type, op, args));
         this.opMixin = (OperationImpl<T>)mixin;
     }

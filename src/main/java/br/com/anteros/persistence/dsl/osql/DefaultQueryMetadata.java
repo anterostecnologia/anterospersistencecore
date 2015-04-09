@@ -20,6 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import br.com.anteros.core.utils.ListUtils;
+import br.com.anteros.core.utils.MapUtils;
+import br.com.anteros.core.utils.ObjectUtils;
+import br.com.anteros.core.utils.SetUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.ExpressionUtils;
 import br.com.anteros.persistence.dsl.osql.types.IndexHint;
@@ -29,11 +33,6 @@ import br.com.anteros.persistence.dsl.osql.types.ParamsVisitor;
 import br.com.anteros.persistence.dsl.osql.types.Path;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.dsl.osql.types.ValidatingVisitor;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * DefaultQueryMetadata is the default implementation of the {@link QueryMetadata} interface
@@ -46,13 +45,13 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 
 	private boolean distinct;
 
-	private Set<Expression<?>> exprInJoins = ImmutableSet.of();
+	private Set<Expression<?>> exprInJoins = SetUtils.of();
 
-	private List<Expression<?>> groupBy = ImmutableList.of();
+	private List<Expression<?>> groupBy = ListUtils.of();
 
 	private Predicate having;
 
-	private List<JoinExpression> joins = ImmutableList.of();
+	private List<JoinExpression> joins = ListUtils.of();
 
 	private Expression<?> joinTarget;
 
@@ -60,22 +59,22 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 
 	private Predicate joinCondition;
 
-	private Set<JoinFlag> joinFlags = ImmutableSet.of();
+	private Set<JoinFlag> joinFlags = SetUtils.of();
 
 	private QueryModifiers modifiers = QueryModifiers.EMPTY;
 
-	private List<OrderSpecifier<?>> orderBy = ImmutableList.of();
+	private List<OrderSpecifier<?>> orderBy = ListUtils.of();
 
-	private List<Expression<?>> projection = ImmutableList.of();
+	private List<Expression<?>> projection = ListUtils.of();
 
 	// NOTE : this is not necessarily serializable
-	private Map<ParamExpression<?>, Object> params = ImmutableMap.<ParamExpression<?>, Object> of();
+	private Map<ParamExpression<?>, Object> params = MapUtils.<ParamExpression<?>, Object> of();
 
 	private boolean unique;
 
 	private Predicate where;
 
-	private Set<QueryFlag> flags = ImmutableSet.of();
+	private Set<QueryFlag> flags = SetUtils.of();
 
 	private boolean extractParams = true;
 
@@ -100,7 +99,7 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 	}
 
 	public void setIndexHints(List<IndexHint> indexes) {
-		this.indexHints = ImmutableList.copyOf(indexes);
+		this.indexHints = ListUtils.copyOf(indexes);
 	}
 
 	/**
@@ -152,7 +151,7 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 		joinType = null;
 		joinTarget = null;
 		joinCondition = null;
-		joinFlags = ImmutableSet.of();
+		joinFlags = SetUtils.of();
 	}
 
 	@Override
@@ -207,12 +206,12 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 
 	@Override
 	public void clearOrderBy() {
-		orderBy = ImmutableList.of();
+		orderBy = ListUtils.of();
 	}
 
 	@Override
 	public void clearProjection() {
-		projection = ImmutableList.of();
+		projection = ListUtils.of();
 	}
 
 	@Override
@@ -294,7 +293,7 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 	@Override
 	public void reset() {
 		clearProjection();
-		params = ImmutableMap.of();
+		params = MapUtils.of();
 		modifiers = QueryModifiers.EMPTY;
 	}
 
@@ -373,9 +372,9 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 	public boolean equals(Object o) {
 		if (o instanceof QueryMetadata) {
 			QueryMetadata q = (QueryMetadata) o;
-			return q.getFlags().equals(flags) && q.getGroupBy().equals(groupBy) && Objects.equal(q.getHaving(), having) && q.isDistinct() == distinct
-					&& q.isUnique() == unique && q.getJoins().equals(joins) && Objects.equal(q.getModifiers(), modifiers) && q.getOrderBy().equals(orderBy)
-					&& q.getParams().equals(params) && q.getProjection().equals(projection) && Objects.equal(q.getWhere(), where);
+			return q.getFlags().equals(flags) && q.getGroupBy().equals(groupBy) && ObjectUtils.equal(q.getHaving(), having) && q.isDistinct() == distinct
+					&& q.isUnique() == unique && q.getJoins().equals(joins) && ObjectUtils.equal(q.getModifiers(), modifiers) && q.getOrderBy().equals(orderBy)
+					&& q.getParams().equals(params) && q.getProjection().equals(projection) && ObjectUtils.equal(q.getWhere(), where);
 
 		} else {
 			return false;
@@ -384,7 +383,7 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(flags, groupBy, having, joins, modifiers, orderBy, params, projection, unique, where);
+		return ObjectUtils.hashCode(flags, groupBy, having, joins, modifiers, orderBy, params, projection, unique, where);
 	}
 
 	@Override

@@ -11,7 +11,7 @@ package br.com.anteros.persistence.dsl.osql.types;
 
 import java.io.Serializable;
 
-import com.google.common.base.Objects;
+import br.com.anteros.core.utils.ObjectUtils;
 
 /**
  * PathMetadata provides metadata for {@link Path} expressions.
@@ -48,7 +48,7 @@ public final class PathMetadata<T> implements Serializable{
             PathMetadata<?> p = (PathMetadata<?>) obj;
             return element.equals(p.element) &&
                     pathType == p.pathType &&
-                    Objects.equal(parent, p.parent);
+                    ObjectUtils.equal(parent, p.parent);
         } else {
             return false;
         }

@@ -11,7 +11,9 @@ package br.com.anteros.persistence.dsl.osql.types;
 
 import java.util.Locale;
 
-import com.google.common.base.Function;
+import br.com.anteros.persistence.dsl.osql.Function;
+
+
 
 /**
  * Converters provides expression converters for lower case, upper case and prefix/suffix conversions

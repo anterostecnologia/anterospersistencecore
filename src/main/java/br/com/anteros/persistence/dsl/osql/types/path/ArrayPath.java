@@ -11,6 +11,7 @@ package br.com.anteros.persistence.dsl.osql.types.path;
 
 import java.lang.reflect.AnnotatedElement;
 
+import br.com.anteros.core.utils.ClassUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Ops;
 import br.com.anteros.persistence.dsl.osql.types.Path;
@@ -22,8 +23,6 @@ import br.com.anteros.persistence.dsl.osql.types.expr.ArrayExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.NumberExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.NumberOperation;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleExpression;
-
-import com.google.common.primitives.Primitives;
 
 /**
  * ArrayPath represents an array typed path
@@ -56,7 +55,7 @@ public class ArrayPath<A, E> extends SimpleExpression<A> implements Path<A>, Arr
     public ArrayPath(Class<? super A> type, PathMetadata<?> metadata) {
         super(new PathImpl<A>((Class)type, metadata));
         this.pathMixin = (PathImpl<A>)mixin;
-        this.componentType = Primitives.wrap((Class<E>)type.getComponentType());
+        this.componentType = (Class<E>) ClassUtils.primitiveToWrapper((Class<E>)type.getComponentType());
     }
 
     @Override

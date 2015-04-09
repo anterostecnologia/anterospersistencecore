@@ -11,13 +11,12 @@ package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operation;
 import br.com.anteros.persistence.dsl.osql.types.OperationImpl;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * DateOperation represents Date operations
@@ -32,11 +31,11 @@ public class DateOperation<T extends Comparable<?>> extends
     private static final long serialVersionUID = -7859020164194396995L;
 
     public static <D extends Comparable<?>> DateExpression<D> create(Class<D> type, Operator<? super D> op, Expression<?> one) {
-        return new DateOperation<D>(type, op, ImmutableList.<Expression<?>>of(one));
+        return new DateOperation<D>(type, op, ListUtils.<Expression<?>>of(one));
     }
     
     public static <D extends Comparable<?>> DateExpression<D> create(Class<D> type, Operator<? super D> op, Expression<?> one, Expression<?> two) {
-        return new DateOperation<D>(type, op, ImmutableList.of(one, two));
+        return new DateOperation<D>(type, op, ListUtils.of(one, two));
     }
     
     public static <D extends Comparable<?>> DateExpression<D> create(Class<D> type, Operator<? super D> op, Expression<?>... args) {
@@ -46,10 +45,10 @@ public class DateOperation<T extends Comparable<?>> extends
     private final OperationImpl<T> opMixin;
 
     protected DateOperation(Class<T> type, Operator<? super T> op, Expression<?>... args) {
-        this(type, op, ImmutableList.copyOf(args));
+        this(type, op, ListUtils.copyOf(args));
     }
     
-    protected DateOperation(Class<T> type, Operator<? super T> op, ImmutableList<Expression<?>> args) {
+    protected DateOperation(Class<T> type, Operator<? super T> op, List<Expression<?>> args) {
         super(new OperationImpl<T>(type, op, args));
         this.opMixin = (OperationImpl<T>)mixin;
     }

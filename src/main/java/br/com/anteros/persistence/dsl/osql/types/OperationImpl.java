@@ -14,7 +14,8 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
+import br.com.anteros.core.utils.ListUtils;
+
 
 
 /**
@@ -25,27 +26,29 @@ import com.google.common.collect.ImmutableList;
  * @param <T> expression type
  */
 
+@SuppressWarnings("unchecked")
 public class OperationImpl<T> extends ExpressionBase<T> implements Operation<T> {
 
     private static final long serialVersionUID = 4796432056083507588L;
 
-    private final ImmutableList<Expression<?>> args;
+    private final List<Expression<?>> args;
 
     private final Operator<? super T> operator;
 
     public static <RT> Operation<RT> create(Class<? extends RT> type, Operator<? super RT> operator, Expression<?> one) {
-        return new OperationImpl<RT>(type, operator, ImmutableList.<Expression<?>>of(one));
+        return new OperationImpl<RT>(type, operator, ListUtils.<Expression<?>>of(one));
     }
 
-    public static <RT> Operation<RT> create(Class<? extends RT> type, Operator<? super RT> operator, Expression<?> one, Expression<?> two) {
-        return new OperationImpl<RT>(type, operator, ImmutableList.of(one, two));
+    
+	public static <RT> Operation<RT> create(Class<? extends RT> type, Operator<? super RT> operator, Expression<?> one, Expression<?> two) {
+        return new OperationImpl<RT>(type, operator,   ListUtils.of(one, two));
     }
 
     protected OperationImpl(Class<? extends T> type, Operator<? super T> operator, Expression<?>... args) {
-        this(type, operator, ImmutableList.copyOf(args));
+        this(type, operator, ListUtils.copyOf(args));
     }
 
-    public OperationImpl(Class<? extends T> type, Operator<? super T> operator, ImmutableList<Expression<?>> args) {
+    public OperationImpl(Class<? extends T> type, Operator<? super T> operator, List<Expression<?>> args) {
         super(type);
         this.operator = operator;
         this.args = args;

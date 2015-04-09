@@ -16,6 +16,7 @@ package br.com.anteros.persistence.dsl.osql;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.ExpressionUtils;
 import br.com.anteros.persistence.dsl.osql.types.MutableExpressionBase;
@@ -27,8 +28,6 @@ import br.com.anteros.persistence.dsl.osql.types.expr.ComparableExpressionBase;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleOperation;
 import br.com.anteros.persistence.dsl.osql.types.template.SimpleTemplate;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author tiwe
@@ -64,7 +63,7 @@ public class WithinGroup<T> extends SimpleOperation<T> {
         public SimpleExpression<T> getValue() {
             if (value == null) {
                 int size = 0;
-                ImmutableList.Builder<Expression<?>> args = ImmutableList.builder();
+                List<Expression<?>> args = new ArrayList<Expression<?>>();
                 StringBuilder builder = new StringBuilder();
                 builder.append("{0} within group (");
                 args.add(WithinGroup.this);
@@ -89,7 +88,7 @@ public class WithinGroup<T> extends SimpleOperation<T> {
                 value = new SimpleTemplate<T>(
                         WithinGroup.this.getType(),
                         TemplateFactory.DEFAULT.create(builder.toString()),
-                        args.build());
+                        args);
             }
             return value;
         }
@@ -115,15 +114,15 @@ public class WithinGroup<T> extends SimpleOperation<T> {
     }
 
     public WithinGroup(Class<T> type, Operator op) {
-        super(type, op, ImmutableList.<Expression<?>>of());
+        super(type, op, ListUtils.<Expression<?>>of());
     }
 
     public WithinGroup(Class<T> type, Operator op, Expression<?> arg) {
-        super(type, op, ImmutableList.<Expression<?>>of(arg));
+        super(type, op, ListUtils.<Expression<?>>of(arg));
     }
 
     public WithinGroup(Class<T> type, Operator op, Expression<?> arg1, Expression<?> arg2) {
-        super(type, op, ImmutableList.<Expression<?>>of(arg1, arg2));
+        super(type, op, ListUtils.<Expression<?>>of(arg1, arg2));
     }
 
     public WithinGroup(Class<T> type, Operator op, Expression<?>... args) {

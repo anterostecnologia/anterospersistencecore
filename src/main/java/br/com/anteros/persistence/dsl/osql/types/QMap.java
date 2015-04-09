@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright 2011, Mysema Ltd
- *  
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
  * applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
@@ -9,17 +9,21 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.types;
 
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import br.com.anteros.core.utils.ListUtils;
 
 /**
  * QMap represents a projection of type Map
  * 
- * <p>Usage example</p>
+ * <p>
+ * Usage example
+ * </p>
+ * 
  * <pre>
  * {@code 
  * List<Map<Expression<?>,?> result = query.from(employee).list(new QMap(employee.firstName, employee.lastName));
@@ -27,83 +31,81 @@ import com.google.common.collect.Maps;
  *     System.out.println("firstName " + row.get(employee.firstName));
  *     System.out.println("lastName " + row.get(employee.lastName)); 
  * }
- * } 
+ * }
  * </pre>
  * 
  * @author tiwe
  *
  */
-public class QMap extends ExpressionBase<Map<Expression<?>,?>> implements FactoryExpression<Map<Expression<?>,?>>{
+public class QMap extends ExpressionBase<Map<Expression<?>, ?>> implements FactoryExpression<Map<Expression<?>, ?>> {
 
-    private static final long serialVersionUID = -7545994090073480810L;
+	private static final long serialVersionUID = -7545994090073480810L;
 
-    private final ImmutableList<Expression<?>> args;
-    
-    /**
-     * Create a new QMap instance
-     * 
-     * @param args
-     */
-    public QMap(Expression<?>... args) {
-        super((Class)Map.class);
-        this.args = ImmutableList.copyOf(args);
-    }
-    
-    /**
-     * Create a new QMap instance
-     * 
-     * @param args
-     */
-    public QMap(ImmutableList<Expression<?>> args) {
-        super((Class)Map.class);
-        this.args = args;
-    }
-    
-    /**
-     * Create a new QMap instance
-     * 
-     * @param args
-     */
-    public QMap(Expression<?>[]... args) {
-        super((Class)Map.class);
-        ImmutableList.Builder<Expression<?>> builder = ImmutableList.builder();
-        for (Expression<?>[] exprs: args) {
-            builder.add(exprs);
-        }
-        this.args = builder.build();
-    }
+	private final List<Expression<?>> args;
 
-    @Override
-    
-    public <R, C> R accept(Visitor<R, C> v, C context) {
-        return v.visit(this, context);
-    }
+	/**
+	 * Create a new QMap instance
+	 * 
+	 * @param args
+	 */
+	public QMap(Expression<?>... args) {
+		super((Class) Map.class);
+		this.args = ListUtils.copyOf(args);
+	}
 
-    @Override
-    public List<Expression<?>> getArgs() {
-        return args;
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof FactoryExpression) {
-            FactoryExpression<?> c = (FactoryExpression<?>)obj;
-            return args.equals(c.getArgs()) && getType().equals(c.getType());
-        } else {
-            return false;
-        }
-    }
+	/**
+	 * Create a new QMap instance
+	 * 
+	 * @param args
+	 */
+	public QMap(List<Expression<?>> args) {
+		super((Class) Map.class);
+		this.args = args;
+	}
 
-    @Override
-    
-    public Map<Expression<?>, ?> newInstance(Object... args) {
-        Map<Expression<?>, Object> map = Maps.newHashMap();
-        for (int i = 0; i < args.length; i++) {
-            map.put(this.args.get(i), args[i]);
-        }
-        return map;
-    }
+	/**
+	 * Create a new QMap instance
+	 * 
+	 * @param args
+	 */
+	public QMap(Expression<?>[]... args) {
+		super((Class) Map.class);
+		List<Expression<?>> builder = new ArrayList<Expression<?>>();
+		for (Expression<?>[] exprs : args) {
+			builder.addAll(Arrays.asList(exprs));
+		}
+		this.args = builder;
+	}
+
+	@Override
+	public <R, C> R accept(Visitor<R, C> v, C context) {
+		return v.visit(this, context);
+	}
+
+	@Override
+	public List<Expression<?>> getArgs() {
+		return args;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) {
+			return true;
+		} else if (obj instanceof FactoryExpression) {
+			FactoryExpression<?> c = (FactoryExpression<?>) obj;
+			return args.equals(c.getArgs()) && getType().equals(c.getType());
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public Map<Expression<?>, ?> newInstance(Object... args) {
+		Map<Expression<?>, Object> map = new HashMap<Expression<?>, Object>();
+		for (int i = 0; i < args.length; i++) {
+			map.put(this.args.get(i), args[i]);
+		}
+		return map;
+	}
 
 }

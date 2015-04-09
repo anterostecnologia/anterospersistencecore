@@ -30,7 +30,6 @@ import br.com.anteros.persistence.dsl.osql.types.expr.SimpleExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleOperation;
 import br.com.anteros.persistence.dsl.osql.types.template.SimpleTemplate;
 
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author tiwe
@@ -63,7 +62,7 @@ public class WindowFunction<A> extends MutableExpressionBase<A> {
     public SimpleExpression<A> getValue() {
         if (value == null) {
             int size = 0;
-            ImmutableList.Builder<Expression<?>> args = ImmutableList.builder();
+            List<Expression<?>> args = new ArrayList<Expression<?>>();
             StringBuilder builder = new StringBuilder();
             builder.append("{0} over (");
             args.add(target);
@@ -110,7 +109,7 @@ public class WindowFunction<A> extends MutableExpressionBase<A> {
             value = new SimpleTemplate<A>(
                     target.getType(),
                     TemplateFactory.DEFAULT.create(builder.toString()),
-                    args.build());
+                    args);
         }
         return value;
     }

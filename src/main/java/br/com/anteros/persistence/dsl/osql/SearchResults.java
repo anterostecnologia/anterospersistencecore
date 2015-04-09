@@ -12,7 +12,7 @@ package br.com.anteros.persistence.dsl.osql;
 import java.io.Serializable;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
+import br.com.anteros.core.utils.ListUtils;
 
 /**
  * SearchResults bundles data for paged search results
@@ -24,7 +24,7 @@ public final class SearchResults<T> implements Serializable {
     private static final long serialVersionUID = -4591506147471300909L;
 
     private static final SearchResults<Object> EMPTY = new SearchResults<Object>(
-            ImmutableList.of(), Long.MAX_VALUE, 0l, 0l); 
+    		ListUtils.of(), Long.MAX_VALUE, 0l, 0l); 
     
     @SuppressWarnings("unchecked")
     public static <T> SearchResults<T> emptyResults() {

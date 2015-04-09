@@ -11,6 +11,7 @@ package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.Collection;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.CollectionExpression;
 import br.com.anteros.persistence.dsl.osql.types.ConstantImpl;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
@@ -18,8 +19,6 @@ import br.com.anteros.persistence.dsl.osql.types.ExpressionUtils;
 import br.com.anteros.persistence.dsl.osql.types.Ops;
 import br.com.anteros.persistence.dsl.osql.types.Path;
 import br.com.anteros.persistence.dsl.osql.types.PathImpl;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * SimpleExpression is the base class for Expression implementations.
@@ -182,7 +181,7 @@ public abstract class SimpleExpression<T> extends DslExpression<T> {
         if (right.length == 1) {
             return eq(right[0]);
         } else {
-            return BooleanOperation.create(Ops.IN, mixin, ConstantImpl.create(ImmutableList.copyOf(right)));
+            return BooleanOperation.create(Ops.IN, mixin, ConstantImpl.create(ListUtils.copyOf(right)));
         }
     }
 
@@ -257,7 +256,7 @@ public abstract class SimpleExpression<T> extends DslExpression<T> {
         if (right.length == 1) {
             return ne(right[0]);
         } else {
-            return BooleanOperation.create(Ops.NOT_IN, mixin, ConstantImpl.create(ImmutableList.copyOf(right)));
+            return BooleanOperation.create(Ops.NOT_IN, mixin, ConstantImpl.create(ListUtils.copyOf(right)));
         }
     }
 

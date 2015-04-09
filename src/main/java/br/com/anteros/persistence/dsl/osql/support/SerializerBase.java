@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.JoinFlag;
 import br.com.anteros.persistence.dsl.osql.QueryFlag;
 import br.com.anteros.persistence.dsl.osql.types.Constant;
@@ -28,8 +29,6 @@ import br.com.anteros.persistence.dsl.osql.types.Template;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpression;
 import br.com.anteros.persistence.dsl.osql.types.Templates;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * SerializerBase is a stub for Serializer implementations which serialize query metadata to Strings
@@ -260,9 +259,9 @@ public abstract class SerializerBase<S extends SerializerBase<S>> implements Vis
         final Object element = path.getMetadata().getElement();        
         List<Object> args;
         if (path.getMetadata().getParent() != null) {
-            args = ImmutableList.of(path.getMetadata().getParent(), element);
+            args = ListUtils.of(path.getMetadata().getParent(), element);
         } else {
-            args = ImmutableList.of(element);
+            args = ListUtils.of(element);
         }
         handleTemplate(template, args);
         return null;

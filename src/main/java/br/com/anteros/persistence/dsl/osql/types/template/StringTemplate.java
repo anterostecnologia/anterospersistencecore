@@ -11,14 +11,13 @@ package br.com.anteros.persistence.dsl.osql.types.template;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Template;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpression;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpressionImpl;
 import br.com.anteros.persistence.dsl.osql.types.TemplateFactory;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.expr.StringExpression;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * StringTemplate defines custom String expressions
@@ -31,28 +30,28 @@ public class StringTemplate extends StringExpression implements TemplateExpressi
     private static final long serialVersionUID = 3181686132439356614L;
 
     public static StringExpression create(String template) {
-        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.of());
+        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.of());
     }
     
     public static StringExpression create(String template, Object one) {
-        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.of(one));
+        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.of(one));
     }
     
     public static StringExpression create(String template, Object one, Object two) {
-        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.of(one, two));
+        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.of(one, two));
     }
     
     public static StringExpression create(String template, Object... args) {
-        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.copyOf(args));
+        return new StringTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.copyOf(args));
     }
 
     public static StringExpression create(Template template, Object... args) {
-        return new StringTemplate(template, ImmutableList.copyOf(args));
+        return new StringTemplate(template, ListUtils.copyOf(args));
     }
 
     private final TemplateExpressionImpl<String> templateMixin;
 
-    public StringTemplate(Template template, ImmutableList<?> args) {
+    public StringTemplate(Template template, List<?> args) {
         super(new TemplateExpressionImpl<String>(String.class, template, args));
         this.templateMixin = (TemplateExpressionImpl<String>)mixin;
     }

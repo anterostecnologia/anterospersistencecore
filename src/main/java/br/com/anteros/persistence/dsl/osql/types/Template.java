@@ -12,8 +12,7 @@ package br.com.anteros.persistence.dsl.osql.types;
 import java.io.Serializable;
 import java.util.List;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
+import br.com.anteros.persistence.dsl.osql.Function;
 
 /**
  * Template for {@link Operation}, {@link TemplateExpression} and {@link Path} serialization
@@ -170,11 +169,11 @@ public final class Template implements Serializable {
 
     }
 
-    private final ImmutableList<Element> elements;
+    private final List<Element> elements;
 
     private final String template;
 
-    Template(String template, ImmutableList<Element> elements) {
+    Template(String template, List<Element> elements) {
         this.template = template;
         this.elements = elements;
     }

@@ -12,9 +12,8 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.types.path;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,8 +22,6 @@ import br.com.anteros.persistence.dsl.osql.OSQLQueryException;
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.Path;
 import br.com.anteros.persistence.dsl.osql.types.PathMetadata;
-
-import com.google.common.collect.Maps;
 
 /**
  * EntityPathBase provides a base class for EntityPath implementations
@@ -38,7 +35,7 @@ public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 
 	private static final long serialVersionUID = -8610055828414880996L;
 
-	private final Map<Path<?>, ColumnMetadata> columnMetadata = Maps.newLinkedHashMap();
+	private final Map<Path<?>, ColumnMetadata> columnMetadata = new LinkedHashMap<Path<?>, ColumnMetadata>();
 
 	private final Set<Path<?>> customProjection = new LinkedHashSet<Path<?>>();
 	private final Set<Path<?>> excludeProjection = new LinkedHashSet<Path<?>>();
@@ -94,7 +91,8 @@ public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 	public EntityPath<T> customProjection(Path<?>... args) {
 		for (Path<?> arg : args) {
 			if (arg instanceof SetPath<?, ?>)
-				throw new OSQLQueryException("Não possível fazer join de coleções diretamente. Use o método "+arg+".any() da coleção para projetá-la ou realizar operações. ");
+				throw new OSQLQueryException("Não possível fazer join de coleções diretamente. Use o método " + arg
+						+ ".any() da coleção para projetá-la ou realizar operações. ");
 			customProjection.add(arg);
 		}
 		return this;

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright 2011, Mysema Ltd
- *  
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
  * applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
@@ -10,283 +10,262 @@
 package br.com.anteros.persistence.dsl.osql.util;
 
 import static br.com.anteros.persistence.dsl.osql.util.ArrayUtils.isEmpty;
-import static com.google.common.collect.Iterables.filter;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import br.com.anteros.core.utils.ClassUtils;
+import br.com.anteros.core.utils.ListUtils;
+import br.com.anteros.persistence.dsl.osql.Function;
 import br.com.anteros.persistence.dsl.osql.types.ExpressionException;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.ImmutableClassToInstanceMap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Primitives;
-
-
 
 /**
  *
  * @author Shredder121
  */
+@SuppressWarnings("unchecked")
 public class ConstructorUtils {
 
-    /**
-     * The parameter list for the default constructor;
-     */
-    private static final Class<?>[] NO_ARGS = {};
+	/**
+	 * The parameter list for the default constructor;
+	 */
+	private static final Class<?>[] NO_ARGS = {};
 
-    private static final ClassToInstanceMap<Object> defaultPrimitives
-            = ImmutableClassToInstanceMap.builder()
-            .put(Boolean.TYPE, false)
-            .put(Byte.TYPE, (byte) 0)
-            .put(Character.TYPE, (char) 0)
-            .put(Short.TYPE, (short) 0)
-            .put(Integer.TYPE, 0)
-            .put(Long.TYPE, 0L)
-            .put(Float.TYPE, 0.0F)
-            .put(Double.TYPE, 0.0)
-            .build();
+	private static final Map<Class<?>, Object> defaultPrimitives = new HashMap<Class<?>, Object>();
+	static {
+		defaultPrimitives.put(Boolean.TYPE, false);
+		defaultPrimitives.put(Byte.TYPE, (byte) 0);
+		defaultPrimitives.put(Character.TYPE, (char) 0);
+		defaultPrimitives.put(Short.TYPE, (short) 0);
+		defaultPrimitives.put(Integer.TYPE, 0);
+		defaultPrimitives.put(Long.TYPE, 0L);
+		defaultPrimitives.put(Float.TYPE, 0.0F);
+		defaultPrimitives.put(Double.TYPE, 0.0);
+	}
 
-    /**
-     * Returns the constructor where the formal parameter list matches the
-     * givenTypes argument.
-     *
-     * It is advisable to first call
-     * {@link #getConstructorParameters(java.lang.Class, java.lang.Class[])}
-     * to get the parameters.
-     *
-     * @param type
-     * @param givenTypes
-     * @return
-     * @throws NoSuchMethodException
-     */
-    public static <C> Constructor<C> getConstructor(Class<C> type, Class<?>[] givenTypes) throws NoSuchMethodException {
-        return type.getConstructor(givenTypes);
-    }
+	/**
+	 * Returns the constructor where the formal parameter list matches the givenTypes argument.
+	 *
+	 * It is advisable to first call {@link #getConstructorParameters(java.lang.Class, java.lang.Class[])} to get the
+	 * parameters.
+	 *
+	 * @param type
+	 * @param givenTypes
+	 * @return
+	 * @throws NoSuchMethodException
+	 */
+	public static <C> Constructor<C> getConstructor(Class<C> type, Class<?>[] givenTypes) throws NoSuchMethodException {
+		return type.getConstructor(givenTypes);
+	}
 
-    /**
-     * Returns the parameters for the constructor that matches the given types.
-     *
-     * @param type
-     * @param givenTypes
-     * @return
-     */
-    public static Class<?>[] getConstructorParameters(Class<?> type, Class<?>[] givenTypes) {
-        next_constructor:
-        for (Constructor<?> constructor : type.getConstructors()) {
-            int matches = 0;
-            Class<?>[] parameters = constructor.getParameterTypes();
-            Iterator<Class<?>> parameterIterator = Arrays
-                    .asList(parameters)
-                    .iterator();
-            if (!isEmpty(givenTypes)
-                    && !isEmpty(parameters)) {
-                Class<?> parameter = null;
-                for (Class<?> argument : givenTypes) {
+	/**
+	 * Returns the parameters for the constructor that matches the given types.
+	 *
+	 * @param type
+	 * @param givenTypes
+	 * @return
+	 */
+	public static Class<?>[] getConstructorParameters(Class<?> type, Class<?>[] givenTypes) {
+		next_constructor: for (Constructor<?> constructor : type.getConstructors()) {
+			int matches = 0;
+			Class<?>[] parameters = constructor.getParameterTypes();
+			Iterator<Class<?>> parameterIterator = Arrays.asList(parameters).iterator();
+			if (!isEmpty(givenTypes) && !isEmpty(parameters)) {
+				Class<?> parameter = null;
+				for (Class<?> argument : givenTypes) {
 
-                    if (parameterIterator.hasNext()) {
-                        parameter = parameterIterator.next();
-                        if (!compatible(parameter, argument)) {
-                            continue next_constructor;
-                        }
-                        matches++;
-                    } else if (constructor.isVarArgs()) {
-                        if (!compatible(parameter, argument)) {
-                            continue next_constructor;
-                        }
-                    } else {
-                        continue next_constructor; //default
-                    }
-                }
-                if (matches == parameters.length) {
-                    return parameters;
-                }
-            } else if (isEmpty(givenTypes)
-                    && isEmpty(parameters)) {
-                return NO_ARGS;
-            }
-        }
-        throw new ExpressionException("No constructor found for " + type.toString()
-                + " with parameters: " + Arrays.deepToString(givenTypes));
-    }
+					if (parameterIterator.hasNext()) {
+						parameter = parameterIterator.next();
+						if (!compatible(parameter, argument)) {
+							continue next_constructor;
+						}
+						matches++;
+					} else if (constructor.isVarArgs()) {
+						if (!compatible(parameter, argument)) {
+							continue next_constructor;
+						}
+					} else {
+						continue next_constructor; // default
+					}
+				}
+				if (matches == parameters.length) {
+					return parameters;
+				}
+			} else if (isEmpty(givenTypes) && isEmpty(parameters)) {
+				return NO_ARGS;
+			}
+		}
+		throw new ExpressionException("No constructor found for " + type.toString() + " with parameters: " + Arrays.deepToString(givenTypes));
+	}
 
-    /**
-     * Returns a list of transformers applicable to the given constructor.
-     *
-     * @param constructor
-     * @return
-     */
-    public static Iterable<Function<Object[], Object[]>> getTransformers(Constructor<?> constructor) {
-        Iterable<ArgumentTransformer> transformers = Lists.newArrayList(
-                new PrimitiveAwareVarArgsTransformer(constructor),
-                new PrimitiveTransformer(constructor),
-                new VarArgsTransformer(constructor));
+	/**
+	 * Returns a list of transformers applicable to the given constructor.
+	 *
+	 * @param constructor
+	 * @return
+	 */
+	public static Iterable<Function<Object[], Object[]>> getTransformers(Constructor<?> constructor) {
+		Iterable<ArgumentTransformer> transformers = new ArrayList<ArgumentTransformer>(Arrays.asList(new PrimitiveAwareVarArgsTransformer(constructor),
+				new PrimitiveTransformer(constructor), new VarArgsTransformer(constructor)));
 
-        return ImmutableList
-                .<Function<Object[], Object[]>>copyOf(filter(transformers, applicableFilter));
-    }
+		List<ArgumentTransformer> transformersFiltered = new ArrayList<ArgumentTransformer>();
+		for (ArgumentTransformer arg : transformers) {
+			if (arg != null && arg.isApplicable()) {
+				transformersFiltered.add(arg);
+			}
+		}
+		return ListUtils.<Function<Object[], Object[]>> copyOf(transformersFiltered);
+	}
 
-    private static Class<?> normalize(Class<?> clazz) {
-        if (clazz.isArray()) {
-            clazz = clazz.getComponentType();
-        }
-        return Primitives.wrap(clazz);
-    }
+	private static Class<?> normalize(Class<?> clazz) {
+		if (clazz.isArray()) {
+			clazz = clazz.getComponentType();
+		}
+		return ClassUtils.primitiveToWrapper(clazz);
+	}
 
-    private static boolean compatible(Class<?> parameter, Class<?> argument) {
-        return normalize(parameter)
-                .isAssignableFrom(normalize(argument));
-    }
+	private static boolean compatible(Class<?> parameter, Class<?> argument) {
+		return normalize(parameter).isAssignableFrom(normalize(argument));
+	}
 
-    private static final Predicate<ArgumentTransformer> applicableFilter
-            = new Predicate<ArgumentTransformer>() {
+	protected static abstract class ArgumentTransformer implements Function<Object[], Object[]> {
 
-                @Override
-                public boolean apply(ArgumentTransformer transformer) {
-                    return transformer != null ? transformer.isApplicable() : false;
-                }
-            };
+		protected Constructor<?> constructor;
+		protected final Class<?>[] paramTypes;
 
-    protected static abstract class ArgumentTransformer implements Function<Object[], Object[]> {
+		public ArgumentTransformer(Constructor<?> constructor) {
+			this(constructor.getParameterTypes());
+			this.constructor = constructor;
+		}
 
-        
-        protected Constructor<?> constructor;
-        protected final Class<?>[] paramTypes;
+		public ArgumentTransformer(Class<?>[] paramTypes) {
+			this.paramTypes = paramTypes;
+		}
 
-        public ArgumentTransformer(Constructor<?> constructor) {
-            this(constructor.getParameterTypes());
-            this.constructor = constructor;
-        }
+		public abstract boolean isApplicable();
+	}
 
-        public ArgumentTransformer(Class<?>[] paramTypes) {
-            this.paramTypes = paramTypes;
-        }
+	private static class VarArgsTransformer extends ArgumentTransformer {
 
-        public abstract boolean isApplicable();
-    }
+		protected final Class<?> componentType;
 
-    private static class VarArgsTransformer extends ArgumentTransformer {
+		private VarArgsTransformer(Constructor<?> constructor) {
+			super(constructor);
 
-        protected final Class<?> componentType;
+			if (paramTypes.length > 0) {
+				componentType = paramTypes[paramTypes.length - 1].getComponentType();
+			} else {
+				componentType = null;
+			}
+		}
 
-        private VarArgsTransformer(Constructor<?> constructor) {
-            super(constructor);
+		@Override
+		public boolean isApplicable() {
+			return constructor != null ? constructor.isVarArgs() : false;
+		}
 
-            if (paramTypes.length > 0) {
-                componentType = paramTypes[paramTypes.length - 1].getComponentType();
-            } else {
-                componentType = null;
-            }
-        }
+		@Override
+		public Object[] apply(Object[] args) {
+			if (isEmpty(args)) {
+				return args;
+			}
+			int current = 0;
 
-        @Override
-        public boolean isApplicable() {
-            return constructor != null ? constructor.isVarArgs() : false;
-        }
+			// constructor args
+			Object[] cargs = new Object[paramTypes.length];
+			for (int i = 0; i < cargs.length - 1; i++) {
+				set(cargs, i, args[current++]);
+			}
+			// array with vargs
+			int size = args.length - cargs.length + 1;
+			Object vargs = Array.newInstance(componentType, size);
+			cargs[cargs.length - 1] = vargs;
+			for (int i = 0; i < Array.getLength(vargs); i++) {
+				set(vargs, i, args[current++]);
+			}
+			return cargs;
+		}
 
-        @Override
-        public Object[] apply(Object[] args) {
-            if (isEmpty(args)) {
-                return args;
-            }
-            int current = 0;
+		private void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+			Array.set(array, index, value);
+		}
 
-            // constructor args
-            Object[] cargs = new Object[paramTypes.length];
-            for (int i = 0; i < cargs.length - 1; i++) {
-                set(cargs, i, args[current++]);
-            }
-            // array with vargs
-            int size = args.length - cargs.length + 1;
-            Object vargs = Array.newInstance(
-                    componentType, size);
-            cargs[cargs.length - 1] = vargs;
-            for (int i = 0; i < Array.getLength(vargs); i++) {
-                set(vargs, i, args[current++]);
-            }
-            return cargs;
-        }
+	}
 
-        private void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
-            Array.set(array, index, value);
-        }
+	private static class PrimitiveTransformer extends ArgumentTransformer {
 
-    }
+		private final Set<Integer> primitiveLocations;
 
-    private static class PrimitiveTransformer extends ArgumentTransformer {
+		private PrimitiveTransformer(Constructor<?> constructor) {
+			super(constructor);
+			Set<Integer> builder = new HashSet<Integer>();
+			Class<?>[] parameterTypes = constructor.getParameterTypes();
+			for (int location = 0; location < parameterTypes.length; location++) {
+				Class<?> parameterType = parameterTypes[location];
 
-        private final Set<Integer> primitiveLocations;
+				if (parameterType.isPrimitive()) {
+					builder.add(location);
+				}
+			}
+			primitiveLocations = builder;
+		}
 
-        private PrimitiveTransformer(Constructor<?> constructor) {
-            super(constructor);
-            ImmutableSet.Builder<Integer> builder = ImmutableSet.builder();
-            Class<?>[] parameterTypes = constructor.getParameterTypes();
-            for (int location = 0; location < parameterTypes.length; location++) {
-                Class<?> parameterType = parameterTypes[location];
+		@Override
+		public boolean isApplicable() {
+			return !primitiveLocations.isEmpty();
+		}
 
-                if (parameterType.isPrimitive()) {
-                    builder.add(location);
-                }
-            }
-            primitiveLocations = builder.build();
-        }
+		@Override
+		public Object[] apply(Object[] args) {
+			if (isEmpty(args)) {
+				return args;
+			}
+			for (Integer location : primitiveLocations) {
+				if (args[location] == null) {
+					Class<?> primitiveClass = paramTypes[location];
+					args[location] = defaultPrimitives.get(primitiveClass);
+				}
+			}
+			return args;
+		}
 
-        @Override
-        public boolean isApplicable() {
-            return !primitiveLocations.isEmpty();
-        }
+	}
 
-        @Override
-        public Object[] apply(Object[] args) {
-            if (isEmpty(args)) {
-                return args;
-            }
-            for (Integer location : primitiveLocations) {
-                if (args[location] == null) {
-                    Class<?> primitiveClass = paramTypes[location];
-                    args[location] = defaultPrimitives.getInstance(primitiveClass);
-                }
-            }
-            return args;
-        }
+	private static class PrimitiveAwareVarArgsTransformer extends VarArgsTransformer {
 
-    }
+		private final Object defaultInstance;
 
-    private static class PrimitiveAwareVarArgsTransformer extends VarArgsTransformer {
+		public PrimitiveAwareVarArgsTransformer(Constructor<?> constructor) {
+			super(constructor);
+			defaultInstance = (componentType != null) ? defaultPrimitives.get(componentType) : null;
+		}
 
-        private final Object defaultInstance;
+		@Override
+		public boolean isApplicable() {
+			return super.isApplicable() && (componentType != null ? componentType.isPrimitive() : false);
+		}
 
-        public PrimitiveAwareVarArgsTransformer(Constructor<?> constructor) {
-            super(constructor);
-            defaultInstance = (componentType != null) ? defaultPrimitives.getInstance(componentType) : null;
-        }
+		@Override
+		public Object[] apply(Object[] args) {
+			if (isEmpty(args)) {
+				return args;
+			}
+			for (int i = paramTypes.length - 1; i < args.length; i++) {
+				if (args[i] == null) {
+					args[i] = defaultInstance;
+				}
+			}
+			return args;
+		}
 
-        @Override
-        public boolean isApplicable() {
-            return super.isApplicable()
-                    && (componentType != null ? componentType.isPrimitive() : false);
-        }
-
-        @Override
-        public Object[] apply(Object[] args) {
-            if (isEmpty(args)) {
-                return args;
-            }
-            for (int i = paramTypes.length - 1; i < args.length; i++) {
-                if (args[i] == null) {
-                    args[i] = defaultInstance;
-                }
-            }
-            return args;
-        }
-
-    }
+	}
 
 }

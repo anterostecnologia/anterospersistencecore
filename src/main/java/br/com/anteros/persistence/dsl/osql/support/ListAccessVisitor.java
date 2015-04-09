@@ -10,6 +10,7 @@
 package br.com.anteros.persistence.dsl.osql.support;
 
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Constant;
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
@@ -32,8 +33,6 @@ import br.com.anteros.persistence.dsl.osql.types.Templates;
 import br.com.anteros.persistence.dsl.osql.types.ToStringVisitor;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.path.EntityPathBase;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * ListAccessVisitor is expression visitor implementation
@@ -85,7 +84,7 @@ public class ListAccessVisitor implements Visitor<Expression<?>,Context> {
                 Predicate predicate = new PredicateTemplate(expr.getTemplate(), args);
                 return !context.paths.isEmpty() ? exists(context, predicate) : predicate;           
             } else {
-                return new TemplateExpressionImpl(expr.getType(), expr.getTemplate(), ImmutableList.copyOf(args));    
+                return new TemplateExpressionImpl(expr.getType(), expr.getTemplate(), ListUtils.copyOf(args));    
             }    
         } else {
             return expr;
@@ -108,10 +107,10 @@ public class ListAccessVisitor implements Visitor<Expression<?>,Context> {
         }
         if (context.replace) {            
             if (expr.getType().equals(Boolean.class)) {
-                Predicate predicate = new PredicateOperation((Operator)expr.getOperator(), ImmutableList.copyOf(args));
+                Predicate predicate = new PredicateOperation((Operator)expr.getOperator(), ListUtils.copyOf(args));
                 return !context.paths.isEmpty() ? exists(context, predicate) : predicate;           
             } else {
-                return new OperationImpl(expr.getType(), expr.getOperator(), ImmutableList.copyOf(args));    
+                return new OperationImpl(expr.getType(), expr.getOperator(), ListUtils.copyOf(args));    
             }    
         } else {
             return expr;

@@ -9,6 +9,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.support;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +39,6 @@ import br.com.anteros.persistence.dsl.osql.types.TemplateExpressionImpl;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.template.BooleanTemplate;
 
-import com.google.common.collect.ImmutableList;
 
 /**
  * ReplaceVisitor is a deep visitor that can be customized to replace segments of
@@ -63,7 +63,7 @@ public class ReplaceVisitor implements Visitor<Expression<?>, Void> {
 
     @Override
     public Expression<?> visit(Operation<?> expr,  Void context) {
-        ImmutableList<Expression<?>> args = visit(expr.getArgs());
+        List<Expression<?>> args = visit(expr.getArgs());
         if (args.equals(expr.getArgs())) {
             return expr;
         } else if (expr instanceof Predicate) {
@@ -149,7 +149,7 @@ public class ReplaceVisitor implements Visitor<Expression<?>, Void> {
 
     @Override
     public Expression<?> visit(TemplateExpression<?> expr,  Void context) {
-        ImmutableList.Builder builder = ImmutableList.builder();
+        List<Object> builder = new ArrayList<Object>();
         for (Object arg : expr.getArgs()) {
             if (arg instanceof Expression) {
                 builder.add(((Expression)arg).accept(this, null));
@@ -157,7 +157,7 @@ public class ReplaceVisitor implements Visitor<Expression<?>, Void> {
                 builder.add(arg);
             }
         }
-        ImmutableList args = builder.build();
+        List<Object> args = builder;
         if (args.equals(expr.getArgs())) {
             return expr;
         } else {
@@ -169,11 +169,11 @@ public class ReplaceVisitor implements Visitor<Expression<?>, Void> {
         }
     }
 
-    private ImmutableList<Expression<?>> visit(List<Expression<?>> args) {
-        ImmutableList.Builder<Expression<?>> builder = ImmutableList.builder();
+    private List<Expression<?>> visit(List<Expression<?>> args) {
+        List<Expression<?>> builder = new ArrayList<Expression<?>>();
         for (Expression<?> arg : args) {
             builder.add(arg.accept(this, null));
         }
-        return builder.build();
+        return builder;
     }
 }

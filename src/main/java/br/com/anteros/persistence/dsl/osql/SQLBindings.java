@@ -9,7 +9,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 /**
  * SQLBindings provides the SQL query string and bindings
@@ -21,9 +21,9 @@ public class SQLBindings {
 
     private final String sql;
 
-    private final ImmutableList<Object> bindings;
+    private final List<Object> bindings;
 
-    public SQLBindings(String sql, ImmutableList<Object> bindings) {
+    public SQLBindings(String sql, List<Object> bindings) {
         this.sql = sql;
         this.bindings = bindings;
     }
@@ -37,7 +37,7 @@ public class SQLBindings {
         return sql;
     }
 
-    public ImmutableList<Object> getBindings() {
+    public List<Object> getBindings() {
         return bindings;
     }
 

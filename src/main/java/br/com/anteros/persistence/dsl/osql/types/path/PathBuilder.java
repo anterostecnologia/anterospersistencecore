@@ -9,6 +9,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.types.path;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
@@ -16,8 +17,6 @@ import br.com.anteros.persistence.dsl.osql.types.Path;
 import br.com.anteros.persistence.dsl.osql.types.PathMetadata;
 import br.com.anteros.persistence.dsl.osql.types.PathMetadataFactory;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleExpression;
-
-import com.google.common.collect.Maps;
 
 /**
  * PathBuilder is an extension to EntityPathBase for dynamic path construction
@@ -41,11 +40,11 @@ public class PathBuilder<T> extends EntityPathBase<T> {
 
 	private static final long serialVersionUID = -1666357914232685088L;
 
-	private final Map<String, PathBuilder<?>> properties = Maps.newHashMap();
+	private final Map<String, PathBuilder<?>> properties = new HashMap<String, PathBuilder<?>>();
 
-	private final Map<Path<?>, Object> propertyMetadata = Maps.newHashMap();
+	private final Map<Path<?>, Object> propertyMetadata = new HashMap<Path<?>, Object>();
 
-	private final Map<Path<?>, Path<?>> sourceTarget = Maps.newHashMap();
+	private final Map<Path<?>, Path<?>> sourceTarget = new HashMap<Path<?>, Path<?>>();
 
 	/**
 	 * Creates a new PathBuilder instance

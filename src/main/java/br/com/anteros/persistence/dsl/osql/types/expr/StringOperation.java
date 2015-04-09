@@ -11,13 +11,12 @@ package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operation;
 import br.com.anteros.persistence.dsl.osql.types.OperationImpl;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * StringOperation represents a String typed operation
@@ -30,11 +29,11 @@ public class StringOperation extends StringExpression implements Operation<Strin
     private static final long serialVersionUID = 6846556373847139549L;
 
     public static StringExpression create(Operator<? super String> op, Expression<?> one) {
-        return new StringOperation(op, ImmutableList.<Expression<?>>of(one));
+        return new StringOperation(op, ListUtils.<Expression<?>>of(one));
     }
     
     public static StringExpression create(Operator<? super String> op, Expression<?> one, Expression<?> two) {
-        return new StringOperation(op, ImmutableList.of(one, two));
+        return new StringOperation(op, ListUtils.of(one, two));
     }
     
     public static StringExpression create(Operator<? super String> op, Expression<?>... args) {
@@ -44,10 +43,10 @@ public class StringOperation extends StringExpression implements Operation<Strin
     private final OperationImpl<String> opMixin;
 
     protected StringOperation(Operator<? super String> op, Expression<?>... args) {
-        this(op, ImmutableList.copyOf(args));
+        this(op, ListUtils.copyOf(args));
     }
 
-    protected StringOperation(Operator<? super String> op, ImmutableList<Expression<?>> args) {
+    protected StringOperation(Operator<? super String> op, List<Expression<?>> args) {
         super(new OperationImpl<String>(String.class, op, args));
         this.opMixin = (OperationImpl<String>)mixin;
     }

@@ -11,14 +11,13 @@ package br.com.anteros.persistence.dsl.osql.types.template;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.PredicateTemplate;
 import br.com.anteros.persistence.dsl.osql.types.Template;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpression;
 import br.com.anteros.persistence.dsl.osql.types.TemplateFactory;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * BooleanTemplate is a custom boolean expression
@@ -31,23 +30,23 @@ public class BooleanTemplate extends BooleanExpression implements TemplateExpres
     private static final long serialVersionUID = 5749369427497731719L;
 
     public static BooleanExpression create(String template) {
-        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.of());
+        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.of());
     }
     
     public static BooleanExpression create(String template, Object one) {
-        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.of(one));
+        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.of(one));
     }
     
     public static BooleanExpression create(String template, Object one, Object two) {
-        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.of(one, two));
+        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.of(one, two));
     }
     
     public static BooleanExpression create(String template, Object... args) {
-        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ImmutableList.copyOf(args));
+        return new BooleanTemplate(TemplateFactory.DEFAULT.create(template), ListUtils.copyOf(args));
     }
 
     public static BooleanExpression create(Template template, Object... args) {
-        return new BooleanTemplate(template, ImmutableList.copyOf(args));
+        return new BooleanTemplate(template, ListUtils.copyOf(args));
     }
     
     public static final BooleanExpression TRUE = create("true");
@@ -56,7 +55,7 @@ public class BooleanTemplate extends BooleanExpression implements TemplateExpres
 
     private final PredicateTemplate templateMixin;
 
-    public BooleanTemplate(Template template, ImmutableList<?> args) {
+    public BooleanTemplate(Template template, List<?> args) {
         super(new PredicateTemplate(template, args));
         this.templateMixin = (PredicateTemplate)mixin;
     }

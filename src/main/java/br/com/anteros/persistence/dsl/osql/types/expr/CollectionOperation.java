@@ -10,13 +10,13 @@
 package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.Collection;
+import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.OperationImpl;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author tiwe
@@ -31,11 +31,12 @@ public class CollectionOperation<E> extends CollectionExpressionBase<Collection<
     private final OperationImpl<Collection<E>> opMixin;
 
     public static <E> CollectionOperation<E> create(Operator<?> op, Class<E> type, Expression<?> one) {
-        return new CollectionOperation<E>(op, type, ImmutableList.<Expression<?>>of(one));
+        return new CollectionOperation<E>(op, type, ListUtils.<Expression<?>>of(one));
     }
 
-    public static <E> CollectionOperation<E> create(Operator<?> op, Class<E> type, Expression<?> one, Expression<?> two) {
-        return new CollectionOperation<E>(op, type, ImmutableList.of(one, two));
+    @SuppressWarnings("unchecked")
+	public static <E> CollectionOperation<E> create(Operator<?> op, Class<E> type, Expression<?> one, Expression<?> two) {
+        return new CollectionOperation<E>(op, type, ListUtils.of(one, two));
     }
 
     public static <E> CollectionOperation<E> create(Operator<?> op, Class<E> type, Expression<?>... args) {
@@ -43,10 +44,10 @@ public class CollectionOperation<E> extends CollectionExpressionBase<Collection<
     }
 
     public CollectionOperation(Operator<?> op, Class<? super E> type, Expression<?>... args) {
-        this(op, type, ImmutableList.copyOf(args));
+        this(op, type, ListUtils.copyOf(args));
     }
 
-    public CollectionOperation(Operator<?> op, Class<? super E> type, ImmutableList<Expression<?>> args) {
+    public CollectionOperation(Operator<?> op, Class<? super E> type, List<Expression<?>> args) {
         super(new OperationImpl(Collection.class, op, args));
         this.opMixin = (OperationImpl)super.mixin;
         this.elementType = (Class<E>)type;

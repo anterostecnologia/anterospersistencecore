@@ -12,7 +12,7 @@ package br.com.anteros.persistence.dsl.osql.types;
 import java.lang.reflect.Array;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
+import br.com.anteros.core.utils.ListUtils;
 
 /**
  * ArrayConstructorExpression extends {@link ExpressionBase} to represent array initializers
@@ -28,7 +28,7 @@ public class ArrayConstructorExpression<T> extends ExpressionBase<T[]> implement
 
     private final Class<T> elementType;
 
-    private final ImmutableList<Expression<?>> args;
+    private final List<Expression<?>> args;
 
     @SuppressWarnings("unchecked")
     public ArrayConstructorExpression(Expression<?>... args) {
@@ -39,7 +39,7 @@ public class ArrayConstructorExpression<T> extends ExpressionBase<T[]> implement
     public ArrayConstructorExpression(Class<T[]> type, Expression<T>... args) {
         super(type);
         this.elementType = (Class<T>)type.getComponentType();
-        this.args = ImmutableList.<Expression<?>>copyOf(args);
+        this.args = ListUtils.<Expression<?>>copyOf(args);
     }
 
     public final Class<T> getElementType() {

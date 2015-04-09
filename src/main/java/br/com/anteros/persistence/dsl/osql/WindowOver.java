@@ -13,11 +13,10 @@
  */
 package br.com.anteros.persistence.dsl.osql;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleOperation;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * WindowOver is the first part of a WindowFunction construction
@@ -31,15 +30,15 @@ public class WindowOver<T> extends SimpleOperation<T> {
     private static final long serialVersionUID = 464583892898579544L;
 
     public WindowOver(Class<T> type, Operator op) {
-        super(type, op, ImmutableList.<Expression<?>>of());
+        super(type, op, ListUtils.<Expression<?>>of());
     }
 
     public WindowOver(Class<T> type, Operator op, Expression<?> arg) {
-        super(type, op, ImmutableList.<Expression<?>>of(arg));
+        super(type, op, ListUtils.<Expression<?>>of(arg));
     }
 
     public WindowOver(Class<T> type, Operator op, Expression<?> arg1, Expression<?> arg2) {
-        super(type, op, ImmutableList.<Expression<?>>of(arg1, arg2));
+        super(type, op, ListUtils.<Expression<?>>of(arg1, arg2));
     }
 
     /**

@@ -11,10 +11,9 @@ package br.com.anteros.persistence.dsl.osql;
 
 import java.io.Serializable;
 
+import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpressionImpl;
-
-import com.google.common.base.Objects;
 
 /**
  * Defines a positioned flag in a Query for customization of query serialization
@@ -123,7 +122,7 @@ public class QueryFlag implements Serializable{
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(position, flag);
+        return ObjectUtils.hashCode(position, flag);
     }
 
     @Override

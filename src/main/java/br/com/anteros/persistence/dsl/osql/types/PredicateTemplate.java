@@ -9,10 +9,9 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.types;
 
+import java.util.List;
 
 
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * PredicateTemplate provides a Boolean typed TemplateExpression implementation 
@@ -36,7 +35,7 @@ public class PredicateTemplate extends TemplateExpressionImpl<Boolean> implement
         super(Boolean.class, template, args);
     }
 
-    public PredicateTemplate(Template template, ImmutableList<?> args) {
+    public PredicateTemplate(Template template, List<?> args) {
         super(Boolean.class, template, args);
     }
     

@@ -12,7 +12,7 @@ package br.com.anteros.persistence.dsl.osql;
 import java.io.Serializable;
 import java.util.List;
 
-import com.google.common.base.Objects;
+import br.com.anteros.core.utils.ObjectUtils;
 
 /**
  * QueryModifiers combines limit and offset info into a single type.
@@ -116,7 +116,7 @@ public final class QueryModifiers implements Serializable{
             return true;
         } else if (o instanceof QueryModifiers) {
             QueryModifiers qm = (QueryModifiers)o;
-            return Objects.equal(qm.getLimit(), limit) && Objects.equal(qm.getOffset(), offset);
+            return ObjectUtils.equal(qm.getLimit(), limit) && ObjectUtils.equal(qm.getOffset(), offset);
         } else {
             return false;
         }
@@ -124,7 +124,7 @@ public final class QueryModifiers implements Serializable{
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(limit, offset);
+        return ObjectUtils.hashCode(limit, offset);
     }
 
 }

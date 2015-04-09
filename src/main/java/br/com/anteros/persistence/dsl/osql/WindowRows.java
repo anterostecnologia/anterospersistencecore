@@ -13,12 +13,11 @@
  */
 package br.com.anteros.persistence.dsl.osql;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import br.com.anteros.persistence.dsl.osql.types.ConstantImpl;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
-
-import com.google.common.collect.Lists;
 
 /**
  * WindowRows provides the building of the rows/range part of the window function expression
@@ -121,7 +120,7 @@ public class WindowRows<A> {
 
     private final StringBuilder str = new StringBuilder();
 
-    private final List<Expression<?>> args = Lists.newArrayList();
+    private final List<Expression<?>> args = new ArrayList<Expression<?>>();
 
     private int offset;
 

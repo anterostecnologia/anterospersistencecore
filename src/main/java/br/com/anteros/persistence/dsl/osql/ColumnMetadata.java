@@ -11,10 +11,9 @@ package br.com.anteros.persistence.dsl.osql;
 
 import java.io.Serializable;
 
+import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.Path;
-
-import com.google.common.base.Objects;
 
 /**
  * Provides metadata like the column name, JDBC type and constraints
@@ -155,7 +154,7 @@ public final class ColumnMetadata implements Serializable {
 			return true;
 		} else if (o instanceof ColumnMetadata) {
 			ColumnMetadata md = (ColumnMetadata) o;
-			return name.equals(md.name) && Objects.equal(jdbcType, md.jdbcType) && nullable == md.nullable && size == md.size
+			return name.equals(md.name) && ObjectUtils.equal(jdbcType, md.jdbcType) && nullable == md.nullable && size == md.size
 					&& decimalDigits == md.decimalDigits;
 		} else {
 			return false;

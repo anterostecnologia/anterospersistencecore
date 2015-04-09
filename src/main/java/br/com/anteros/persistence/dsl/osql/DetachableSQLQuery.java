@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.support.DetachableQuery;
 import br.com.anteros.persistence.dsl.osql.support.Expressions;
@@ -35,8 +36,6 @@ import br.com.anteros.persistence.dsl.osql.types.expr.CollectionOperation;
 import br.com.anteros.persistence.dsl.osql.types.query.ListSubQuery;
 import br.com.anteros.persistence.dsl.osql.types.template.NumberTemplate;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * Abstract superclass for SubQuery implementations
  *
@@ -50,8 +49,7 @@ public abstract class DetachableSQLQuery<Q extends DetachableSQLQuery<Q>> extend
 	public DetachableSQLQuery() {
 		this(SQLTemplates.DEFAULT, new DefaultQueryMetadata().noValidate());
 	}
-	
-	
+
 	public DetachableSQLQuery(SQLTemplates templates) {
 		this(templates, new DefaultQueryMetadata().noValidate());
 	}
@@ -316,7 +314,7 @@ public abstract class DetachableSQLQuery<Q extends DetachableSQLQuery<Q>> extend
 	public SQLBindings getSQL(Expression<?>... exprs) {
 		queryMixin.addProjection(exprs);
 		SQLSerializer serializer = serialize(false);
-		ImmutableList.Builder<Object> args = ImmutableList.builder();
+		List<Object> args = ListUtils.of();
 		Map<ParamExpression<?>, Object> params = getMetadata().getParams();
 		for (Object o : serializer.getConstants()) {
 			if (o instanceof ParamExpression) {
@@ -327,7 +325,7 @@ public abstract class DetachableSQLQuery<Q extends DetachableSQLQuery<Q>> extend
 			}
 			args.add(o);
 		}
-		return new SQLBindings(serializer.toString(), args.build());
+		return new SQLBindings(serializer.toString(), args);
 	}
 
 	@Override

@@ -11,13 +11,15 @@ package br.com.anteros.persistence.dsl.osql.types;
 
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import br.com.anteros.core.utils.SetUtils;
+
 
 /**
  * Ops provides the operators for the fluent query grammar.
  *
  * @author tiwe
  */
+@SuppressWarnings("unchecked")
 public final class Ops {
 
     private static final String NS = Ops.class.getName();
@@ -172,13 +174,13 @@ public final class Ops {
     // subquery operations
     public static final Operator<Boolean> EXISTS = new OperatorImpl<Boolean>(NS, "EXISTS");
 
-    public static final Set<Operator<?>> equalsOps = ImmutableSet.<Operator<?>>of(EQ);
+    public static final Set<Operator<?>> equalsOps = SetUtils.<Operator<?>>of(EQ);
 
-    public static final Set<Operator<?>> notEqualsOps = ImmutableSet.<Operator<?>>of(NE);
+    public static final Set<Operator<?>> notEqualsOps = SetUtils.<Operator<?>>of(NE);
 
-    public static final Set<Operator<?>> compareOps = ImmutableSet.<Operator<?>>of(EQ, NE, LT, GT, GOE, LOE);
+    public static final Set<Operator<?>> compareOps = SetUtils.<Operator<?>>of(EQ, NE, LT, GT, GOE, LOE);
 
-    public static final Set<Operator<?>> aggOps = ImmutableSet.of(
+	public static final Set<Operator<?>> aggOps = SetUtils.of(
             Ops.AggOps.AVG_AGG,
             Ops.AggOps.COUNT_AGG,
             Ops.AggOps.COUNT_DISTINCT_AGG,

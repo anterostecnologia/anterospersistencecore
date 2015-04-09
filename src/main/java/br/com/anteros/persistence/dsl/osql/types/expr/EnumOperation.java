@@ -11,13 +11,12 @@ package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operation;
 import br.com.anteros.persistence.dsl.osql.types.OperationImpl;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * EnumOperation represents enum operations
@@ -31,11 +30,11 @@ public class EnumOperation<T extends Enum<T>> extends EnumExpression<T> implemen
     private static final long serialVersionUID = -3593040852095778453L;
 
     public static <D extends Enum<D>> EnumExpression<D> create(Class<? extends D> type, Operator<? super D> op, Expression<?> one) {
-        return new EnumOperation<D>(type, op, ImmutableList.<Expression<?>>of(one));
+        return new EnumOperation<D>(type, op, ListUtils.<Expression<?>>of(one));
     }
     
     public static <D extends Enum<D>> EnumExpression<D> create(Class<? extends D> type, Operator<? super D> op, Expression<?> one, Expression<?> two) {
-        return new EnumOperation<D>(type, op, ImmutableList.<Expression<?>>of(one, two));
+        return new EnumOperation<D>(type, op, ListUtils.<Expression<?>>of(one, two));
     }
     
     public static <D extends Enum<D>> EnumExpression<D> create(Class<? extends D> type, Operator<? super D> op, Expression<?>... args) {
@@ -45,10 +44,10 @@ public class EnumOperation<T extends Enum<T>> extends EnumExpression<T> implemen
     private final OperationImpl<T> opMixin;
 
     protected EnumOperation(Class<? extends T> type, Operator<? super T> op, Expression<?>... args) {
-        this(type, op, ImmutableList.copyOf(args));
+        this(type, op, ListUtils.copyOf(args));
     }
 
-    protected EnumOperation(Class<? extends T> type, Operator<? super T> op, ImmutableList<Expression<?>> args) {
+    protected EnumOperation(Class<? extends T> type, Operator<? super T> op, List<Expression<?>> args) {
         super(new OperationImpl<T>(type, op, args));
         this.opMixin = (OperationImpl<T>)mixin;
     }

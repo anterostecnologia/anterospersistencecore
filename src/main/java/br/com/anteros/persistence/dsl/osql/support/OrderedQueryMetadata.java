@@ -9,14 +9,13 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.support;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import br.com.anteros.persistence.dsl.osql.DefaultQueryMetadata;
 import br.com.anteros.persistence.dsl.osql.JoinExpression;
 import br.com.anteros.persistence.dsl.osql.JoinType;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
-
-import com.google.common.collect.Lists;
 
 /**
  * OrderedQueryMetadata performs no metadata validation and ensures that FROM elements are before 
@@ -45,7 +44,7 @@ public class OrderedQueryMetadata extends DefaultQueryMetadata {
     @Override
     public List<JoinExpression> getJoins() {
         if (joins == null) {
-            joins = Lists.newArrayList();
+            joins = new ArrayList<JoinExpression>();
             int separator = 0; 
             for (JoinExpression j : super.getJoins()) {
                 if (j.getType() == JoinType.DEFAULT) {

@@ -11,6 +11,7 @@ package br.com.anteros.persistence.dsl.osql.group;
 
 import java.util.NoSuchElementException;
 
+import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.persistence.dsl.osql.Projectable;
 import br.com.anteros.persistence.dsl.osql.Tuple;
 import br.com.anteros.persistence.dsl.osql.lang.CloseableIterator;
@@ -18,8 +19,6 @@ import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.FactoryExpression;
 import br.com.anteros.persistence.dsl.osql.types.FactoryExpressionUtils;
 import br.com.anteros.persistence.dsl.osql.types.QTuple;
-
-import com.google.common.base.Objects;
 
 /**
  * Provides aggregated results as an iterator
@@ -77,7 +76,7 @@ public class GroupByIterate<K, V> extends AbstractGroupByTransformer<K, Closeabl
                         group = new GroupImpl(groupExpressions, maps);
                         groupId = (K) row[0];
                         group.add(row);
-                    } else if (Objects.equal(groupId, row[0])) {
+                    } else if (ObjectUtils.equal(groupId, row[0])) {
                         group.add(row);
                     } else {
                         Group current = group;

@@ -1,10 +1,7 @@
 package br.com.anteros.persistence.handler;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
-
-import br.com.anteros.persistence.dsl.osql.SQLAnalyserColumn;
-
-import com.google.common.collect.ImmutableSet;
 
 public class ResultClassDefinition {
 
@@ -15,7 +12,7 @@ public class ResultClassDefinition {
 	public ResultClassDefinition(Class<?> resultClass, Set<ResultClassColumnInfo> columns) {
 		super();
 		this.resultClass = resultClass;
-		this.columns = ImmutableSet.copyOf(columns);
+		this.columns = new LinkedHashSet<ResultClassColumnInfo>(columns);
 	}
 
 	public Class<?> getResultClass() {
@@ -29,7 +26,6 @@ public class ResultClassDefinition {
 	public Set<ResultClassColumnInfo> getColumns() {
 		return columns;
 	}
-
 
 	@Override
 	public int hashCode() {
@@ -55,9 +51,9 @@ public class ResultClassDefinition {
 			return false;
 		return true;
 	}
-	
-	public ResultClassColumnInfo getSimpleColumn(){
-		if (columns.size()==0)
+
+	public ResultClassColumnInfo getSimpleColumn() {
+		if (columns.size() == 0)
 			return null;
 		return columns.iterator().next();
 	}

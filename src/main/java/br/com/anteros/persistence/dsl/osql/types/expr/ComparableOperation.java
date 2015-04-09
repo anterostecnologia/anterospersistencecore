@@ -11,13 +11,12 @@ package br.com.anteros.persistence.dsl.osql.types.expr;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.Operation;
 import br.com.anteros.persistence.dsl.osql.types.OperationImpl;
 import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * ComparableOperation represents Comparable operations
@@ -38,10 +37,10 @@ public class ComparableOperation<T extends Comparable<?>> extends
     private final OperationImpl<T> opMixin;
 
     protected ComparableOperation(Class<T> type, Operator<? super T> op, Expression<?>... args) {
-        this(type, op, ImmutableList.copyOf(args));
+        this(type, op, ListUtils.copyOf(args));
     }
     
-    protected ComparableOperation(Class<T> type, Operator<? super T> op, ImmutableList<Expression<?>> args) {
+    protected ComparableOperation(Class<T> type, Operator<? super T> op, List<Expression<?>> args) {
         super(new OperationImpl<T>(type, op, args));
         this.opMixin = (OperationImpl<T>)mixin;
     }

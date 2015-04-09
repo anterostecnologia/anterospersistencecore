@@ -18,8 +18,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
+import br.com.anteros.core.utils.ListUtils;
+import br.com.anteros.persistence.dsl.osql.Function;
 
 
 
@@ -54,7 +54,7 @@ public class ConstructorExpression<T> extends ExpressionBase<T> implements Facto
         return new ConstructorExpression<D>(type, paramTypes, args);
     }
 
-    private final ImmutableList<Expression<?>> args;
+    private final List<Expression<?>> args;
 
     private final Class<?>[] parameterTypes;
 
@@ -64,10 +64,10 @@ public class ConstructorExpression<T> extends ExpressionBase<T> implements Facto
     private transient Iterable<Function<Object[], Object[]>> transformers;
 
     public ConstructorExpression(Class<T> type, Class<?>[] paramTypes, Expression<?>... args) {
-        this(type, paramTypes, ImmutableList.copyOf(args));
+        this(type, paramTypes, ListUtils.copyOf(args));
     }
 
-    public ConstructorExpression(Class<T> type, Class<?>[] paramTypes, ImmutableList<Expression<?>> args) {
+    public ConstructorExpression(Class<T> type, Class<?>[] paramTypes, List<Expression<?>> args) {
         super(type);
         this.parameterTypes = getConstructorParameters(type, paramTypes).clone();
         this.args = args;

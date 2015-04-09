@@ -12,7 +12,9 @@ package br.com.anteros.persistence.dsl.osql.types;
 
 
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
+
+import br.com.anteros.core.utils.ListUtils;
 
 /**
  * PredicateOperation provides a Boolean typed Operation implementation 
@@ -29,14 +31,15 @@ public final class PredicateOperation extends OperationImpl<Boolean> implements 
     private volatile Predicate not;
     
     public static PredicateOperation create(Operator<Boolean> operator, Expression<?> one) {
-        return new PredicateOperation(operator, ImmutableList.<Expression<?>>of(one));
+        return new PredicateOperation(operator, ListUtils.<Expression<?>>of(one));
     }
     
-    public static PredicateOperation create(Operator<Boolean> operator, Expression<?> one, Expression<?> two) {
-        return new PredicateOperation(operator, ImmutableList.of(one, two));
+    @SuppressWarnings("unchecked")
+	public static PredicateOperation create(Operator<Boolean> operator, Expression<?> one, Expression<?> two) {
+        return new PredicateOperation(operator, ListUtils.of(one, two));
     }
     
-    public PredicateOperation(Operator<Boolean> operator, ImmutableList<Expression<?>> args) {
+    public PredicateOperation(Operator<Boolean> operator, List<Expression<?>> args) {
         super(Boolean.class, operator, args);
     }
     

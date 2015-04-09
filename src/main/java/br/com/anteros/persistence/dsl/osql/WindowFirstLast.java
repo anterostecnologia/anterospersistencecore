@@ -26,8 +26,6 @@ import br.com.anteros.persistence.dsl.osql.types.expr.ComparableExpressionBase;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleExpression;
 import br.com.anteros.persistence.dsl.osql.types.template.SimpleTemplate;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author tiwe
  *
@@ -90,7 +88,7 @@ public class WindowFirstLast<T> extends MutableExpressionBase<T> {
                 // TODO this check should be static
                 throw new IllegalStateException("No order by arguments given");
             }
-            ImmutableList.Builder<Expression<?>> args = ImmutableList.builder();
+            List<Expression<?>> args = new ArrayList<Expression<?>>();
             StringBuilder builder = new StringBuilder();
             builder.append("{0} keep (dense_rank ");
             args.add(target);
@@ -114,7 +112,7 @@ public class WindowFirstLast<T> extends MutableExpressionBase<T> {
             value = new SimpleTemplate<T>(
                     target.getType(),
                     TemplateFactory.DEFAULT.create(builder.toString()),
-                    args.build());
+                    args);
         }
         return value;
     }

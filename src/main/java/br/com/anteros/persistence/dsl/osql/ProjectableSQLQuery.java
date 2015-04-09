@@ -9,7 +9,9 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,8 +38,6 @@ import br.com.anteros.persistence.dsl.osql.types.query.ListSubQuery;
 import br.com.anteros.persistence.dsl.osql.types.template.NumberTemplate;
 import br.com.anteros.persistence.dsl.osql.types.template.SimpleTemplate;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 /**
  * ProjectableSQLQuery is the base type for SQL query implementations
@@ -405,7 +405,7 @@ public abstract class ProjectableSQLQuery<Q extends ProjectableSQLQuery<Q> & Que
     protected abstract SQLSerializer createSerializer();
 
     private Set<Path<?>> getRootPaths(Collection<Expression<?>> exprs) {
-        Set<Path<?>> paths = Sets.newHashSet();
+        Set<Path<?>> paths = new HashSet<Path<?>>();
         for (Expression<?> e : exprs) {
             Path<?> path = e.accept(PathExtractor.DEFAULT, null);
             if (path != null && !path.getMetadata().isRoot()) {
@@ -457,7 +457,7 @@ public abstract class ProjectableSQLQuery<Q extends ProjectableSQLQuery<Q> & Que
     public SQLBindings getSQL(Expression<?>... exprs) {
         queryMixin.addProjection(exprs);
         SQLSerializer serializer = serialize(false);
-        ImmutableList.Builder<Object> args = ImmutableList.builder();
+        List<Object> args = new ArrayList<Object>();
         Map<ParamExpression<?>, Object> params = getMetadata().getParams();
         for (Object o : serializer.getConstants()) {
             if (o instanceof ParamExpression) {
@@ -468,7 +468,7 @@ public abstract class ProjectableSQLQuery<Q extends ProjectableSQLQuery<Q> & Que
             }
             args.add(o);
         }
-        return new SQLBindings(serializer.toString(), args.build());
+        return new SQLBindings(serializer.toString(), args);
     }
     
     public String toString() {

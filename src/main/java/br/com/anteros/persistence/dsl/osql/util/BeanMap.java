@@ -27,9 +27,8 @@ import br.com.anteros.core.metadata.beans.BeanInfo;
 import br.com.anteros.core.metadata.beans.IntrospectionException;
 import br.com.anteros.core.metadata.beans.Introspector;
 import br.com.anteros.core.metadata.beans.PropertyDescriptor;
-
-import com.google.common.base.Function;
-import com.google.common.primitives.Primitives;
+import br.com.anteros.core.utils.ClassUtils;
+import br.com.anteros.persistence.dsl.osql.Function;
 
 /**
  * An implementation of Map for JavaBeans which uses introspection to
@@ -656,7 +655,7 @@ public class BeanMap extends AbstractMap<String, Object> implements Cloneable {
                 if (types != null && types.length > 0) {
                     Class<?> paramType = types[0];
                     if (paramType.isPrimitive()) {
-                        paramType = Primitives.wrap(paramType);
+                        paramType = ClassUtils.primitiveToWrapper(paramType);
                     }
                     if (!paramType.isAssignableFrom(value.getClass())) {
                         value = convertType(paramType, value);

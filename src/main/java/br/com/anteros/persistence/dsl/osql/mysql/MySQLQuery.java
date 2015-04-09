@@ -19,8 +19,6 @@ import br.com.anteros.persistence.dsl.osql.QueryMetadata;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.query.SQLQuery;
 
-import com.google.common.base.Joiner;
-
 /**
  * MySQLQuery provides MySQL related extensions to SQLQuery
  *
@@ -50,7 +48,6 @@ public class MySQLQuery extends AbstractOSQLQuery<MySQLQuery> {
 
 	private static final String SQL_BIG_RESULT = "sql_big_result ";
 
-	private static final Joiner JOINER = Joiner.on(", ");
 
 	public MySQLQuery(SQLSession session, QueryMetadata metadata) {
 		super(session, new Configuration(session), metadata);
@@ -152,7 +149,7 @@ public class MySQLQuery extends AbstractOSQLQuery<MySQLQuery> {
 	 * @return
 	 */
 	public MySQLQuery forceIndex(String... indexes) {
-		return addJoinFlag(" force index (" + JOINER.join(indexes) + ")", JoinFlag.Position.END);
+		return addJoinFlag(" force index (" + joinIndexes(indexes) + ")", JoinFlag.Position.END);
 	}
 
 	/**
@@ -160,7 +157,7 @@ public class MySQLQuery extends AbstractOSQLQuery<MySQLQuery> {
 	 * @return
 	 */
 	public MySQLQuery ignoreIndex(String... indexes) {
-		return addJoinFlag(" ignore index (" + JOINER.join(indexes) + ")", JoinFlag.Position.END);
+		return addJoinFlag(" ignore index (" + joinIndexes(indexes) + ")", JoinFlag.Position.END);
 	}
 
 	/**
@@ -168,7 +165,19 @@ public class MySQLQuery extends AbstractOSQLQuery<MySQLQuery> {
 	 * @return
 	 */
 	public MySQLQuery useIndex(String... indexes) {
-		return addJoinFlag(" use index (" + JOINER.join(indexes) + ")", JoinFlag.Position.END);
+		return addJoinFlag(" use index (" + joinIndexes(indexes) + ")", JoinFlag.Position.END);
+	}
+
+	protected String joinIndexes(String... indexes) {
+		boolean appendDelimiter = false;
+		String result = "";
+		for (String i : indexes){
+			if (appendDelimiter)
+				result += ",";
+			result += i;
+			appendDelimiter = true;
+		}
+		return result;
 	}
 
 	/**

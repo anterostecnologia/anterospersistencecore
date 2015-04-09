@@ -11,7 +11,7 @@ package br.com.anteros.persistence.dsl.osql.types;
 
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
+import br.com.anteros.core.utils.ListUtils;
 
 /**
  * Default implementation of the {@link TemplateExpression} interface
@@ -25,20 +25,20 @@ public class TemplateExpressionImpl<T> extends ExpressionBase<T> implements Temp
 
     private static final long serialVersionUID = 6951623726800809083L;
 
-    private final ImmutableList<?> args;
+    private final List<?> args;
 
     private final Template template;
 
     public static <C> Expression<C> create(Class<C> cl, String template) {
-        return new TemplateExpressionImpl<C>(cl, TemplateFactory.DEFAULT.create(template), ImmutableList.of());
+        return new TemplateExpressionImpl<C>(cl, TemplateFactory.DEFAULT.create(template), ListUtils.of());
     }
 
     public static <C> Expression<C> create(Class<C> cl, String template, Object one) {
-        return new TemplateExpressionImpl<C>(cl, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one));
+        return new TemplateExpressionImpl<C>(cl, TemplateFactory.DEFAULT.create(template), ListUtils.of(one));
     }
 
     public static <C> Expression<C> create(Class<C> cl, String template, Object one, Object two) {
-        return new TemplateExpressionImpl<C>(cl, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one, two));
+        return new TemplateExpressionImpl<C>(cl, TemplateFactory.DEFAULT.create(template), ListUtils.of(one, two));
     }
 
     public static <C> Expression<C> create(Class<C> cl, String template, Object... args) {
@@ -50,10 +50,10 @@ public class TemplateExpressionImpl<T> extends ExpressionBase<T> implements Temp
     }
 
     protected TemplateExpressionImpl(Class<? extends T> type, Template template, Object... args) {
-        this(type, template, ImmutableList.copyOf(args));
+        this(type, template, ListUtils.copyOf(args));
     }
 
-    public TemplateExpressionImpl(Class<? extends T> type, Template template, ImmutableList<?> args) {
+    public TemplateExpressionImpl(Class<? extends T> type, Template template, List<?> args) {
         super(type);
         this.args = args;
         this.template = template;

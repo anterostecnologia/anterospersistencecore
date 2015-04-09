@@ -11,14 +11,13 @@ package br.com.anteros.persistence.dsl.osql.types.template;
 
 import java.util.List;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.persistence.dsl.osql.types.Template;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpression;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpressionImpl;
 import br.com.anteros.persistence.dsl.osql.types.TemplateFactory;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.expr.SimpleExpression;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * SimpleTemplate defines custom simple expressions
@@ -32,28 +31,28 @@ public class SimpleTemplate<T> extends SimpleExpression<T> implements TemplateEx
     private static final long serialVersionUID = -4697578522909045745L;
 
     public static <T> SimpleExpression<T> create(Class<? extends T> type, String template) {
-        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of());
+        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of());
     }
     
     public static <T> SimpleExpression<T> create(Class<? extends T> type, String template, Object one) {
-        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one));
+        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of(one));
     }
     
     public static <T> SimpleExpression<T> create(Class<? extends T> type, String template, Object one, Object two) {
-        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.of(one, two));
+        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.of(one, two));
     }
     
     public static <T> SimpleExpression<T> create(Class<? extends T> type, String template, Object... args) {
-        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ImmutableList.copyOf(args));
+        return new SimpleTemplate<T>(type, TemplateFactory.DEFAULT.create(template), ListUtils.copyOf(args));
     }
 
     public static <T> SimpleExpression<T> create(Class<? extends T> type, Template template, Object... args) {
-        return new SimpleTemplate<T>(type, template, ImmutableList.copyOf(args));
+        return new SimpleTemplate<T>(type, template, ListUtils.copyOf(args));
     }
 
     private final TemplateExpressionImpl<T> templateMixin;
 
-    public SimpleTemplate(Class<? extends T> type, Template template, ImmutableList<?> args) {
+    public SimpleTemplate(Class<? extends T> type, Template template, List<?> args) {
         super(new TemplateExpressionImpl<T>(type, template, args));
         templateMixin = (TemplateExpressionImpl<T>)mixin;
     }

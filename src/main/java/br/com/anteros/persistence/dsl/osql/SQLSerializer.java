@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import br.com.anteros.core.utils.ListUtils;
 import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.support.Expressions;
@@ -43,9 +44,6 @@ import br.com.anteros.persistence.dsl.osql.types.TemplateFactory;
 import br.com.anteros.persistence.dsl.osql.types.path.DiscriminatorColumnPath;
 import br.com.anteros.persistence.dsl.osql.types.path.DiscriminatorValuePath;
 import br.com.anteros.persistence.metadata.EntityCache;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 
 /**
  * SqlSerializer serializes Querydsl queries into SQL
@@ -334,7 +332,7 @@ public class SQLSerializer extends SerializerBase<SQLSerializer> {
 	private void serializeSources(List<JoinExpression> joins) {
 		if (joins.isEmpty()) {
 			String dummyTable = configuration.getTemplates().getDummyTable();
-			if (!Strings.isNullOrEmpty(dummyTable)) {
+			if (!StringUtils.isEmpty(dummyTable)) {
 				append(configuration.getTemplates().getFrom());
 				append(dummyTable);
 			}
@@ -511,7 +509,7 @@ public class SQLSerializer extends SerializerBase<SQLSerializer> {
 			if (stage == Stage.SELECT && !Null.class.isInstance(newConstant) && configuration.getTemplates().isWrapSelectParameters()) {
 				String typeName = configuration.getTemplates().getTypeForCast(newConstant.getClass());
 				Expression type = Expressions.constant(typeName);
-				super.visitOperation(newConstant.getClass(), SQLOps.CAST, ImmutableList.<Expression<?>> of(Q, type));
+				super.visitOperation(newConstant.getClass(), SQLOps.CAST, ListUtils.<Expression<?>> of(Q, type));
 			} else {
 				append("?");
 			}
@@ -691,16 +689,16 @@ public class SQLSerializer extends SerializerBase<SQLSerializer> {
 			} else if (operator == Ops.LIKE && args.get(1) instanceof Constant) {
 				final String escape = String.valueOf(configuration.getTemplates().getEscapeChar());
 				final String escaped = args.get(1).toString().replace(escape, escape + escape);
-				super.visitOperation(String.class, Ops.LIKE, ImmutableList.of(args.get(0), ConstantImpl.create(escaped)));
+				super.visitOperation(String.class, Ops.LIKE, ListUtils.of(args.get(0), ConstantImpl.create(escaped)));
 
 			} else if (operator == Ops.STRING_CAST) {
 				final String typeName = configuration.convertJavaToDatabaseType(String.class);
-				super.visitOperation(String.class, SQLOps.CAST, ImmutableList.of(args.get(0), ConstantImpl.create(typeName)));
+				super.visitOperation(String.class, SQLOps.CAST, ListUtils.of(args.get(0), ConstantImpl.create(typeName)));
 
 			} else if (operator == Ops.NUMCAST) {
 				final Class<?> targetType = (Class<?>) ((Constant<?>) args.get(1)).getConstant();
 				final String typeName = configuration.convertJavaToDatabaseType(targetType);
-				super.visitOperation(targetType, SQLOps.CAST, ImmutableList.of(args.get(0), ConstantImpl.create(typeName)));
+				super.visitOperation(targetType, SQLOps.CAST, ListUtils.of(args.get(0), ConstantImpl.create(typeName)));
 
 			} else if (operator == Ops.ALIAS) {
 				if (stage == Stage.SELECT || stage == Stage.FROM) {

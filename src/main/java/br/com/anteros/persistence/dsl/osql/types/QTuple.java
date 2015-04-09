@@ -10,15 +10,15 @@
 package br.com.anteros.persistence.dsl.osql.types;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import br.com.anteros.core.utils.ListUtils;
+import br.com.anteros.core.utils.MapUtils;
 import br.com.anteros.persistence.dsl.osql.Tuple;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 /**
  * QTuple represents a projection of type Tuple
@@ -50,8 +50,8 @@ import com.google.common.collect.Maps;
 
 public class QTuple extends ExpressionBase<Tuple> implements FactoryExpression<Tuple> {
 
-    private static ImmutableMap<Expression<?>, Integer> createBindings(List<Expression<?>> exprs) {
-        Map<Expression<?>, Integer> map = Maps.newHashMap();
+    private static Map<Expression<?>, Integer> createBindings(List<Expression<?>> exprs) {
+        Map<Expression<?>, Integer> map = new HashMap<Expression<?>, Integer>();
         for (int i = 0; i < exprs.size(); i++) {
             Expression<?> e = exprs.get(i);
             if (e instanceof Operation && ((Operation<?>)e).getOperator() == Ops.ALIAS) {
@@ -59,7 +59,7 @@ public class QTuple extends ExpressionBase<Tuple> implements FactoryExpression<T
             }
             map.put(e, i);
         }
-        return ImmutableMap.copyOf(map);
+        return MapUtils.copyOf(map);
     }
 
     private final class TupleImpl implements Tuple, Serializable {
@@ -121,9 +121,9 @@ public class QTuple extends ExpressionBase<Tuple> implements FactoryExpression<T
 
     private static final long serialVersionUID = -2640616030595420465L;
 
-    private final ImmutableList<Expression<?>> args;
+    private final List<Expression<?>> args;
 
-    private final ImmutableMap<Expression<?>, Integer> bindings;
+    private final Map<Expression<?>, Integer> bindings;
 
     /**
      * Create a new QTuple instance
@@ -132,7 +132,7 @@ public class QTuple extends ExpressionBase<Tuple> implements FactoryExpression<T
      */
     public QTuple(Expression<?>... args) {
         super(Tuple.class);
-        this.args = ImmutableList.copyOf(args);
+        this.args = ListUtils.copyOf(args);
         this.bindings = createBindings(this.args);
     }
 
@@ -141,7 +141,7 @@ public class QTuple extends ExpressionBase<Tuple> implements FactoryExpression<T
      *
      * @param args
      */
-    public QTuple(ImmutableList<Expression<?>> args) {
+    public QTuple(List<Expression<?>> args) {
         super(Tuple.class);
         this.args = args;
         this.bindings = createBindings(this.args);
@@ -154,11 +154,11 @@ public class QTuple extends ExpressionBase<Tuple> implements FactoryExpression<T
      */
     public QTuple(Expression<?>[]... args) {
         super(Tuple.class);
-        ImmutableList.Builder<Expression<?>> builder = ImmutableList.builder();
+        List<Expression<?>> builder = new ArrayList<Expression<?>>();
         for (Expression<?>[] exprs: args) {
-            builder.add(exprs);
+            builder.addAll(Arrays.asList(exprs));
         }
-        this.args = builder.build();
+        this.args = builder;
         this.bindings = createBindings(this.args);
     }
 
