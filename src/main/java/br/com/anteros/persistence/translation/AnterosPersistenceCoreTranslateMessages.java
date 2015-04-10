@@ -5,11 +5,11 @@ import java.util.Map;
 
 import br.com.anteros.core.translation.TranslateMessage;
 
-public class AnterosPersistenceTranslateMessages_ptBR implements TranslateMessage {
+public class AnterosPersistenceCoreTranslateMessages implements TranslateMessage {
 
 	private final Map<String, String> messages = new HashMap<String, String>();
 
-	public AnterosPersistenceTranslateMessages_ptBR() {
+	public AnterosPersistenceCoreTranslateMessages() {
 		messages.put("ToStringVisitor.operation_unknown", "Opera\u00e7\u00e3o desconhecida com estes argumentos {0}");
 
 		messages.put("NamedParameterParserResult.toString", "SQL-> {0} Par\u00e2metros: {1}");

@@ -115,7 +115,7 @@ import br.com.anteros.persistence.session.query.SQLQueryAnalyzerException;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyzerResult;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
 import br.com.anteros.persistence.sql.statement.NamedParameterStatement;
-import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 import br.com.anteros.synchronism.annotation.IdSynchronism;
 import br.com.anteros.synchronism.annotation.Remote;
 
@@ -126,7 +126,7 @@ import br.com.anteros.synchronism.annotation.Remote;
 @SuppressWarnings("unchecked")
 public class EntityCacheManager {
 	
-	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
+	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
 	private Map<Class<? extends Serializable>, EntityCache> entities = new LinkedHashMap<Class<? extends Serializable>, EntityCache>();
 	private Set<ConverterCache> converters = new CompactHashSet<ConverterCache>();
 	private boolean loaded = false;

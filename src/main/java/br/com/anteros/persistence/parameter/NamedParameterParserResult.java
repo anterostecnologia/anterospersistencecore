@@ -20,11 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
 public class NamedParameterParserResult {
 	
-	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
+	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
 
 	private String parsedSql;
 	private Map<String, Object> parsedParams = new LinkedHashMap<String, Object>();

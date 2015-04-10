@@ -18,19 +18,19 @@ package br.com.anteros.persistence.translation;
 import br.com.anteros.core.translation.AbstractCoreTranslate;
 import br.com.anteros.core.translation.TranslateMessage;
 
-public class AnterosPersistenceTranslate extends AbstractCoreTranslate {
+public class AnterosPersistenceCoreTranslate extends AbstractCoreTranslate {
 	
 
-	private static AnterosPersistenceTranslate singleton;
+	private static AnterosPersistenceCoreTranslate singleton;
 
-	public static AnterosPersistenceTranslate getInstance() {
+	public static AnterosPersistenceCoreTranslate getInstance() {
         if ( singleton == null )
-            singleton = new AnterosPersistenceTranslate(AnterosPersistenceTranslateMessages.class);
+            singleton = new AnterosPersistenceCoreTranslate(AnterosPersistenceCoreTranslateMessages.class);
 
-        return (AnterosPersistenceTranslate) singleton;
+        return (AnterosPersistenceCoreTranslate) singleton;
     }    
 	
-	public AnterosPersistenceTranslate(Class<? extends TranslateMessage> translateClass) {
+	public AnterosPersistenceCoreTranslate(Class<? extends TranslateMessage> translateClass) {
 		super(translateClass);
 	}
 }

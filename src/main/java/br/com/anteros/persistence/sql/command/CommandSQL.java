@@ -26,11 +26,11 @@ import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.impl.SQLQueryRunner;
-import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
 public abstract class CommandSQL {
 
-	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
+	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
 	protected String sql;
 	protected List<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 	protected SQLSession session;

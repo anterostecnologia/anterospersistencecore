@@ -31,11 +31,11 @@ import br.com.anteros.persistence.metadata.accessor.PropertyAccessorFactory;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
 import br.com.anteros.persistence.sql.datasource.JDBCDataSource;
 import br.com.anteros.persistence.sql.datasource.JNDIDataSourceFactory;
-import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
 public abstract class AnterosPersistenceConfigurationBase extends AbstractPersistenceConfiguration {
 	
-	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
+	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
 
 	public AnterosPersistenceConfigurationBase() {
 		super();

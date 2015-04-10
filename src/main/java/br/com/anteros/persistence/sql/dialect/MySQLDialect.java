@@ -32,11 +32,11 @@ import br.com.anteros.persistence.session.lock.LockMode;
 import br.com.anteros.persistence.session.lock.LockOptions;
 import br.com.anteros.persistence.session.lock.LockTimeoutException;
 import br.com.anteros.persistence.sql.dialect.type.LimitClauseResult;
-import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
 public class MySQLDialect extends DatabaseDialect {
 
-	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
+	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
 	private static Logger log = LoggerProvider.getInstance().getLogger(MySQLDialect.class.getName());
 
 	public MySQLDialect() {
