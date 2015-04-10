@@ -26,10 +26,11 @@ import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.impl.SQLQueryRunner;
-import br.com.anteros.persistence.util.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
 
 public abstract class CommandSQL {
 
+	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
 	protected String sql;
 	protected List<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 	protected SQLSession session;
@@ -137,7 +138,7 @@ public abstract class CommandSQL {
 
 	@Override
 	public String toString() {
-		return AnterosPersistenceTranslate.getMessage(CommandSQL.class, "toString", sql, namedParameters, targetTableName);
+		return TRANSLATOR.getMessage(CommandSQL.class, "toString", sql, namedParameters, targetTableName);
 	}
 
 	public List<NamedParameter> getNamedParameters() {

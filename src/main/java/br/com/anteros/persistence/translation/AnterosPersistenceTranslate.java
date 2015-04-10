@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package br.com.anteros.persistence.util;
+package br.com.anteros.persistence.translation;
 
-import br.com.anteros.core.utils.AbstractCoreTranslate;
+import br.com.anteros.core.translation.AbstractCoreTranslate;
+import br.com.anteros.core.translation.TranslateMessage;
 
 public class AnterosPersistenceTranslate extends AbstractCoreTranslate {
 	
-	private AnterosPersistenceTranslate(String messageBundleName) {
-		super(messageBundleName);
-	}	
 
-	static {
-		setInstance(new AnterosPersistenceTranslate("anterospersistence_messages"));
+	private static AnterosPersistenceTranslate singleton;
+
+	public static AnterosPersistenceTranslate getInstance() {
+        if ( singleton == null )
+            singleton = new AnterosPersistenceTranslate(AnterosPersistenceTranslateMessages.class);
+
+        return (AnterosPersistenceTranslate) singleton;
+    }    
+	
+	public AnterosPersistenceTranslate(Class<? extends TranslateMessage> translateClass) {
+		super(translateClass);
 	}
 }

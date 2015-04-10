@@ -31,9 +31,11 @@ import br.com.anteros.persistence.metadata.accessor.PropertyAccessorFactory;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
 import br.com.anteros.persistence.sql.datasource.JDBCDataSource;
 import br.com.anteros.persistence.sql.datasource.JNDIDataSourceFactory;
-import br.com.anteros.persistence.util.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
 
 public abstract class AnterosPersistenceConfigurationBase extends AbstractPersistenceConfiguration {
+	
+	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
 
 	public AnterosPersistenceConfigurationBase() {
 		super();
@@ -94,7 +96,7 @@ public abstract class AnterosPersistenceConfigurationBase extends AbstractPersis
 			}
 		}
 		if (dataSource == null)
-			throw new AnterosConfigurationException(AnterosPersistenceTranslate.getMessage(this.getClass(),
+			throw new AnterosConfigurationException(TRANSLATOR.getMessage(this.getClass(),
 					"datasourceNotConfigured"));
 	}
 

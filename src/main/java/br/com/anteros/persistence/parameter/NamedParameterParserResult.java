@@ -20,9 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import br.com.anteros.persistence.util.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
 
 public class NamedParameterParserResult {
+	
+	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
 
 	private String parsedSql;
 	private Map<String, Object> parsedParams = new LinkedHashMap<String, Object>();
@@ -45,7 +47,7 @@ public class NamedParameterParserResult {
 
 	@Override
 	public String toString() {
-		return AnterosPersistenceTranslate.getMessage(NamedParameterParserResult.class, "toString", parsedSql, parsedParams);
+		return TRANSLATOR.getMessage(NamedParameterParserResult.class, "toString", parsedSql, parsedParams);
 	}
 
 	public List<NamedParameter> getNamedParameters() {

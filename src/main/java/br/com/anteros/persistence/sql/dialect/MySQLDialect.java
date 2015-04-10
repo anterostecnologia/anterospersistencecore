@@ -32,10 +32,11 @@ import br.com.anteros.persistence.session.lock.LockMode;
 import br.com.anteros.persistence.session.lock.LockOptions;
 import br.com.anteros.persistence.session.lock.LockTimeoutException;
 import br.com.anteros.persistence.sql.dialect.type.LimitClauseResult;
-import br.com.anteros.persistence.util.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
 
 public class MySQLDialect extends DatabaseDialect {
 
+	private static AnterosPersistenceTranslate TRANSLATOR = AnterosPersistenceTranslate.getInstance();
 	private static Logger log = LoggerProvider.getInstance().getLogger(MySQLDialect.class.getName());
 
 	public MySQLDialect() {
@@ -88,7 +89,7 @@ public class MySQLDialect extends DatabaseDialect {
 
 	@Override
 	public String getSequenceNextValString(String sequenceName) throws Exception {
-		throw new DatabaseDialectException(AnterosPersistenceTranslate.getMessage(MySQLDialect.class, "sequenceException", getClass().getName()));
+		throw new DatabaseDialectException(TRANSLATOR.getMessage(MySQLDialect.class, "sequenceException", getClass().getName()));
 	}
 
 	@Override

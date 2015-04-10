@@ -56,7 +56,7 @@ import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfigu
 import br.com.anteros.persistence.session.SQLSessionFactory;
 //import br.com.anteros.persistence.session.impl.SQLSessionFactoryImpl;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
-import br.com.anteros.persistence.util.AnterosPersistenceTranslate;
+import br.com.anteros.persistence.translation.AnterosPersistenceTranslate;
 
 @Root(name = "anteros-configuration")
 public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfiguration implements
