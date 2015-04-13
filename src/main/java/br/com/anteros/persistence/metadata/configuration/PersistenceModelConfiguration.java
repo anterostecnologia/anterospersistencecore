@@ -244,7 +244,9 @@ public class PersistenceModelConfiguration {
 					 */
 					if (fld.isId() || (fld.isCompositeId())) {
 						for (ColumnConfiguration column : fld.getColumns()) {
-							fieldConfiguration.column(column);
+							ColumnConfiguration newColumn = new ColumnConfiguration(column);
+							newColumn.required(!fieldConfiguration.getForeignKey().isOptional());
+							fieldConfiguration.column(newColumn);
 						}
 					}
 				}

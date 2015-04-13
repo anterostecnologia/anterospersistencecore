@@ -43,6 +43,8 @@ public @interface ForeignKey {
 	FetchMode mode() default FetchMode.FOREIGN_KEY;
 
 	String mappedBy() default "";
+	
+	boolean optional() default true;
 
-	boolean useIndex() default true;
+	boolean orphanRemoval() default false;
 }

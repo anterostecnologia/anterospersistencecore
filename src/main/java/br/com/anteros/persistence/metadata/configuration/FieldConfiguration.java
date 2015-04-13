@@ -15,6 +15,7 @@ package br.com.anteros.persistence.metadata.configuration;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -44,9 +45,13 @@ import br.com.anteros.persistence.metadata.annotation.Index;
 import br.com.anteros.persistence.metadata.annotation.Indexes;
 import br.com.anteros.persistence.metadata.annotation.JoinTable;
 import br.com.anteros.persistence.metadata.annotation.Lob;
+import br.com.anteros.persistence.metadata.annotation.ManyToMany;
+import br.com.anteros.persistence.metadata.annotation.ManyToOne;
 import br.com.anteros.persistence.metadata.annotation.MapKeyColumn;
 import br.com.anteros.persistence.metadata.annotation.MapKeyEnumerated;
 import br.com.anteros.persistence.metadata.annotation.MapKeyTemporal;
+import br.com.anteros.persistence.metadata.annotation.OneToMany;
+import br.com.anteros.persistence.metadata.annotation.OneToOne;
 import br.com.anteros.persistence.metadata.annotation.OrderBy;
 import br.com.anteros.persistence.metadata.annotation.SQLDelete;
 import br.com.anteros.persistence.metadata.annotation.SQLDeleteAll;
@@ -146,8 +151,8 @@ public class FieldConfiguration {
 		this.name = name;
 	}
 
-	public FieldConfiguration column(String name, int length, int precision, int scale, boolean required, String inversedColumn,
-			boolean exportColumn, String defaultValue) {
+	public FieldConfiguration column(String name, int length, int precision, int scale, boolean required, String inversedColumn, boolean exportColumn,
+			String defaultValue) {
 		columns.add(new ColumnConfiguration(name, length, precision, scale, required, inversedColumn, exportColumn, defaultValue));
 		annotations.add(Column.class);
 		return this;
@@ -201,27 +206,43 @@ public class FieldConfiguration {
 	}
 
 	public FieldConfiguration fetch(FetchType type, FetchMode mode, String mappedBy, Class<?> targetEntity, String statement) {
+		ValidateFetch(type);
 		annotations.add(Fetch.class);
 		this.fetch = new FetchConfiguration(statement, type, mode, mappedBy, targetEntity);
 		return this;
 	}
 
-	public FieldConfiguration fetch(FetchConfiguration fechConfiguration) {
+	public FieldConfiguration fetch(FetchConfiguration fetchConfiguration) {
+		ValidateFetch(fetchConfiguration.getType());
 		annotations.add(Fetch.class);
-		this.fetch = fechConfiguration;
+		this.fetch = fetchConfiguration;
 		return this;
 	}
 
-	public FieldConfiguration foreignKey(String statement, FetchType type, FetchMode mode, String mappedBy, boolean useIndex) {
+	protected void ValidateFetch(FetchType fetchType) {
+		if (fetch != null)
+			throw new FieldConfigurationException("O campo " + field.getName()
+					+ "  já possuí uma estratégia de Fetch definida. Não é possível atribuir a estratégia " + fetchType);
+	}
+
+	public FieldConfiguration foreignKey(String statement, FetchType type, FetchMode mode, String mappedBy) {
+		validateForeignKey();
 		annotations.add(ForeignKey.class);
-		this.foreignKey = new ForeignKeyConfiguration(statement, type, mode, mappedBy, useIndex);
+		this.foreignKey = new ForeignKeyConfiguration(statement, type, mode, mappedBy);
 		return this;
 	}
 
 	public FieldConfiguration foreignKey(ForeignKeyConfiguration foreignKeyConfiguration) {
+		validateForeignKey();
 		annotations.add(ForeignKey.class);
 		this.foreignKey = foreignKeyConfiguration;
 		return this;
+	}
+
+	protected void validateForeignKey() {
+		if (foreignKey != null)
+			throw new FieldConfigurationException("O campo " + field.getName()
+					+ "  já possuí uma chave estrangeira configudada. Use apenas um tipo de anotação para informar a chave estrangeira. ");
 	}
 
 	public FieldConfiguration foreignKey() {
@@ -314,15 +335,13 @@ public class FieldConfiguration {
 		return this;
 	}
 
-	public FieldConfiguration cascade(CascadeType[] values) {
+	public FieldConfiguration cascade(CascadeType... values) {
 		annotations.add(Cascade.class);
-		this.cascadeTypes = values;
-		return this;
-	}
+		Set<CascadeType> cascades = new HashSet<CascadeType>(Arrays.asList(cascadeTypes));
+		for (CascadeType c : values)
+			cascades.add(c);
 
-	public FieldConfiguration cascade(CascadeType type) {
-		annotations.add(Cascade.class);
-		this.cascadeTypes = new CascadeType[] { type };
+		this.cascadeTypes = cascades.toArray(new CascadeType[] {});
 		return this;
 	}
 
@@ -467,9 +486,9 @@ public class FieldConfiguration {
 			} else if (annotation instanceof Cascade) {
 				cascade(((Cascade) annotation).values());
 			} else if (annotation instanceof MapKeyEnumerated) {
-				cascade(((Cascade) annotation).values());
+				mapKeyEnumerated(((MapKeyEnumerated) annotation).value());
 			} else if (annotation instanceof MapKeyTemporal) {
-				cascade(((Cascade) annotation).values());
+				mapKeyTemporal(((MapKeyTemporal) annotation).value());
 			} else if (annotation instanceof CollectionTable) {
 				collectionTable(new CollectionTableConfiguration(((CollectionTable) annotation)));
 			} else if (annotation instanceof Column) {
@@ -516,8 +535,37 @@ public class FieldConfiguration {
 				enumerated(((Enumerated) annotation).value());
 			} else if (annotation instanceof Fetch) {
 				fetch(new FetchConfiguration(((Fetch) annotation)));
+			} else if (annotation instanceof ManyToMany) {
+				fetch(new FetchConfiguration(((ManyToMany) annotation)));
+				if (((ManyToOne) annotation).cascade().length > 0) {
+					cascade(((ManyToMany) annotation).cascade());
+				}
+			} else if (annotation instanceof OneToOne) {
+				foreignKey(new ForeignKeyConfiguration(((OneToOne) annotation)));
+				if (((OneToOne) annotation).cascade().length > 0) {
+					cascade(((OneToOne) annotation).cascade());
+					if (((OneToOne) annotation).orphanRemoval()) {
+						cascade(CascadeType.DELETE_ORPHAN);
+					}
+				}
+			} else if (annotation instanceof OneToMany) {
+				fetch(new FetchConfiguration(((OneToMany) annotation)));
+				if (((OneToMany) annotation).cascade().length > 0) {
+					cascade(((OneToMany) annotation).cascade());
+					if (((OneToMany) annotation).orphanRemoval()) {
+						cascade(CascadeType.DELETE_ORPHAN);
+					}
+				}
+			} else if (annotation instanceof ManyToOne) {
+				foreignKey(new ForeignKeyConfiguration(((ManyToOne) annotation)));
+				if (((ManyToOne) annotation).cascade().length > 0) {
+					cascade(((ManyToOne) annotation).cascade());
+				}
 			} else if (annotation instanceof ForeignKey) {
 				foreignKey(new ForeignKeyConfiguration(((ForeignKey) annotation)));
+				if (((ForeignKey) annotation).orphanRemoval()) {
+					cascade(CascadeType.DELETE_ORPHAN);
+				}
 			} else if (annotation instanceof GeneratedValue) {
 				generatedValue(((GeneratedValue) annotation).strategy());
 			} else if (annotation instanceof Id) {
@@ -750,12 +798,12 @@ public class FieldConfiguration {
 		return this;
 	}
 
-	public FieldConfiguration remote(String displayLabel, String mobileActionExport, String mobileActionImport,
-			RemoteParamConfiguration[] importParams, RemoteParamConfiguration[] exportParams, int exportOrderToSendData, String[] exportFields,
-			ConnectivityType importConnectivityType, ConnectivityType exportConnectivityType) {
+	public FieldConfiguration remote(String displayLabel, String mobileActionExport, String mobileActionImport, RemoteParamConfiguration[] importParams,
+			RemoteParamConfiguration[] exportParams, int exportOrderToSendData, String[] exportFields, ConnectivityType importConnectivityType,
+			ConnectivityType exportConnectivityType) {
 		annotations.add(Remote.class);
-		this.remote = new RemoteConfiguration(displayLabel, mobileActionExport, mobileActionImport, importParams, exportParams,
-				exportOrderToSendData, exportFields, importConnectivityType, exportConnectivityType);
+		this.remote = new RemoteConfiguration(displayLabel, mobileActionExport, mobileActionImport, importParams, exportParams, exportOrderToSendData,
+				exportFields, importConnectivityType, exportConnectivityType);
 		return this;
 	}
 
@@ -818,20 +866,20 @@ public class FieldConfiguration {
 		}
 		return null;
 	}
-	
-	public boolean isMap(){
+
+	public boolean isMap() {
 		return ReflectionUtils.isImplementsInterface(this.getField().getType(), Map.class);
 	}
-	
-	public boolean isCollection(){
+
+	public boolean isCollection() {
 		return ReflectionUtils.isImplementsInterface(this.getField().getType(), Collection.class);
 	}
 
 	public boolean isTransient() {
 		return this.isAnnotationPresent(new Class[] { Transient.class });
 	}
-	
-	public boolean isCollectionOrMap(){
+
+	public boolean isCollectionOrMap() {
 		return isCollection() || isMap();
 	}
 
