@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.session.configuration;
 
@@ -28,18 +25,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.simpleframework.xml.Root;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.Transient;
-import org.simpleframework.xml.core.Persister;
-import org.simpleframework.xml.stream.Format;
-
-import br.com.anteros.core.configuration.AnterosBasicConfiguration;
 import br.com.anteros.core.configuration.AnterosCoreProperties;
-import br.com.anteros.core.configuration.DataSourceConfiguration;
-import br.com.anteros.core.configuration.PropertyConfiguration;
-import br.com.anteros.core.configuration.SessionFactoryConfiguration;
-import br.com.anteros.core.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.core.scanner.ClassFilter;
@@ -54,24 +40,50 @@ import br.com.anteros.persistence.metadata.annotation.EnumValues;
 import br.com.anteros.persistence.metadata.comparator.DependencyComparator;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
 import br.com.anteros.persistence.session.SQLSessionFactory;
-//import br.com.anteros.persistence.session.impl.SQLSessionFactoryImpl;
+import br.com.anteros.persistence.session.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
-import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
-@Root(name = "anteros-configuration")
-public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfiguration implements
-		PersistenceConfiguration {
+public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfiguration implements PersistenceConfiguration {
 
 	protected static Logger LOG = LoggerProvider.getInstance().getLogger(AbstractPersistenceConfiguration.class);
 
 	public static final String SECURITY_PACKAGE = "br.com.anteros.security.model";
 	public static final String CONVERTERS_PACKAGE = "br.com.anteros.persistence.metadata.converter.converters";
-	
-	@Transient
+
+	public static final String ANNOTATED_CLASSES = "annotatedClasses";
+
+	public static final String PROPERTIES = "properties/property";
+
+	public static final String LOCATION = "location";
+
+	public static final String ID = "id";
+
+	public static final String CLASS_NAME = "className";
+
+	public static final String VALUE = "value";
+
+	public static final String NAME = "name";
+
+	public static final String PROPERTY = "property";
+
+	public static final String DATA_SOURCE_PROPERTY = "dataSource/property";
+
+	public static final String INCLUDE_SECURITY_MODEL = "include-security-model";
+
+	public static final String DATA_SOURCES = "dataSources/dataSource";
+
+	public static final String DATA_SOURCE = "dataSource";
+
+	public static final String PACKAGE_NAME = "package-name";
+
+	public static final String PACKAGE_SCAN_ENTITY = "package-scan-entity";
+
+	public static final String PLACEHOLDER = "placeholder";
+
+	public static String SESSION_FACTORY_PATH = "anteros-configuration/session-factory";
+
 	protected EntityCacheManager entityCacheManager;
-	@Transient
 	protected DataSource dataSource;
-	@Transient
 	protected PersistenceModelConfiguration modelConfiguration;
 
 	public AbstractPersistenceConfiguration() {
@@ -129,9 +141,7 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	}
 
 	public AbstractPersistenceConfiguration addDataSource(String id, String clazz, PropertyConfiguration[] properties) {
-		DataSourceConfiguration dataSource = new DataSourceConfiguration();
-		dataSource.setId(id);
-		dataSource.setClazz(clazz);
+		DataSourceConfiguration dataSource = new DataSourceConfiguration(id, clazz);
 		for (PropertyConfiguration propertyConfiguration : properties) {
 			dataSource.getProperties().add(propertyConfiguration);
 		}
@@ -158,8 +168,7 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	public AbstractPersistenceConfiguration addDataSource(String id, String clazz, Properties properties) {
 		List<PropertyConfiguration> props = new ArrayList<PropertyConfiguration>();
 		for (Object property : properties.keySet()) {
-			props.add(new PropertyConfiguration().setName((String) property)
-					.setValue((String) properties.get(property)));
+			props.add(new PropertyConfiguration().setName((String) property).setValue((String) properties.get(property)));
 		}
 		return addDataSource(id, clazz, props.toArray(new PropertyConfiguration[] {}));
 	}
@@ -171,8 +180,7 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 
 	public AbstractPersistenceConfiguration addProperties(Properties properties) {
 		for (Object property : properties.keySet()) {
-			addProperty(new PropertyConfiguration().setName((String) property).setValue(
-					(String) properties.get(property)));
+			addProperty(new PropertyConfiguration().setName((String) property).setValue((String) properties.get(property)));
 		}
 		return this;
 	}
@@ -195,12 +203,10 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 				&& (!"".equals(getSessionFactoryConfiguration().getPackageToScanEntity().getPackageName()))) {
 			if (getSessionFactoryConfiguration().isIncludeSecurityModel())
 				getSessionFactoryConfiguration().getPackageToScanEntity().setPackageName(
-						getSessionFactoryConfiguration().getPackageToScanEntity().getPackageName() + ", "
-								+ SECURITY_PACKAGE);
-			String[] packages = StringUtils.tokenizeToStringArray(getSessionFactoryConfiguration()
-					.getPackageToScanEntity().getPackageName(), ", ;");
-			List<Class<?>> scanClasses = ClassPathScanner.scanClasses(new ClassFilter().packages(packages)
-					.annotation(Entity.class).annotation(Converter.class).annotation(EnumValues.class).packageName(CONVERTERS_PACKAGE));
+						getSessionFactoryConfiguration().getPackageToScanEntity().getPackageName() + ", " + SECURITY_PACKAGE);
+			String[] packages = StringUtils.tokenizeToStringArray(getSessionFactoryConfiguration().getPackageToScanEntity().getPackageName(), ", ;");
+			List<Class<?>> scanClasses = ClassPathScanner.scanClasses(new ClassFilter().packages(packages).annotation(Entity.class).annotation(Converter.class)
+					.annotation(EnumValues.class).packageName(CONVERTERS_PACKAGE));
 			if (LOG.isDebugEnabled()) {
 				for (Class<?> cl : scanClasses) {
 					LOG.debug("Encontrado classe scaneada " + cl.getName());
@@ -209,14 +215,13 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 			getSessionFactoryConfiguration().addToAnnotatedClasses(scanClasses);
 		}
 
-		if ((getSessionFactoryConfiguration().getClasses() == null)
-				|| (getSessionFactoryConfiguration().getClasses().size() == 0))
+		if ((getSessionFactoryConfiguration().getClasses() == null) || (getSessionFactoryConfiguration().getClasses().size() == 0))
 			LOG.debug("Não foram encontradas classes representando entidades. Informe o pacote onde elas podem ser localizadas ou informe manualmente cada uma delas.");
 
 		LOG.debug("Preparação das classes concluída.");
 	}
 
-	public abstract SQLSessionFactory buildSessionFactory() throws Exception; 
+	public abstract SQLSessionFactory buildSessionFactory() throws Exception;
 
 	public EntityCacheManager loadEntities(DatabaseDialect databaseDialect) throws Exception {
 		List<Class<? extends Serializable>> classes = getSessionFactoryConfiguration().getClasses();
@@ -253,22 +258,21 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	}
 
 	@Override
-	public AbstractPersistenceConfiguration configure(InputStream xmlConfiguration)
-			throws AnterosConfigurationException {
+	public AbstractPersistenceConfiguration configure(InputStream xmlConfiguration) throws AnterosConfigurationException {
 		try {
-			Serializer serializer = new Persister(new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-			final AbstractPersistenceConfiguration result = serializer.read(this.getClass(), xmlConfiguration);
+			final AbstractPersistenceConfiguration result = parseXmlConfiguration(xmlConfiguration);
 			this.setSessionFactory(result.getSessionFactoryConfiguration());
 			this.dataSource = null;
 			this.buildDataSource();
 			return this;
 		} catch (final InvocationTargetException e) {
-			throw new AnterosConfigurationException("Impossível realizar a leitura do arquivo de configuração."
-					+ e.getTargetException());
+			throw new AnterosConfigurationException("Impossível realizar a leitura do arquivo de configuração." + e.getTargetException());
 		} catch (final Exception e) {
 			throw new AnterosConfigurationException("Impossível realizar a leitura do arquivo de configuração." + e);
 		}
 	}
+
+	protected abstract AbstractPersistenceConfiguration parseXmlConfiguration(InputStream xmlConfiguration) throws Exception;
 
 	protected abstract void buildDataSource() throws Exception;
 
@@ -309,11 +313,9 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	}
 
 	@Override
-	public AbstractPersistenceConfiguration configure(InputStream xmlConfiguration, InputStream placeHolder)
-			throws AnterosConfigurationException {
+	public AbstractPersistenceConfiguration configure(InputStream xmlConfiguration, InputStream placeHolder) throws AnterosConfigurationException {
 		try {
-			Serializer serializer = new Persister(new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-			final AbstractPersistenceConfiguration result = serializer.read(this.getClass(), xmlConfiguration);
+			final AnterosBasicConfiguration result = parseXmlConfiguration(xmlConfiguration);
 			result.setPlaceHolder(placeHolder);
 			this.setSessionFactory(result.getSessionFactoryConfiguration());
 			this.dataSource = null;
@@ -325,8 +327,7 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 			throw new AnterosConfigurationException("Impossível realizar a leitura do arquivo de configuração." + e);
 		}
 	}
-	
-	
+
 	public abstract PropertyAccessorFactory getPropertyAccessorFactory();
 
 }

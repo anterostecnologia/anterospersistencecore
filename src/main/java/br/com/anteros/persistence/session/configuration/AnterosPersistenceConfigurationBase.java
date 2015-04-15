@@ -21,14 +21,11 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import br.com.anteros.core.configuration.DataSourceConfiguration;
-import br.com.anteros.core.configuration.PropertyConfiguration;
-import br.com.anteros.core.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.ResourceUtils;
 import br.com.anteros.core.utils.StringUtils;
-import br.com.anteros.persistence.metadata.accessor.PropertyAccessorFactory;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
+import br.com.anteros.persistence.session.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.persistence.sql.datasource.JDBCDataSource;
 import br.com.anteros.persistence.sql.datasource.JNDIDataSourceFactory;
 import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;

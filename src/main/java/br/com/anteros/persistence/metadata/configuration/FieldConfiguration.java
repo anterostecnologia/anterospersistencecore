@@ -337,7 +337,9 @@ public class FieldConfiguration {
 
 	public FieldConfiguration cascade(CascadeType... values) {
 		annotations.add(Cascade.class);
-		Set<CascadeType> cascades = new HashSet<CascadeType>(Arrays.asList(cascadeTypes));
+		Set<CascadeType> cascades = new HashSet<CascadeType>();
+		if (cascadeTypes != null)
+			cascades.addAll(Arrays.asList(cascadeTypes));
 		for (CascadeType c : values)
 			cascades.add(c);
 

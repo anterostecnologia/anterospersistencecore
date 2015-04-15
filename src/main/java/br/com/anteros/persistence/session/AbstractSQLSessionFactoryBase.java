@@ -21,7 +21,6 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import br.com.anteros.core.configuration.SessionFactoryConfiguration;
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.core.utils.ReflectionUtils;
@@ -29,6 +28,7 @@ import br.com.anteros.persistence.metadata.EntityCacheManager;
 import br.com.anteros.persistence.schema.SchemaManager;
 import br.com.anteros.persistence.schema.type.TableCreationType;
 import br.com.anteros.persistence.session.configuration.AnterosPersistenceProperties;
+import br.com.anteros.persistence.session.configuration.SessionFactoryConfiguration;
 import br.com.anteros.persistence.session.context.CurrentSQLSessionContext;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;

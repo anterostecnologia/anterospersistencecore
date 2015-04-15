@@ -19,8 +19,4 @@ public class FieldConfigurationException extends RuntimeException {
 		super(message, cause);
 	}
 
-	public FieldConfigurationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 }
