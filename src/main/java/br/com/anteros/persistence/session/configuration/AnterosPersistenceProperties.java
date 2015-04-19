@@ -95,4 +95,10 @@ public class AnterosPersistenceProperties {
 	
 	public static final String TRANSACTION_FACTORY = "transaction-factory";
 
+	public static final String ANTEROS_PERSISTENCE_CORE = "ANTEROS_PERSISTENCE_CORE";
+
+	public static final String ANTEROS_PERSISTENCE = "ANTEROS_PERSISTENCE";
+
+	public static final String ANTEROS_SPRING = "ANTEROS_SPRING";
+
 }

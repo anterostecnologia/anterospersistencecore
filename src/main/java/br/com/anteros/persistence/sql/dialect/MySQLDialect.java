@@ -22,21 +22,24 @@ import java.util.Map;
 
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
+import br.com.anteros.core.resource.messages.AnterosBundle;
+import br.com.anteros.core.resource.messages.AnterosResourceBundle;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.SQLTemplates;
 import br.com.anteros.persistence.dsl.osql.templates.MySQLTemplates;
+import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessages;
 import br.com.anteros.persistence.schema.definition.type.ColumnDatabaseType;
+import br.com.anteros.persistence.session.configuration.AnterosPersistenceProperties;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
 import br.com.anteros.persistence.session.lock.LockAcquisitionException;
 import br.com.anteros.persistence.session.lock.LockMode;
 import br.com.anteros.persistence.session.lock.LockOptions;
 import br.com.anteros.persistence.session.lock.LockTimeoutException;
 import br.com.anteros.persistence.sql.dialect.type.LimitClauseResult;
-import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
 public class MySQLDialect extends DatabaseDialect {
 
-	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
+	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,AnterosPersistenceCoreMessages.class);
 	private static Logger log = LoggerProvider.getInstance().getLogger(MySQLDialect.class.getName());
 
 	public MySQLDialect() {
@@ -89,7 +92,7 @@ public class MySQLDialect extends DatabaseDialect {
 
 	@Override
 	public String getSequenceNextValString(String sequenceName) throws Exception {
-		throw new DatabaseDialectException(TRANSLATOR.getMessage(MySQLDialect.class, "sequenceException", getClass().getName()));
+		throw new DatabaseDialectException(MESSAGES.getMessage(MySQLDialect.class.getSimpleName()+".sequenceException", getClass().getName()));
 	}
 
 	@Override

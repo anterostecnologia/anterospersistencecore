@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import br.com.anteros.core.resource.messages.AnterosBundle;
+import br.com.anteros.core.resource.messages.AnterosResourceBundle;
 import br.com.anteros.core.utils.CompactHashSet;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
@@ -109,13 +111,14 @@ import br.com.anteros.persistence.metadata.descriptor.type.FieldType;
 import br.com.anteros.persistence.metadata.descriptor.type.SQLStatementType;
 import br.com.anteros.persistence.metadata.exception.EntityCacheManagerException;
 import br.com.anteros.persistence.parameter.NamedParameterParserResult;
+import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessages;
 import br.com.anteros.persistence.session.cache.PersistenceMetadataCache;
+import br.com.anteros.persistence.session.configuration.AnterosPersistenceProperties;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyzer;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyzerException;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyzerResult;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
 import br.com.anteros.persistence.sql.statement.NamedParameterStatement;
-import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 import br.com.anteros.synchronism.annotation.IdSynchronism;
 import br.com.anteros.synchronism.annotation.Remote;
 
@@ -126,7 +129,7 @@ import br.com.anteros.synchronism.annotation.Remote;
 @SuppressWarnings("unchecked")
 public class EntityCacheManager {
 	
-	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
+	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,AnterosPersistenceCoreMessages.class);
 	private Map<Class<? extends Serializable>, EntityCache> entities = new LinkedHashMap<Class<? extends Serializable>, EntityCache>();
 	private Set<ConverterCache> converters = new CompactHashSet<ConverterCache>();
 	private boolean loaded = false;
@@ -231,7 +234,7 @@ public class EntityCacheManager {
 					for (String param : parserResult.getParsedParams().keySet()) {
 						if ((entityCache.getDescriptionColumnByName(param) == null) && (!descriptionSQL.getSuccessParameter().equalsIgnoreCase(param))
 								&& (descriptionSQL.getParametersId().get(param) == null))
-							throw new EntityCacheException(TRANSLATOR.getMessage(this.getClass(), "descriptionSql.parameter.not.found", param,
+							throw new EntityCacheException(MESSAGES.getMessage(this.getClass().getSimpleName()+".descriptionSql.parameter.not.found", param,
 									descriptionSQL.getSql(), descriptionSQL.getSqlType(), entityCache.getEntityClass().getName()));
 					}
 				}

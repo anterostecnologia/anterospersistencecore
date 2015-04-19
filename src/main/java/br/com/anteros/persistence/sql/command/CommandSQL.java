@@ -20,17 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import br.com.anteros.core.resource.messages.AnterosBundle;
+import br.com.anteros.core.resource.messages.AnterosResourceBundle;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityManaged;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.parameter.NamedParameter;
+import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessages;
 import br.com.anteros.persistence.session.SQLSession;
+import br.com.anteros.persistence.session.configuration.AnterosPersistenceProperties;
 import br.com.anteros.persistence.session.impl.SQLQueryRunner;
-import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
 public abstract class CommandSQL {
 
-	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
+	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,AnterosPersistenceCoreMessages.class);
 	protected String sql;
 	protected List<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 	protected SQLSession session;
@@ -138,7 +141,7 @@ public abstract class CommandSQL {
 
 	@Override
 	public String toString() {
-		return TRANSLATOR.getMessage(CommandSQL.class, "toString", sql, namedParameters, targetTableName);
+		return MESSAGES.getMessage(CommandSQL.class.getSimpleName()+".toString", sql, namedParameters, targetTableName);
 	}
 
 	public List<NamedParameter> getNamedParameters() {

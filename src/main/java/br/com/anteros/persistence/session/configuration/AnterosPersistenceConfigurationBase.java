@@ -21,18 +21,20 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import br.com.anteros.core.resource.messages.AnterosBundle;
+import br.com.anteros.core.resource.messages.AnterosResourceBundle;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.ResourceUtils;
 import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
+import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessages;
 import br.com.anteros.persistence.session.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.persistence.sql.datasource.JDBCDataSource;
 import br.com.anteros.persistence.sql.datasource.JNDIDataSourceFactory;
-import br.com.anteros.persistence.translation.AnterosPersistenceCoreTranslate;
 
 public abstract class AnterosPersistenceConfigurationBase extends AbstractPersistenceConfiguration {
 	
-	private static AnterosPersistenceCoreTranslate TRANSLATOR = AnterosPersistenceCoreTranslate.getInstance();
+	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,AnterosPersistenceCoreMessages.class);
 
 	public AnterosPersistenceConfigurationBase() {
 		super();
@@ -93,8 +95,7 @@ public abstract class AnterosPersistenceConfigurationBase extends AbstractPersis
 			}
 		}
 		if (dataSource == null)
-			throw new AnterosConfigurationException(TRANSLATOR.getMessage(this.getClass(),
-					"datasourceNotConfigured"));
+			throw new AnterosConfigurationException(MESSAGES.getMessage(this.getClass().getSimpleName()+".datasourceNotConfigured"));
 	}
 
 	public static InputStream getDefaultXmlInputStream() throws Exception {
