@@ -128,8 +128,9 @@ import br.com.anteros.synchronism.annotation.Remote;
  */
 @SuppressWarnings("unchecked")
 public class EntityCacheManager {
-	
-	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,AnterosPersistenceCoreMessages.class);
+
+	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,
+			AnterosPersistenceCoreMessages.class);
 	private Map<Class<? extends Serializable>, EntityCache> entities = new LinkedHashMap<Class<? extends Serializable>, EntityCache>();
 	private Set<ConverterCache> converters = new CompactHashSet<ConverterCache>();
 	private boolean loaded = false;
@@ -234,7 +235,7 @@ public class EntityCacheManager {
 					for (String param : parserResult.getParsedParams().keySet()) {
 						if ((entityCache.getDescriptionColumnByName(param) == null) && (!descriptionSQL.getSuccessParameter().equalsIgnoreCase(param))
 								&& (descriptionSQL.getParametersId().get(param) == null))
-							throw new EntityCacheException(MESSAGES.getMessage(this.getClass().getSimpleName()+".descriptionSql.parameter.not.found", param,
+							throw new EntityCacheException(MESSAGES.getMessage(this.getClass().getSimpleName() + ".descriptionSql.parameter.not.found", param,
 									descriptionSQL.getSql(), descriptionSQL.getSqlType(), entityCache.getEntityClass().getName()));
 					}
 				}
@@ -844,11 +845,11 @@ public class EntityCacheManager {
 			 */
 			if (fieldConfiguration.isAnnotationPresent(JoinTable.class)) {
 				if (!fieldConfiguration.isAnnotationPresent(Fetch.class))
-					throw new EntityCacheException("O campo " + fieldConfiguration.getName() + " da entidade " + fieldConfiguration.getType().getName()
-							+ " deve ser possuir a configuração Fetch.");
+					throw new EntityCacheException("O campo " + fieldConfiguration.getName() + " da classe " + sourceClazz.getName()
+							+ " deve ser possuir a configuração Fetch, OneToMany ou ManyToMany.");
 
 				if (fieldConfiguration.getFetch().getMode() != FetchMode.MANY_TO_MANY)
-					throw new EntityCacheException("O campo " + fieldConfiguration.getName() + " da entidade " + fieldConfiguration.getType().getName()
+					throw new EntityCacheException("O campo " + fieldConfiguration.getName() + " da classe " + sourceClazz.getName()
 							+ " deve ser informado FetchMode.MANY_TO_MANY");
 				if (!(ReflectionUtils.isImplementsInterface(fieldConfiguration.getType(), Collection.class) || ReflectionUtils.isImplementsInterface(
 						fieldConfiguration.getType(), Set.class))) {
@@ -1954,8 +1955,8 @@ public class EntityCacheManager {
 			descriptionColumn.setForeignKey(true);
 			FieldConfiguration foreingKeyField = getIdFieldConfiguration(fieldConfiguration.getType(), model);
 			if (foreingKeyField == null)
-				throw new EntityCacheException("Campo " + fieldConfiguration.getName() + "(" + descriptionColumn.getReferencedColumnName()
-						+ ") não encontrado na classe " + fieldConfiguration.getType() + " ou a classe não foi adicionada nas configurações.");
+				throw new EntityCacheException("Campo " + fieldConfiguration.getName() + " da classe " + entityCache.getEntityClass().getName()
+						+ " não encontrado na classe " + fieldConfiguration.getType() + " ou a mesma não foi adicionada nas configurações.");
 
 			if (fieldConfiguration.isAnnotationPresent(Column.class)) {
 				ColumnConfiguration simpleColumn = fieldConfiguration.getSimpleColumn();

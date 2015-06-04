@@ -63,7 +63,7 @@ public class PersistenceModelConfiguration {
 		entities.put(sourceClazz, entity);
 		return entity;
 	}
-	
+
 	public EnumConfiguration addEnum(Class<? extends Serializable> sourceClazz) {
 		EnumConfiguration enumConfiguration = new EnumConfiguration(sourceClazz, this);
 		enumConfiguration.loadAnnotations();
@@ -84,8 +84,7 @@ public class PersistenceModelConfiguration {
 
 	public void loadAnnotationsByClass(Class<? extends Serializable> sourceClazz) throws InstantiationException, IllegalAccessException {
 		if ((sourceClazz.isAnnotationPresent(Converter.class)) && (!ReflectionUtils.isImplementsInterface(sourceClazz, AttributeConverter.class))) {
-			throw new EntityCacheManagerException("A classe " + sourceClazz
-					+ " configurada como um Converter não implementa a interface AttributeConverter.");
+			throw new EntityCacheManagerException("A classe " + sourceClazz + " configurada como um Converter não implementa a interface AttributeConverter.");
 		}
 
 		if (ReflectionUtils.isImplementsInterface(sourceClazz, AttributeConverter.class)) {
@@ -132,8 +131,7 @@ public class PersistenceModelConfiguration {
 			/*
 			 * Se é uma classe abstrata e não foi definido @DiscriminatorColumn define o padrão
 			 */
-			if (ReflectionUtils.isAbstractClass(entityConfiguration.getSourceClazz())
-					&& !entityConfiguration.isAnnotationPresent(DiscriminatorColumn.class)) {
+			if (ReflectionUtils.isAbstractClass(entityConfiguration.getSourceClazz()) && !entityConfiguration.isAnnotationPresent(DiscriminatorColumn.class)) {
 				entityConfiguration.discriminatorColumn("DTYPE", 31, DiscriminatorType.STRING);
 			}
 
@@ -326,15 +324,16 @@ public class PersistenceModelConfiguration {
 							fieldConfiguration.fetch(FetchType.LAZY, FetchMode.MANY_TO_MANY, "", genericType, "");
 						}
 
-						if (!fieldConfiguration.isAnnotationPresent(JoinTable.class)) {
-							List<JoinColumnConfiguration> entityJoinColumns = getJoinColumns(entityConfiguration);
-							List<JoinColumnConfiguration> sourceJoinColumns = getJoinColumns(sourceConfiguration);
-							entityJoinColumns.addAll(sourceJoinColumns);
+						if (fieldConfiguration.getFetch().getMode().equals(FetchMode.MANY_TO_MANY)) {
+							if (!fieldConfiguration.isAnnotationPresent(JoinTable.class)) {
+								List<JoinColumnConfiguration> entityJoinColumns = getJoinColumns(entityConfiguration);
+								List<JoinColumnConfiguration> sourceJoinColumns = getJoinColumns(sourceConfiguration);
+								entityJoinColumns.addAll(sourceJoinColumns);
 
-							fieldConfiguration.joinTable(entityConfiguration.getSourceClazz().getSimpleName() + "_"
-									+ sourceConfiguration.getSourceClazz().getSimpleName(),
-									entityJoinColumns.toArray(new JoinColumnConfiguration[] {}),
-									entityJoinColumns.toArray(new JoinColumnConfiguration[] {}));
+								fieldConfiguration.joinTable(entityConfiguration.getSourceClazz().getSimpleName() + "_"
+										+ sourceConfiguration.getSourceClazz().getSimpleName(), entityJoinColumns.toArray(new JoinColumnConfiguration[] {}),
+										entityJoinColumns.toArray(new JoinColumnConfiguration[] {}));
+							}
 						}
 					}
 				} else {
@@ -355,8 +354,7 @@ public class PersistenceModelConfiguration {
 				joinColumns.add(new JoinColumnConfiguration(entityConfiguration.getSourceClazz().getSimpleName() + "_ID", name));
 			} else if (fc.isCompositeId()) {
 				for (ColumnConfiguration cl : fc.getColumns()) {
-					joinColumns.add(new JoinColumnConfiguration(entityConfiguration.getSourceClazz().getSimpleName() + "_" + cl.getName(), cl
-							.getName()));
+					joinColumns.add(new JoinColumnConfiguration(entityConfiguration.getSourceClazz().getSimpleName() + "_" + cl.getName(), cl.getName()));
 				}
 			}
 		}
@@ -432,8 +430,7 @@ public class PersistenceModelConfiguration {
 		}
 	}
 
-	protected FieldConfiguration findFieldCandidate(FieldConfiguration fieldConfiguration, Class<?> genericType,
-			EntityConfiguration sourceConfiguration) {
+	protected FieldConfiguration findFieldCandidate(FieldConfiguration fieldConfiguration, Class<?> genericType, EntityConfiguration sourceConfiguration) {
 		/*
 		 * Verifica se existe um campo na classe da coleção que seja do MESMO TIPO da classe sendo analisada e que possa
 		 * ter o nome do atributo igual ao nome da classe
