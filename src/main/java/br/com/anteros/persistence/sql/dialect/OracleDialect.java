@@ -40,6 +40,7 @@ import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.SQLTemplates;
 import br.com.anteros.persistence.dsl.osql.templates.OracleTemplates;
 import br.com.anteros.persistence.schema.definition.ColumnSchema;
+import br.com.anteros.persistence.schema.definition.SequenceGeneratorSchema;
 import br.com.anteros.persistence.schema.definition.type.ColumnDatabaseType;
 import br.com.anteros.persistence.session.exception.ConstraintViolationException;
 import br.com.anteros.persistence.session.exception.QueryTimeoutException;
@@ -632,6 +633,17 @@ public class OracleDialect extends DatabaseDialect {
 		}
 
 		return null;
+	}
+	
+	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter) throws IOException {
+		schemaWriter.write(getCreateSequenceString() + " ");
+		schemaWriter.write(sequenceGeneratorSchema.getName());
+		if (sequenceGeneratorSchema.getIncrementSize() != 1) {
+			schemaWriter.write(" INCREMENT BY " + sequenceGeneratorSchema.getIncrementSize());
+		}
+		schemaWriter.write(" START WITH " + sequenceGeneratorSchema.getInitialValue());
+		schemaWriter.write(" NOCACHE ");
+		return schemaWriter;
 	}
 
 }
