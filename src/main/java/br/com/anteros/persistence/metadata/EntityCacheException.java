@@ -15,7 +15,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.metadata;
 
-public class EntityCacheException extends Exception {
+public class EntityCacheException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	public EntityCacheException(String message) {

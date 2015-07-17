@@ -132,6 +132,11 @@ public class PostgreSqlDialect extends DatabaseDialect {
 	}
 
 	@Override
+	public int getMaxTableNameSize() {
+		return 31;
+	}
+	
+	@Override
 	public int getMaxColumnNameSize() {
 		return 31;
 	}

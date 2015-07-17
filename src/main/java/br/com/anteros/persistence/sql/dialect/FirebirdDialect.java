@@ -114,6 +114,11 @@ public class FirebirdDialect extends DatabaseDialect {
 	public boolean supportsForeignKeyConstraints() {
 		return true;
 	}
+	
+	@Override
+	public int getMaxTableNameSize() {
+		return 31;
+	}
 
 	@Override
 	public int getMaxUniqueKeyNameSize() {

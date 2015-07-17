@@ -220,6 +220,11 @@ public class OracleDialect extends DatabaseDialect {
 	}
 
 	@Override
+	public int getMaxTableNameSize() {
+		return 30;
+	}
+
+	@Override
 	public int getMaxColumnNameSize() {
 		return 30;
 	}
@@ -296,6 +301,8 @@ public class OracleDialect extends DatabaseDialect {
 		} finally {
 			if (resultSet != null)
 				resultSet.close();
+			if (statement != null)
+				statement.close();
 		}
 		return indexes;
 	}
@@ -324,6 +331,8 @@ public class OracleDialect extends DatabaseDialect {
 		} finally {
 			if (resultSet != null)
 				resultSet.close();
+			if (statement != null)
+				statement.close();
 		}
 		return indexes;
 	}
@@ -340,6 +349,8 @@ public class OracleDialect extends DatabaseDialect {
 		} finally {
 			if (resultSet != null)
 				resultSet.close();
+			if (statement != null)
+				statement.close();
 		}
 
 		return false;
@@ -356,6 +367,8 @@ public class OracleDialect extends DatabaseDialect {
 		} finally {
 			if (resultSet != null)
 				resultSet.close();
+			if (statement != null)
+				statement.close();
 		}
 
 		return false;
@@ -373,6 +386,8 @@ public class OracleDialect extends DatabaseDialect {
 		} finally {
 			if (resultSet != null)
 				resultSet.close();
+			if (statement != null)
+				statement.close();
 		}
 		return false;
 	}
@@ -401,6 +416,8 @@ public class OracleDialect extends DatabaseDialect {
 		} finally {
 			if (resultSet != null)
 				resultSet.close();
+			if (statement != null)
+				statement.close();
 		}
 
 		return fks;
@@ -634,7 +651,7 @@ public class OracleDialect extends DatabaseDialect {
 
 		return null;
 	}
-	
+
 	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter) throws IOException {
 		schemaWriter.write(getCreateSequenceString() + " ");
 		schemaWriter.write(sequenceGeneratorSchema.getName());

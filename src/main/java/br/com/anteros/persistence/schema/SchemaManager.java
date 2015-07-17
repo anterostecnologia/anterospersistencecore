@@ -93,6 +93,11 @@ public class SchemaManager implements Comparator<TableSchema> {
 
 				String tableName = entityCache.getTableName();
 
+				if (session.getDialect().getMaxColumnNameSize() > 0 && tableName.length() > session.getDialect().getMaxColumnNameSize()) {
+					throw new SchemaGeneratorException("O nome da tabela " + tableName + " da classe " + entityCache.getEntityClass().getName()
+							+ " não pode ser maior que " + session.getDialect().getMaxTableNameSize() + ".");
+				}
+
 				/*
 				 * Pega os campos da entidade
 				 */
@@ -167,12 +172,10 @@ public class SchemaManager implements Comparator<TableSchema> {
 							foreignKeySchema.setTable(table);
 							if (StringUtils.isEmpty(foreignKeySchema.getName())) {
 								try {
-									foreignKeySchema.setName(generateForeignKeyConstraintName(table, table.getName(),
-											descriptionField.getColumnsToString()));
+									foreignKeySchema.setName(generateForeignKeyConstraintName(table, table.getName(), descriptionField.getColumnsToString()));
 								} catch (Exception e) {
-									throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo ["
-											+ descriptionField.getName() + "] da classe "
-											+ descriptionField.getEntityCache().getEntityClass().getName());
+									throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo [" + descriptionField.getName()
+											+ "] da classe " + descriptionField.getEntityCache().getEntityClass().getName());
 								}
 							}
 
@@ -183,8 +186,7 @@ public class SchemaManager implements Comparator<TableSchema> {
 							for (DescriptionColumn column : descriptionField.getTargetEntity().getPrimaryKeyColumns()) {
 								for (DescriptionColumn descriptionColumn : descriptionField.getDescriptionColumns()) {
 									if (descriptionColumn.getReferencedColumnName().equalsIgnoreCase(column.getColumnName())) {
-										foreignKeySchema.addColumns(
-												new ColumnSchema(descriptionColumn.getColumnName(), descriptionField.getFieldClass()),
+										foreignKeySchema.addColumns(new ColumnSchema(descriptionColumn.getColumnName(), descriptionField.getFieldClass()),
 												new ColumnSchema(descriptionColumn.getReferencedColumn().getColumnName(), descriptionColumn
 														.getReferencedColumn().getFieldType()));
 									}
@@ -286,8 +288,7 @@ public class SchemaManager implements Comparator<TableSchema> {
 						UniqueKeySchema uniqueKeySchema = new UniqueKeySchema();
 						uniqueKeySchema.setName(descriptionUniqueConstraint.getName());
 						if (StringUtils.isEmpty(uniqueKeySchema.getName()))
-							uniqueKeySchema.setName(generateUniqueKeyConstraintName(table.getName(), serial,
-									descriptionUniqueConstraint.getColumnNames()[0]));
+							uniqueKeySchema.setName(generateUniqueKeyConstraintName(table.getName(), serial, descriptionUniqueConstraint.getColumnNames()[0]));
 						uniqueKeySchema.setTable(table);
 						serial++;
 						for (String colName : descriptionUniqueConstraint.getColumnNames())
@@ -328,9 +329,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 		for (ForeignKeySchema foreignKeySchema : sourceTable.getForeignKeys()) {
 			TableSchema targetTable = getTable(foreignKeySchema.getReferencedTable().getName());
 			if (targetTable == null) {
-				throw new SchemaGeneratorException("Ocorreu um erro gerando dependências da tabela " + sourceTable.getName()
-						+ ". Não foi localizada tabela " + foreignKeySchema.getReferencedTable()
-						+ ". Verifique se possuí alguma implementação CONCRETA para a tabela.");
+				throw new SchemaGeneratorException("Ocorreu um erro gerando dependências da tabela " + sourceTable.getName() + ". Não foi localizada tabela "
+						+ foreignKeySchema.getReferencedTable() + ". Verifique se possuí alguma implementação CONCRETA para a tabela.");
 			}
 			if (!newList.contains(targetTable) && (!sourceTable.equals(targetTable)))
 				buildDependencies(tables, targetTable, newList);
@@ -414,13 +414,11 @@ public class SchemaManager implements Comparator<TableSchema> {
 									DescriptionColumn referenColumn = descriptionColumn.getReferencedColumn();
 									if (referenColumn == null)
 										referenColumn = entityCache.getDescriptionColumnByName(descriptionColumn.getReferencedColumnName());
-									foreignKeySchema.addColumns(
-											new ColumnSchema(descriptionColumn.getColumnName(), descriptionColumn.getFieldType()), new ColumnSchema(
-													descriptionColumn.getReferencedColumnName(), referenColumn.getFieldType()));
+									foreignKeySchema.addColumns(new ColumnSchema(descriptionColumn.getColumnName(), descriptionColumn.getFieldType()),
+											new ColumnSchema(descriptionColumn.getReferencedColumnName(), referenColumn.getFieldType()));
 								} catch (Exception e) {
-									throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo ["
-											+ descriptionField.getName() + "] da classe "
-											+ descriptionColumn.getEntityCache().getEntityClass().getName());
+									throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo [" + descriptionField.getName()
+											+ "] da classe " + descriptionColumn.getEntityCache().getEntityClass().getName());
 								}
 							}
 						}
@@ -433,11 +431,11 @@ public class SchemaManager implements Comparator<TableSchema> {
 							foreignKeySchema.setReferencedTable(new TableSchema().setName(entityCache.getTableName()));
 
 							if (StringUtils.isEmpty(foreignKeySchema.getName()))
-								foreignKeySchema.setName(generateForeignKeyConstraintName(table, table.getName(), descriptionField
-										.getLastJoinColumn().getColumnName()));
+								foreignKeySchema.setName(generateForeignKeyConstraintName(table, table.getName(), descriptionField.getLastJoinColumn()
+										.getColumnName()));
 						} catch (Exception e) {
-							throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo de origem ["
-									+ descriptionField.getName() + "] da classe " + entityCache.getEntityClass().getName());
+							throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo de origem [" + descriptionField.getName()
+									+ "] da classe " + entityCache.getEntityClass().getName());
 						}
 
 						try {
@@ -448,8 +446,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 								foreignKeySchemaTarget.setName(generateForeignKeyConstraintName(table, table.getName(), descriptionField
 										.getLastInversedColumn().getColumnName()));
 						} catch (Exception e) {
-							throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo de destino ["
-									+ descriptionField.getName() + "] da classe " + entityCache.getEntityClass().getName());
+							throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo de destino [" + descriptionField.getName()
+									+ "] da classe " + entityCache.getEntityClass().getName());
 						}
 
 						/*
@@ -464,21 +462,19 @@ public class SchemaManager implements Comparator<TableSchema> {
 									DescriptionColumn referencedColumn = descriptionColumn.getReferencedColumn();
 									if (referencedColumn == null)
 										referencedColumn = entityCache.getDescriptionColumnByName(descriptionColumn.getReferencedColumnName());
-									foreignKeySchema.addColumns(
-											new ColumnSchema(descriptionColumn.getColumnName(), descriptionColumn.getFieldType()), new ColumnSchema(
-													descriptionColumn.getReferencedColumnName(), referencedColumn.getFieldType()));
+									foreignKeySchema.addColumns(new ColumnSchema(descriptionColumn.getColumnName(), descriptionColumn.getFieldType()),
+											new ColumnSchema(descriptionColumn.getReferencedColumnName(), referencedColumn.getFieldType()));
 								} else if (descriptionColumn.isForeignKey() && descriptionColumn.isInversedJoinColumn()) {
 									DescriptionColumn referenColumn = descriptionColumn.getReferencedColumn();
 									if (referenColumn == null)
 										referenColumn = descriptionField.getTargetEntity().getDescriptionColumnByName(
 												descriptionColumn.getReferencedColumnName());
-									foreignKeySchemaTarget.addColumns(
-											new ColumnSchema(descriptionColumn.getColumnName(), descriptionColumn.getFieldType()), new ColumnSchema(
-													descriptionColumn.getReferencedColumnName(), referenColumn.getFieldType()));
+									foreignKeySchemaTarget.addColumns(new ColumnSchema(descriptionColumn.getColumnName(), descriptionColumn.getFieldType()),
+											new ColumnSchema(descriptionColumn.getReferencedColumnName(), referenColumn.getFieldType()));
 								}
 							} catch (Exception e) {
-								throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo ["
-										+ descriptionField.getName() + "] da classe " + descriptionColumn.getEntityCache().getEntityClass().getName());
+								throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo [" + descriptionField.getName()
+										+ "] da classe " + descriptionColumn.getEntityCache().getEntityClass().getName());
 							}
 						}
 					}
@@ -550,8 +546,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 		if (descriptionColumn.hasConvert()) {
 			DescriptionConvert convert = descriptionColumn.getConvert();
 			if (convert == null)
-				throw new SchemaGeneratorException("Não foi encontrado um conversor para a coluna " + descriptionColumn.getColumnName()
-						+ " do  campo " + descriptionField.getField().getName() + " na Classe " + descriptionField.getEntityCache().getEntityClass());
+				throw new SchemaGeneratorException("Não foi encontrado um conversor para a coluna " + descriptionColumn.getColumnName() + " do  campo "
+						+ descriptionField.getField().getName() + " na Classe " + descriptionField.getEntityCache().getEntityClass());
 			dbType = session.getDialect().convertJavaToDatabaseType(convert.getDatabaseColumnType());
 		} else if (descriptionColumn.isEnumerated() || descriptionColumn.isDiscriminatorColumn()) {
 			dbType = session.getDialect().convertJavaToDatabaseType(String.class);
@@ -573,9 +569,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 
 		if (dbType == null)
 			throw new SchemaGeneratorException("Tipo " + descriptionField.getFieldClass().getSimpleName() + " "
-					+ (descriptionField.getFieldClass().isEnum() ? "(ENUM)" : "")
-					+ " não disponível para este banco de dados. Verifique o campo ["+descriptionField.getField().getName()+"] na classe "
-					+ descriptionField.getEntityCache().getEntityClass().getName()
+					+ (descriptionField.getFieldClass().isEnum() ? "(ENUM)" : "") + " não disponível para este banco de dados. Verifique o campo ["
+					+ descriptionField.getField().getName() + "] na classe " + descriptionField.getEntityCache().getEntityClass().getName()
 					+ " se o mesmo não é uma chave estrangeira ou se a classe do tipo " + descriptionField.getFieldClass().getName()
 					+ " possuí algum campo incorreto.");
 
@@ -1049,8 +1044,7 @@ public class SchemaManager implements Comparator<TableSchema> {
 			getDropSchemaWriter().write("/******************************************************************************/\n");
 			getDropSchemaWriter().write("/*                                                                            */\n");
 			getDropSchemaWriter().write(
-					"/*       Generated by Anteros Java Persistence " + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
-							+ "            */\n");
+					"/*       Generated by Anteros Java Persistence " + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()) + "            */\n");
 			getDropSchemaWriter().write("/*       Dialect  : " + dialect + StringUtils.repeat(" ", 80 - 20 - dialect.length() - 2) + "*/\n");
 			getDropSchemaWriter().write("/*       Mode     : " + mode + StringUtils.repeat(" ", 80 - 20 - mode.length() - 2) + "*/\n");
 			getDropSchemaWriter().write("/*                                                                            */\n");
@@ -1586,21 +1580,20 @@ public class SchemaManager implements Comparator<TableSchema> {
 		if (foreignKeyName.length() > maximumNameLength) {
 			foreignKeyName = startDelimiter + adjustedTableName + "_" + adjustedColumnName + endDelimiter;
 			if (foreignKeyName.length() > maximumNameLength) {
-				foreignKeyName = startDelimiter
-						+ StringUtils.removeAllButAlphaNumericToFit(adjustedTableName + adjustedColumnName, maximumNameLength) + endDelimiter;
+				foreignKeyName = startDelimiter + StringUtils.removeAllButAlphaNumericToFit(adjustedTableName + adjustedColumnName, maximumNameLength)
+						+ endDelimiter;
 				if (foreignKeyName.length() > maximumNameLength) {
 					String onlyAlphaNumericTableName = StringUtils.removeAllButAlphaNumericToFit(adjustedTableName, 0);
 					String onlyAlphaNumericColumnName = StringUtils.removeAllButAlphaNumericToFit(adjustedColumnName, 0);
 					foreignKeyName = startDelimiter
-							+ StringUtils.shortenStringsByRemovingVowelsToFit(onlyAlphaNumericTableName, onlyAlphaNumericColumnName,
-									maximumNameLength) + endDelimiter;
+							+ StringUtils.shortenStringsByRemovingVowelsToFit(onlyAlphaNumericTableName, onlyAlphaNumericColumnName, maximumNameLength)
+							+ endDelimiter;
 					if (foreignKeyName.length() > maximumNameLength) {
 						String shortenedColumnName = StringUtils.removeVowels(onlyAlphaNumericColumnName);
 						String shortenedTableName = StringUtils.removeVowels(onlyAlphaNumericTableName);
 						int delimiterLength = startDelimiter.length() + endDelimiter.length();
 						if (shortenedColumnName.length() + delimiterLength >= maximumNameLength) {
-							foreignKeyName = startDelimiter + StringUtils.truncate(shortenedColumnName, maximumNameLength - delimiterLength)
-									+ endDelimiter;
+							foreignKeyName = startDelimiter + StringUtils.truncate(shortenedColumnName, maximumNameLength - delimiterLength) + endDelimiter;
 						} else {
 							foreignKeyName = startDelimiter
 									+ StringUtils.truncate(shortenedTableName, maximumNameLength - shortenedColumnName.length() - delimiterLength)
@@ -1704,15 +1697,14 @@ public class SchemaManager implements Comparator<TableSchema> {
 					String onlyAlphaNumericTableName = StringUtils.removeAllButAlphaNumericToFit(adjustedTableName, 0);
 					String onlyAlphaNumericColumnName = StringUtils.removeAllButAlphaNumericToFit(adjustedColumnName, 0);
 					indexName = startDelimiter
-							+ StringUtils.shortenStringsByRemovingVowelsToFit(onlyAlphaNumericTableName, onlyAlphaNumericColumnName,
-									maximumNameLength) + endDelimiter;
+							+ StringUtils.shortenStringsByRemovingVowelsToFit(onlyAlphaNumericTableName, onlyAlphaNumericColumnName, maximumNameLength)
+							+ endDelimiter;
 					if (indexName.length() > maximumNameLength) {
 						String shortenedColumnName = StringUtils.removeVowels(onlyAlphaNumericColumnName);
 						String shortenedTableName = StringUtils.removeVowels(onlyAlphaNumericTableName);
 						int delimiterLength = startDelimiter.length() + endDelimiter.length();
 						if (shortenedColumnName.length() + delimiterLength >= maximumNameLength) {
-							indexName = startDelimiter + StringUtils.truncate(shortenedColumnName, maximumNameLength - delimiterLength)
-									+ endDelimiter;
+							indexName = startDelimiter + StringUtils.truncate(shortenedColumnName, maximumNameLength - delimiterLength) + endDelimiter;
 						} else {
 							indexName = startDelimiter
 									+ StringUtils.truncate(shortenedTableName, maximumNameLength - shortenedColumnName.length() - delimiterLength)

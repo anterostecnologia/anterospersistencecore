@@ -189,11 +189,16 @@ public class H2Dialect extends DatabaseDialect {
 
 		statement = conn.createStatement();
 		resultSet = statement.executeQuery("SELECT SEQUENCE_NAME FROM INFORMATION_SCHEMA.SEQUENCES WHERE SEQUENCE_NAME = '" + sequenceName + "'");
-
-		if (resultSet.next()) {
-			return true;
+		try {
+			if (resultSet.next()) {
+				return true;
+			}
+		} finally {
+			if (resultSet != null)
+				resultSet.close();
+			if (statement != null)
+				statement.close();
 		}
-
 		return false;
 	}
 
@@ -282,12 +287,12 @@ public class H2Dialect extends DatabaseDialect {
 		LimitClauseResult result;
 		if (namedParameter) {
 			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql)
-					.append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(), "PLIMIT", (offset > 0 ? "POFFSET" : ""),
-					limit, offset);
+					.append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(), "PLIMIT", (offset > 0 ? "POFFSET" : ""), limit,
+					offset);
 		} else {
-			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?")
-					.toString(), (offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER),
-					(offset > 0 ? LimitClauseResult.LAST_PARAMETER : LimitClauseResult.NONE_PARAMETER), limit, offset);
+			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?").toString(),
+					(offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER), (offset > 0 ? LimitClauseResult.LAST_PARAMETER
+							: LimitClauseResult.NONE_PARAMETER), limit, offset);
 		}
 		return result;
 	}

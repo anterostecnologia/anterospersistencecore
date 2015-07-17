@@ -1171,7 +1171,11 @@ public abstract class DatabaseDialect {
 	}
 
 	public int getMaxColumnNameSize() {
-		return 50;
+		return 30;
+	}
+	
+	public int getMaxTableNameSize() {
+		return 30;
 	}
 
 	public int getMaxForeignKeyNameSize() {

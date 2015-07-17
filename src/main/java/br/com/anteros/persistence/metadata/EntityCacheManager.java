@@ -138,6 +138,8 @@ public class EntityCacheManager {
 	private PropertyAccessorFactory propertyAccessorFactory;
 	private DatabaseDialect databaseDialect;
 
+	private Set<EntityCache> processedEntities = new HashSet<EntityCache>();
+
 	public EntityCacheManager() {
 	}
 
@@ -185,8 +187,13 @@ public class EntityCacheManager {
 				}
 			}
 
-			for (EntityCache entityCache : entities.values())
-				loadConfigurationsSuperClass(entityCache, modelConfiguration);
+			processedEntities.clear();
+
+			for (EntityCache entityCache : entities.values()) {
+				if (!processedEntities.contains(entityCache)) {
+					loadConfigurationsSuperClass(entityCache, modelConfiguration);
+				}
+			}
 
 			for (EntityCache entityCache : entities.values())
 				loadRemainderConfigurations(entityCache);
@@ -368,6 +375,10 @@ public class EntityCacheManager {
 			 */
 
 			cacheSuper = entities.get(sourceClazz.getSuperclass());
+			if (!processedEntities.contains(cacheSuper)) {
+				loadConfigurationsSuperClass(cacheSuper, modelConfiguration);
+			}
+
 			List<DescriptionField> temporaryListFields = new LinkedList<DescriptionField>();
 			temporaryListFields.addAll(cacheSuper.getDescriptionFields());
 			for (DescriptionField f : cacheSuper.getDescriptionFields()) {
@@ -399,9 +410,14 @@ public class EntityCacheManager {
 				throw new EntityCacheException("A Entidade " + sourceClazz.getName()
 						+ " possui a configuração DiscriminatorValue mas não herda de uma outra Entidade ou a Entidade herdada não foi localizada.");
 			}
+			if (!processedEntities.contains(cacheSuper)) {
+				loadConfigurationsSuperClass(cacheSuper, modelConfiguration);
+			}
 			entityCache.setTableName(cacheSuper.getTableName());
 			entityCache.setDiscriminatorValue(entityConfiguration.getDiscriminatorValue());
 		}
+		
+		processedEntities.add(entityCache);
 	}
 
 	/**

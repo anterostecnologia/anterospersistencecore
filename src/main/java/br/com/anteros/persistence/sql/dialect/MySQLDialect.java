@@ -39,7 +39,8 @@ import br.com.anteros.persistence.sql.dialect.type.LimitClauseResult;
 
 public class MySQLDialect extends DatabaseDialect {
 
-	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,AnterosPersistenceCoreMessages.class);
+	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,
+			AnterosPersistenceCoreMessages.class);
 	private static Logger log = LoggerProvider.getInstance().getLogger(MySQLDialect.class.getName());
 
 	public MySQLDialect() {
@@ -92,7 +93,7 @@ public class MySQLDialect extends DatabaseDialect {
 
 	@Override
 	public String getSequenceNextValString(String sequenceName) throws Exception {
-		throw new DatabaseDialectException(MESSAGES.getMessage(MySQLDialect.class.getSimpleName()+".sequenceException", getClass().getName()));
+		throw new DatabaseDialectException(MESSAGES.getMessage(MySQLDialect.class.getSimpleName() + ".sequenceException", getClass().getName()));
 	}
 
 	@Override
@@ -231,6 +232,11 @@ public class MySQLDialect extends DatabaseDialect {
 	}
 
 	@Override
+	public int getMaxTableNameSize() {
+		return 64;
+	}
+
+	@Override
 	public int getMaxColumnNameSize() {
 		return 64;
 	}
@@ -338,11 +344,12 @@ public class MySQLDialect extends DatabaseDialect {
 		LimitClauseResult result;
 		if (namedParameter) {
 			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql)
-					.append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(), "PLIMIT", (offset > 0 ? "POFFSET" : ""),limit, offset);
+					.append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(), "PLIMIT", (offset > 0 ? "POFFSET" : ""), limit,
+					offset);
 		} else {
-			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?")
-					.toString(), (offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER),
-					(offset > 0 ? LimitClauseResult.LAST_PARAMETER : LimitClauseResult.NONE_PARAMETER),limit, offset);
+			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?").toString(),
+					(offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER), (offset > 0 ? LimitClauseResult.LAST_PARAMETER
+							: LimitClauseResult.NONE_PARAMETER), limit, offset);
 		}
 		return result;
 	}

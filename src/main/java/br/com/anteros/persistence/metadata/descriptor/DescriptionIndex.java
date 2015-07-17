@@ -1,21 +1,19 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.metadata.descriptor;
 
 import br.com.anteros.persistence.metadata.EntityCache;
+import br.com.anteros.persistence.metadata.EntityCacheException;
 
 public class DescriptionIndex {
 
@@ -36,6 +34,16 @@ public class DescriptionIndex {
 	}
 
 	public DescriptionIndex columnNames(String[] columnNames) {
+		if (columnNames == null) {
+			throw new EntityCacheException("Verifique o indice " + name + " da Classe " + entityCache.getEntityClass()
+					+ " se foi informado o nome para as colunas.");
+		}
+		for (String s : columnNames) {
+			if (s == null || "".equals(s))
+				throw new EntityCacheException("Verifique o indice " + name + " da Classe " + entityCache.getEntityClass()
+						+ " se foi informado o nome para as colunas.");
+		}
+
 		this.columnNames = columnNames;
 		return this;
 	}
@@ -82,7 +90,7 @@ public class DescriptionIndex {
 		this.unique = unique;
 		return this;
 	}
-	
+
 	@Override
 	public String toString() {
 		String result = name + " => ";
