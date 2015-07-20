@@ -204,8 +204,15 @@ public class SchemaManager implements Comparator<TableSchema> {
 							for (DescriptionIndex descriptionIndex : descriptionField.getIndexes()) {
 								IndexSchema indexSchema = new IndexSchema();
 								indexSchema.setName(descriptionIndex.getName());
-								if (StringUtils.isEmpty(indexSchema.getName()))
-									indexSchema.setName(generationIndexName(table.getName(), descriptionIndex.getColumnNames()[0], null));
+								if (StringUtils.isEmpty(indexSchema.getName())) {
+									for (String colName : descriptionIndex.getColumnNames()) {
+										String indexName = generationIndexName(table.getName(), colName, null);
+										if (!table.existsIndex(indexName)) {
+											indexSchema.setName(indexName);
+											break;
+										}
+									}
+								}
 								indexSchema.setTable(table);
 								indexSchema.setUnique(descriptionIndex.isUnique());
 								for (String colName : descriptionIndex.getColumnNames())
@@ -272,8 +279,15 @@ public class SchemaManager implements Comparator<TableSchema> {
 						indexSchema.setName(descriptionIndex.getName());
 						indexSchema.setTable(table);
 						indexSchema.setUnique(descriptionIndex.isUnique());
-						if (StringUtils.isEmpty(indexSchema.getName()))
-							indexSchema.setName(generationIndexName(table.getName(), descriptionIndex.getColumnNames()[0], null));
+						if (StringUtils.isEmpty(indexSchema.getName())) {
+							for (String colName : descriptionIndex.getColumnNames()) {
+								String indexName = generationIndexName(table.getName(), colName, null);
+								if (!table.existsIndex(indexName)) {
+									indexSchema.setName(indexName);
+									break;
+								}
+							}
+						}
 						for (String colName : descriptionIndex.getColumnNames())
 							indexSchema.addColumn(new ColumnSchema().setName(colName));
 						if (!table.existsIndex(indexSchema))
@@ -311,7 +325,13 @@ public class SchemaManager implements Comparator<TableSchema> {
 						IndexSchema index = new IndexSchema();
 						index.addColumns(fk.getColumns());
 						index.setTable(tableSchema);
-						index.setName(generationIndexName(tableSchema.getName(), fk.getColumnNames()[0], null));
+						for (String colName : fk.getColumnNames()) {
+							String indexName = generationIndexName(tableSchema.getName(), colName, null);
+							if (!tableSchema.existsIndex(indexName)) {
+								index.setName(indexName);
+								break;
+							}
+						}
 						tableSchema.addIndex(index);
 					}
 				}

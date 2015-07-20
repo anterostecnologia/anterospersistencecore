@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.schema.definition;
 
@@ -102,8 +99,7 @@ public class TableSchema extends ObjectSchema {
 		getColumns().add(column);
 	}
 
-	public void addForeignKey(String name, ColumnSchema sourceColumn, ColumnSchema referencedColumn,
-			TableSchema referencedTable) {
+	public void addForeignKey(String name, ColumnSchema sourceColumn, ColumnSchema referencedColumn, TableSchema referencedTable) {
 		ForeignKeySchema foreignKey = new ForeignKeySchema(this, name, sourceColumn, referencedColumn, referencedTable);
 		addForeignKey(foreignKey);
 	}
@@ -165,8 +161,7 @@ public class TableSchema extends ObjectSchema {
 	}
 
 	@Override
-	public Writer generateDDLCreateObject(SQLSession session, Writer schemaWriter) throws SchemaGeneratorException,
-			Exception {
+	public Writer generateDDLCreateObject(SQLSession session, Writer schemaWriter) throws SchemaGeneratorException, Exception {
 		session.getDialect().writeCreateTableDDLStatement(this, schemaWriter);
 		return schemaWriter;
 	}
@@ -251,21 +246,32 @@ public class TableSchema extends ObjectSchema {
 		}
 		return false;
 	}
+	
+	public boolean existsIndex(String indexName) {
+		for (IndexSchema idx : indexes) {
+			if (idx.getName().equalsIgnoreCase(indexName))
+				return true;
+		}
+		return false;
+	}
 
 	public boolean existsIndex(String[] columns) {
-		boolean found = false;
+		if (columns == null)
+			return false;
+		int found = 0;
 		for (IndexSchema idx : indexes) {
-			found = false;
+			found = 0;
 			for (String column : columns) {
 				if (idx.getColumnNames().contains(column)) {
-					found = true;
-				} else
+					found++;
+				} else {
 					break;
+				}
 			}
-			if (found)
-				break;
+			if (found == columns.length)
+				return true;
 		}
-		return found;
+		return false;
 	}
 
 	public boolean existsUniqueKey(UniqueKeySchema uniqueKeySchema) {
@@ -293,13 +299,13 @@ public class TableSchema extends ObjectSchema {
 	public boolean existsForeignKeyByName(String foreignKeyName) {
 		return false;
 	}
-	
-	public List<ConstraintSchema> getConstraints(){
+
+	public List<ConstraintSchema> getConstraints() {
 		List<ConstraintSchema> result = new ArrayList<ConstraintSchema>();
-		if (primaryKey!=null)
-		result.add(primaryKey);
+		if (primaryKey != null)
+			result.add(primaryKey);
 		result.addAll(foreignKeys);
-		
+
 		return result;
 	}
 
@@ -312,9 +318,9 @@ public class TableSchema extends ObjectSchema {
 	}
 
 	public ColumnSchema getColumn(String columnName) {
-		if (columns!=null){
-			for (ColumnSchema column : columns){
-				if (column.getName().equalsIgnoreCase(columnName)){
+		if (columns != null) {
+			for (ColumnSchema column : columns) {
+				if (column.getName().equalsIgnoreCase(columnName)) {
 					return column;
 				}
 			}
