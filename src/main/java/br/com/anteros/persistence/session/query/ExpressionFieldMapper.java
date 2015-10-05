@@ -61,7 +61,7 @@ public abstract class ExpressionFieldMapper {
 	 * @param entityManaged Entidade sendo gerenciada
 	 * @param targetObject Objeto alvo
 	 * @param transactionCache Cache de objetos na transação(execução do SQL).
-	 * @throws Exception
+	 * @throws Exception Exceção gerada
 	 */
 	public abstract void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged, Object targetObject, Cache transactionCache) throws Exception;
 

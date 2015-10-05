@@ -20,4 +20,8 @@ public class EntityHandlerException extends Exception {
 	public EntityHandlerException(String message) {
 		super( message);
 	}
+	
+	public EntityHandlerException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -133,8 +133,9 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 		SqlParser parser = new SqlParser(sql, new SqlFormatRule());
 		INode node = new RootNode();
 		parser.parse(node);
+		
 
-		// System.out.println(parser.dump(node));
+//		 System.out.println(parser.dump(node));
 
 		allowApplyLockStrategy = false;
 		INode[] children = ParserUtil.findChildren(getFirstSelectStatement(node), ColumnNode.class.getSimpleName());
@@ -189,18 +190,18 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 		 */
 		buildExpressionsAndColumnAliases(getFirstSelectStatement(node));
 
-		// System.out.println(sql);
-		// System.out.println("--------------------EXPRESSIONS-------------------------------");
-		// for (ExpressionFieldMapper expField : expressionsFieldMapper)
-		// System.out.println(expField);
-		System.out.println("--------------------COLUMN ALIASES----------------------------");
-		for (SQLQueryAnalyserAlias a : columnAliases.keySet()) {
-			System.out.println("ALIAS-> " + a.getAlias() + " path " + a.getAliasPath());
-			System.out.println("    ----------------------------------");
-			for (String k : columnAliases.get(a).keySet()) {
-				System.out.println("    " + k + " = " + Arrays.toString(columnAliases.get(a).get(k)));
-			}
-		}
+	//	 System.out.println(sql);
+//		 System.out.println("--------------------EXPRESSIONS-------------------------------");
+//		 for (ExpressionFieldMapper expField : expressionsFieldMapper)
+//		 System.out.println(expField);
+//		System.out.println("--------------------COLUMN ALIASES----------------------------");
+//		for (SQLQueryAnalyserAlias a : columnAliases.keySet()) {
+//			System.out.println("ALIAS-> " + a.getAlias() + " path " + a.getAliasPath());
+//			System.out.println("    ----------------------------------");
+//			for (String k : columnAliases.get(a).keySet()) {
+//				System.out.println("    " + k + " = " + Arrays.toString(columnAliases.get(a).get(k)));
+//			}
+//		}
 
 	}
 
@@ -604,7 +605,7 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 			INode selectNodeChild, boolean generateAliasToColum) throws SQLQueryAnalyzerException {
 		SQLQueryAnalyserAlias[] cacheAliases = null;
 		/*
-		 * Se o "*" não possuí um alias de tabela é válido para todas as tabelas
+		 * Se o "*" não possuí um alias de tabela será válido para todas as tabelas
 		 * do Select e será substituído pelo nomes das colunas de todos os
 		 * aliases do Select.
 		 */

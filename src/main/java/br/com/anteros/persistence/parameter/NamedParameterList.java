@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.parameter;
 
@@ -26,6 +23,8 @@ public class NamedParameterList extends ArrayList<NamedParameter> {
 	private static final long serialVersionUID = 1L;
 
 	public NamedParameterList addParameter(String name, Object value) {
+		if ((value instanceof java.sql.Date) || (value instanceof java.util.Date))
+			throw new NamedParameterException("Para usar parâmetros do tipo Data use o construtor passando o tipo(TemporalType) da data.");
 		this.add(new NamedParameter(name, value));
 		return this;
 	}
@@ -36,6 +35,8 @@ public class NamedParameterList extends ArrayList<NamedParameter> {
 	}
 
 	public NamedParameterList addSubstitutedParameter(String name, Object value) {
+		if ((value instanceof java.sql.Date) || (value instanceof java.util.Date))
+			throw new NamedParameterException("Para usar parâmetros do tipo Data use o construtor passando o tipo(TemporalType) da data.");
 		this.add(new SubstitutedParameter(name, value));
 		return this;
 	}

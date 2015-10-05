@@ -101,11 +101,17 @@ public class SqlParser implements ISqlParser {
 	public void parse(INode node) throws ParserException {
 		INode x;
 
+		Boolean boNextToken = true;
+		int next = 0;
+
 		for (;;) {
 			if (isCanceled())
 				return;
 
-			int next = nextToken();
+			if (boNextToken)
+				next = nextToken();
+			
+			boNextToken = true;
 
 			switch (next) {
 			case TokenUtil.TYPE_END_SQL:
@@ -374,9 +380,9 @@ public class SqlParser implements ISqlParser {
 						FunctionNode function = new FunctionNode(getToken(), offset, length, scope);
 						node.addChild(function);
 					}
-				} else if ("LEFT JOIN".equalsIgnoreCase(getToken()) || "LEFT OUTER JOIN".equalsIgnoreCase(getToken())
-						|| "RIGHT JOIN".equalsIgnoreCase(getToken()) || "RIGHT OUTER JOIN".equalsIgnoreCase(getToken())
-						|| "INNER JOIN".equalsIgnoreCase(getToken())) {
+				} else
+					if ("LEFT JOIN".equalsIgnoreCase(getToken()) || "LEFT OUTER JOIN".equalsIgnoreCase(getToken()) || "RIGHT JOIN".equalsIgnoreCase(getToken())
+							|| "RIGHT OUTER JOIN".equalsIgnoreCase(getToken()) || "INNER JOIN".equalsIgnoreCase(getToken())) {
 					scope = SCOPE_FROM;
 					node.addChild(new JoinNode(getToken(), offset, length, scope));
 
@@ -430,8 +436,7 @@ public class SqlParser implements ISqlParser {
 						outfile.setFilePath(getToken());
 
 					} else if (node instanceof FromNode) {
-						if ((lastNode instanceof OnNode) || ("AND".equalsIgnoreCase(lastNode.getName()))
-								|| ("OR".equalsIgnoreCase(lastNode.getName()))) {
+						if ((lastNode instanceof OnNode) || ("AND".equalsIgnoreCase(lastNode.getName())) || ("OR".equalsIgnoreCase(lastNode.getName()))) {
 							node.addChild(new ColumnNode(getToken(), offset, length, scope));
 						} else {
 							node.addChild(new TableNode(getToken(), offset, length, scope));
@@ -440,7 +445,18 @@ public class SqlParser implements ISqlParser {
 					} else if (node instanceof OperatorNode) {
 						parseValue(lastNode);
 					} else {
-						node.addChild(new ColumnNode(getToken(), offset, length, scope));
+						ColumnNode columnNode = new ColumnNode(getToken(), offset, length, scope);
+						FunctionNode functionNode = new FunctionNode(getToken(), offset, length, scope);
+						next = nextToken();
+						boNextToken = false;
+						if (next == TokenUtil.TYPE_SYMBOL) {
+							if ("(".equals(getToken())) {
+								node.addChild(functionNode);
+							} else
+								node.addChild(columnNode);
+						} else {
+							node.addChild(columnNode);
+						}
 					}
 				}
 

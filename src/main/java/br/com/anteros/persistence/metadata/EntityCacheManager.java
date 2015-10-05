@@ -45,6 +45,7 @@ import br.com.anteros.persistence.metadata.annotation.Columns;
 import br.com.anteros.persistence.metadata.annotation.CompositeId;
 import br.com.anteros.persistence.metadata.annotation.Convert;
 import br.com.anteros.persistence.metadata.annotation.Converts;
+import br.com.anteros.persistence.metadata.annotation.DiscriminatorColumn;
 import br.com.anteros.persistence.metadata.annotation.DiscriminatorValue;
 import br.com.anteros.persistence.metadata.annotation.EnumValues;
 import br.com.anteros.persistence.metadata.annotation.Enumerated;
@@ -558,6 +559,10 @@ public class EntityCacheManager {
 		String tableName, schema, catalog;
 
 		entityCache.setAbstractClass(ReflectionUtils.isAbstractClass(sourceClazz));
+		
+		if ((entityConfiguration.isAnnotationPresent(DiscriminatorColumn.class)) && !ReflectionUtils.isAbstractClass(sourceClazz)){
+			throw new EntityCacheException("A classe "+sourceClazz+" possui a configuração DiscriminatorColumn porém ela não é uma classe abstrata. Defina a classe como abstract.");
+		}
 
 		/*
 		 * Possui a configuração Inheritance

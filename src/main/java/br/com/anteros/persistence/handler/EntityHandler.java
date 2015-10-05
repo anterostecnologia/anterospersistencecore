@@ -114,9 +114,9 @@ public class EntityHandler implements ScrollableResultSetHandler {
 				} while (resultSet.next());
 			}
 		} catch (SQLException ex) {
-			throw new EntityHandlerException("Erro processando handler para criação da classe " + resultClass.getName() + ". " + ex.getMessage());
+			throw new EntityHandlerException("Erro processando handler para criação da classe " + resultClass.getName() + ". " + ex.getMessage(), ex);
 		}
-
+		
 		return result;
 	}
 
@@ -303,7 +303,6 @@ public class EntityHandler implements ScrollableResultSetHandler {
 					if (column.equalsIgnoreCase(columnName)) {
 						alias = columnAliases.get(queryAnalyserAlias).get(column);
 						break;
-
 					}
 				}
 				result = (alias == null || alias.length == 0 ? columnName : alias[alias.length - 1]);

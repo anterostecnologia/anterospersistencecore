@@ -93,6 +93,8 @@ public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 			if (arg instanceof SetPath<?, ?>)
 				throw new OSQLQueryException("Não possível fazer join de coleções diretamente. Use o método " + arg
 						+ ".any() da coleção para projetá-la ou realizar operações. ");
+			if (arg.equals(this))
+				throw new OSQLQueryException("Não possível fazer criar uma projeção customizada pois foi detectado um loop. Use os campos da entidade para projeções customizadas para "+this);
 			customProjection.add(arg);
 		}
 		return this;

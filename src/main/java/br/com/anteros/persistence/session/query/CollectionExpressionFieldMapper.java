@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.session.query;
 
@@ -55,8 +52,8 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 		this.aliasPrimaryKeyColumns = aliasPrimaryKeyColumns;
 
 		/*
-		 * Armazena a classe que deverá ser instanciada para representar a coleção de objetos de acordo com o tipo do campo 
-		 * na entidade.
+		 * Armazena a classe que deverá ser instanciada para representar a coleção de objetos de acordo com o tipo do
+		 * campo na entidade.
 		 */
 		if (ReflectionUtils.isImplementsInterface(descriptionField.getField().getType(), Set.class)) {
 			defaultClass = DefaultSQLSet.class;
@@ -68,9 +65,8 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged, Object targetObject, Cache transactionCache)
-			throws Exception {
-		
+	public void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged, Object targetObject, Cache transactionCache) throws Exception {
+
 		if (!session.getEntityCacheManager().getEntityCache(targetObject.getClass()).containsDescriptionField(descriptionField))
 			return;
 
@@ -107,9 +103,9 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 				/*
 				 * Se não encontrou o valor não cria o objeto e retorna
 				 */
-				if (discriminator==null)
+				if (discriminator == null)
 					return;
-				
+
 				/*
 				 * Se encontrou o valor do discriminator busca a classe concreta referente ao valor.
 				 */
@@ -133,11 +129,19 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 					 */
 					newObject = concreteEntityCache.getEntityClass().newInstance();
 					/*
-					 * Adiciona o objeto instanciado no cache com sua chave única para ser usado quando houver
-					 * necessidade em outro ponto da árvore do objeto principal evitando assim criar objetos
-					 * repetidos para a mesma chave.
+					 * Atribui o objeto pai da lista ao filho da lista se encontrar o field mapeado.
 					 */
-					addObjectToCache(session, concreteEntityCache, newObject, uniqueId, transactionCache);		
+					DescriptionField descriptionFieldWithMappedBy = concreteEntityCache.getDescriptionField(descriptionField.getMappedBy());
+					if (descriptionFieldWithMappedBy != null) {
+						descriptionFieldWithMappedBy.setObjectValue(newObject, oldTargetObject);
+					}
+
+					/*
+					 * Adiciona o objeto instanciado no cache com sua chave única para ser usado quando houver
+					 * necessidade em outro ponto da árvore do objeto principal evitando assim criar objetos repetidos
+					 * para a mesma chave.
+					 */
+					addObjectToCache(session, concreteEntityCache, newObject, uniqueId, transactionCache);
 					/*
 					 * Adiciona o objeto instanciado na coleção
 					 */
@@ -147,7 +151,7 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 			} catch (Exception e) {
 				throw new EntityHandlerException("Para que seja criado o objeto da " + descriptionField.getTargetClass().getName()
 						+ " será necessário adicionar no sql a coluna " + targetEntityCache.getDiscriminatorColumn().getColumnName()
-						+ " que informe que tipo de classe será usada para instanciar o objeto.");
+						+ " que informe que tipo de classe será usada para instanciar o objeto.",e);
 			}
 
 		} else {
@@ -170,10 +174,18 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 					 * Se não encontrou instancia um novo objeto
 					 */
 					newObject = targetEntityCache.getEntityClass().newInstance();
+
+					/*
+					 * Atribui o objeto pai da lista ao filho da lista se encontrar o field mapeado.
+					 */
+					DescriptionField descriptionFieldWithMappedBy = targetEntityCache.getDescriptionField(descriptionField.getMappedBy());
+					if (descriptionFieldWithMappedBy != null) {
+						descriptionFieldWithMappedBy.setObjectValue(newObject, oldTargetObject);
+					}
 					/*
 					 * Adiciona o objeto instanciado no cache com sua chave única para ser usado quando houver
-					 * necessidade em outro ponto da árvore do objeto principal evitando assim criar objetos
-					 * repetidos para a mesma chave.
+					 * necessidade em outro ponto da árvore do objeto principal evitando assim criar objetos repetidos
+					 * para a mesma chave.
 					 */
 					addObjectToCache(session, targetEntityCache, newObject, uniqueId, transactionCache);
 					/*
@@ -199,11 +211,14 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 		for (ExpressionFieldMapper expField : children) {
 			expField.execute(session, resultSet, entityManaged, newObject, transactionCache);
 		}
+
 	}
 
 	/**
 	 * Retorna a chave única do objeto buscando os valores no resultSet.
-	 * @param resultSet Resultado do SQL
+	 * 
+	 * @param resultSet
+	 *            Resultado do SQL
 	 * @return Chave única
 	 * @throws SQLException
 	 */
@@ -218,8 +233,8 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 			index = resultSet.findColumn(aliasColumnName);
 			if (index < 0) {
 				/*
-				 * Esta exception não deverá ocorrer nunca pois as colunas estão sendo parseadas pela análise do SQL.
-				 * Se isto ocorrer pode ser um erro na análise.
+				 * Esta exception não deverá ocorrer nunca pois as colunas estão sendo parseadas pela análise do SQL. Se
+				 * isto ocorrer pode ser um erro na análise.
 				 */
 				throw new SQLException("NÃO ACHOU COLUNA " + aliasColumnName);
 			}
@@ -239,9 +254,9 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 
 	@Override
 	public String toString(int level) {
-		StringBuilder sb = new StringBuilder(StringUtils.repeat(" ", level * 4) + descriptionField.getField().getName() + " -> "
-				+ targetEntityCache.getEntityClass().getSimpleName() + " : " + aliasColumnName
-				+ ("".equals(aliasDiscriminatorColumnName) ? "" : " discriminator column " + aliasDiscriminatorColumnName));
+		StringBuilder sb = new StringBuilder(
+				StringUtils.repeat(" ", level * 4) + descriptionField.getField().getName() + " -> " + targetEntityCache.getEntityClass().getSimpleName() + " : "
+						+ aliasColumnName + ("".equals(aliasDiscriminatorColumnName) ? "" : " discriminator column " + aliasDiscriminatorColumnName));
 		level = level + 1;
 		for (ExpressionFieldMapper expressionFieldMapper : children) {
 			sb.append("\n").append(expressionFieldMapper.toString(level));

@@ -23,8 +23,10 @@ import br.com.anteros.persistence.handler.EntityHandlerException;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityManaged;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
+import br.com.anteros.persistence.proxy.LazyLoadFactory;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.cache.Cache;
+import br.com.anteros.persistence.session.lock.LockOptions;
 
 /**
  * Classe responsável por criar um Entidade com base nos dados da expressão e atribuir ao objeto alvo.
@@ -176,7 +178,7 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 	 * @return Chave única
 	 * @throws SQLException
 	 */
-	protected String getUniqueId(ResultSet resultSet) throws SQLException {
+	protected String getUniqueId(ResultSet resultSet) throws Exception {
 		int index;
 		StringBuilder uniqueIdTemp = new StringBuilder("");
 		boolean appendSeparator = false;
@@ -184,14 +186,20 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 			/*
 			 * Busca indice da coluna dentro do resultSet
 			 */
-			index = resultSet.findColumn(aliasColumnName);
-			if (index < 0) {
-				/*
-				 * Esta exception não deverá ocorrer nunca pois as colunas estão sendo parseadas pela análise do SQL. Se
-				 * isto ocorrer pode ser um erro na análise.
-				 */
-				throw new SQLException("NÃO ACHOU COLUNA " + aliasColumnName);
+			try {
+				index = resultSet.findColumn(aliasColumnName);
+				if (index < 0) {
+					/*
+					 * Esta exception não deverá ocorrer nunca pois as colunas estão sendo parseadas pela análise do SQL. Se
+					 * isto ocorrer pode ser um erro na análise.
+					 */
+					throw new SQLException("NÃO ACHOU COLUNA " + aliasColumnName);
+				}	
+			} catch (Exception e) {
+				throw new EntityExpressionException("Ocorreu um erro localizando coluna "+aliasColumnName+" referente ao campo "+descriptionField.getField().getName()+" da classe "+targetEntityCache.getEntityClass(),e);
 			}
+			
+		
 			/*
 			 * Concatena o valor da coluna na chave do objeto
 			 */
