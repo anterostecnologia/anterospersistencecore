@@ -178,6 +178,10 @@ public interface SQLSession {
 	public void save(Object[] object) throws Exception;
 
 	public void save(Class<?> clazz, String[] columns, String[] values) throws Exception;
+	
+	public void saveInBatchMode(Object object, int batchSize) throws Exception;
+	
+	public void saveInBatchMode(Object[] object, int batchSize) throws Exception;
 
 	public void remove(Object object) throws Exception;
 
@@ -272,5 +276,9 @@ public interface SQLSession {
 	public void executeDDL(String ddl) throws Exception;
 	
 	public String applyLock(String sql, Class<?> resultClass, LockOptions lockOptions) throws Exception;
+	
+	public int getBatchSize();
+	
+	public void batchSize(int batchSize);
 
 }

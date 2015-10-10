@@ -20,6 +20,8 @@ package br.com.anteros.persistence.session;
 public interface SQLPersister {
 
 	public Object save(SQLSession session, Object object) throws Exception;
+	
+	public Object save(SQLSession session, Object object, int batchSize) throws Exception;
 
 	public void remove(SQLSession session, Object object) throws Exception;
 

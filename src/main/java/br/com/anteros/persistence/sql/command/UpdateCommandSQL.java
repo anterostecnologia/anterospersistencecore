@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.sql.command;
 
@@ -34,13 +31,13 @@ public class UpdateCommandSQL extends CommandSQL {
 
 	private static Logger LOG = LoggerProvider.getInstance().getLogger(UpdateCommandSQL.class.getName());
 
-	public UpdateCommandSQL(SQLSession session, String sql, List<NamedParameter> params, Object targetObject, EntityCache entityCache,
-			String targetTableName, boolean showSql, DescriptionSQL descriptionSQL) {
-		super(session, sql, params, targetObject, entityCache, targetTableName, showSql, descriptionSQL);
+	public UpdateCommandSQL(SQLSession session, String sql, List<NamedParameter> params, Object targetObject, EntityCache entityCache, String targetTableName,
+			boolean showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
+		super(session, sql, params, targetObject, entityCache, targetTableName, showSql, descriptionSQL, inBatchMode);
 	}
 
 	@Override
-	public void execute() throws Exception {
+	public CommandSQLReturn execute() throws Exception {
 		/*
 		 * Executa o SQL
 		 */
@@ -56,8 +53,8 @@ public class UpdateCommandSQL extends CommandSQL {
 				if ((descriptionSQL != null) && descriptionSQL.isCallable()) {
 					ProcedureResult result = null;
 					try {
-						result = queryRunner.executeProcedure(session, session.getDialect(), descriptionSQL.getCallableType(),
-								descriptionSQL.getSql(), NamedParameter.toArray(namedParameters), showSql, 0, session.clientId());
+						result = queryRunner.executeProcedure(session, session.getDialect(), descriptionSQL.getCallableType(), descriptionSQL.getSql(),
+								NamedParameter.toArray(namedParameters), showSql, 0, session.clientId());
 						/*
 						 * Verifica se houve sucesso na execução
 						 */
@@ -81,17 +78,22 @@ public class UpdateCommandSQL extends CommandSQL {
 				} else {
 					int rowsUpdated;
 					if (descriptionSQL != null)
-						rowsUpdated = queryRunner.update(session.getConnection(), descriptionSQL.getSql(),
-								descriptionSQL.processParameters(namedParameters), showSql, session.getListeners(), session.clientId());
-					else
-						rowsUpdated = queryRunner.update(this.getSession().getConnection(), sql, NamedParameter.getAllValues(namedParameters),
+						rowsUpdated = queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters),
 								showSql, session.getListeners(), session.clientId());
-					if (rowsUpdated == 0) {
-						if (entityCache.isVersioned())
-							throw new SQLException("Objeto foi atualizado ou removido por outra transação. " + this.getObjectId());
-						else
-							throw new SQLException("Não foi possível atualizar o objeto " + this.getObjectId()
-									+ " pois o mesmo não foi encontrado. Verifique os parâmetros.");
+					else {
+						if (inBatchMode) {
+							return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
+						} else {
+							rowsUpdated = queryRunner.update(this.getSession().getConnection(), sql, NamedParameter.getAllValues(namedParameters), showSql,
+									session.getListeners(), session.clientId());
+							if (rowsUpdated == 0) {
+								if (entityCache.isVersioned())
+									throw new SQLException("Objeto foi atualizado ou removido por outra transação. " + this.getObjectId());
+								else
+									throw new SQLException("Não foi possível atualizar o objeto " + this.getObjectId()
+											+ " pois o mesmo não foi encontrado. Verifique os parâmetros.");
+							}
+						}
 					}
 				}
 
@@ -100,12 +102,13 @@ public class UpdateCommandSQL extends CommandSQL {
 				 */
 
 				if (targetObject == null)
-					return;
+					return null;
 			} catch (SQLException ex) {
 				throw session.getDialect().convertSQLException(ex, "", sql);
 			}
 		}
 		setEntityManaged();
+		return null;
 	}
 
 	@Override

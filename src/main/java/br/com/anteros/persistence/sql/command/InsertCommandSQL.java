@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.sql.command;
 
@@ -44,15 +41,15 @@ public class InsertCommandSQL extends CommandSQL {
 	private static Logger LOG = LoggerProvider.getInstance().getLogger(InsertCommandSQL.class.getName());
 
 	public InsertCommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object targetObject, EntityCache entityCache,
-			String targetTableName, boolean showSql, IdentifierPostInsert identifierPostInsert, DescriptionColumn identifyColumn,
-			DescriptionSQL descriptionSQL) {
-		super(session, sql, namedParameters, targetObject, entityCache, targetTableName, showSql, descriptionSQL);
+			String targetTableName, boolean showSql, IdentifierPostInsert identifierPostInsert, DescriptionColumn identifyColumn, DescriptionSQL descriptionSQL,
+			boolean inBatchMode) {
+		super(session, sql, namedParameters, targetObject, entityCache, targetTableName, showSql, descriptionSQL, inBatchMode);
 		this.identifierPostInsert = identifierPostInsert;
 		this.identifyColumn = identifyColumn;
 	}
 
 	@Override
-	public void execute() throws Exception {
+	public CommandSQLReturn execute() throws Exception {
 		/*
 		 * Troca os parâmetros que aguardam o identificador de outro objeto pelo valor do identificador gerado
 		 */
@@ -68,8 +65,8 @@ public class InsertCommandSQL extends CommandSQL {
 				if ((descriptionSQL != null) && descriptionSQL.isCallable()) {
 					ProcedureResult result = null;
 					try {
-						result = queryRunner.executeProcedure(session, session.getDialect(), descriptionSQL.getCallableType(),
-								descriptionSQL.getSql(), namedParameters.toArray(new NamedParameter[] {}), showSql, 0, session.clientId());
+						result = queryRunner.executeProcedure(session, session.getDialect(), descriptionSQL.getCallableType(), descriptionSQL.getSql(),
+								namedParameters.toArray(new NamedParameter[] {}), showSql, 0, session.clientId());
 						/*
 						 * Verifica se houve sucesso na execução
 						 */
@@ -94,8 +91,8 @@ public class InsertCommandSQL extends CommandSQL {
 							IdentifierColumnList identifierList = IdentifierColumn.list();
 							for (DescriptionField descriptionField : primaryKeyFields) {
 								for (DescriptionColumn column : descriptionField.getDescriptionColumns()) {
-									identifierList.add(new IdentifierColumn(column.getColumnName(), result.getOutPutParameter(descriptionSQL
-											.getParameterIdByColumnName(column.getColumnName()))));
+									identifierList.add(new IdentifierColumn(column.getColumnName(),
+											result.getOutPutParameter(descriptionSQL.getParameterIdByColumnName(column.getColumnName()))));
 								}
 								identifier.setFieldValue(descriptionField.getName(), identifierList.toArray(new IdentifierColumn[] {}));
 							}
@@ -110,8 +107,7 @@ public class InsertCommandSQL extends CommandSQL {
 					if (identifierPostInsert != null) {
 						if (descriptionSQL != null) {
 							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters),
-									identifierPostInsert, session.getDialect().getIdentitySelectString(), showSql, session.getListeners(),
-									session.clientId());
+									identifierPostInsert, session.getDialect().getIdentitySelectString(), showSql, session.getListeners(), session.clientId());
 						} else {
 							queryRunner.update(session.getConnection(), sql, NamedParameter.getAllValues(namedParameters), identifierPostInsert,
 									session.getDialect().getIdentitySelectString(), showSql, session.getListeners(), session.clientId());
@@ -120,21 +116,26 @@ public class InsertCommandSQL extends CommandSQL {
 						ReflectionUtils.setObjectValueByFieldName(targetObject, identifyColumn.getField().getName(), generatedId);
 					} else {
 						if (descriptionSQL != null) {
-							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters),
-									showSql, session.getListeners(), session.clientId());
-						} else
-							queryRunner.update(session.getConnection(), sql, NamedParameter.getAllValues(namedParameters), showSql,
+							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters), showSql,
 									session.getListeners(), session.clientId());
-
+						} else {
+							if (inBatchMode) {
+								return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
+							} else {
+								queryRunner.update(session.getConnection(), sql, NamedParameter.getAllValues(namedParameters), showSql, session.getListeners(),
+										session.clientId());
+							}
+						}
 					}
 				}
 				if (targetObject == null)
-					return;
+					return null;
 			} catch (SQLException ex) {
 				throw session.getDialect().convertSQLException(ex, "", sql);
 			}
 		}
 		setEntityManaged();
+		return null;
 
 	}
 

@@ -44,9 +44,10 @@ public abstract class CommandSQL {
 	protected SQLQueryRunner queryRunner = new SQLQueryRunner();
 	protected String targetTableName;
 	protected DescriptionSQL descriptionSQL;
+	protected boolean inBatchMode = false;
 
 	public CommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object targetObject,
-			EntityCache entityCache, String targetTableName, boolean showSql, DescriptionSQL descriptionSQL) {
+			EntityCache entityCache, String targetTableName, boolean showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
 		this.sql = sql;
 		this.namedParameters = namedParameters;
 		this.session = session;
@@ -55,9 +56,10 @@ public abstract class CommandSQL {
 		this.entityCache = entityCache;
 		this.targetTableName = targetTableName;
 		this.descriptionSQL = descriptionSQL;
+		this.inBatchMode = inBatchMode;
 	}
 
-	public abstract void execute() throws Exception;
+	public abstract CommandSQLReturn execute() throws Exception;
 
 	public String getSql() {
 		return sql;
@@ -169,5 +171,13 @@ public abstract class CommandSQL {
 	}
 
 	public abstract boolean isNewEntity();
+
+	public boolean isInBatchMode() {
+		return inBatchMode;
+	}
+
+	public void setInBatchMode(boolean inBatchMode) {
+		this.inBatchMode = inBatchMode;
+	}
 
 }
