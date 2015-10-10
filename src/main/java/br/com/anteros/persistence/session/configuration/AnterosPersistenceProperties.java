@@ -36,6 +36,8 @@ public class AnterosPersistenceProperties {
 	public static final String SHOW_SQL = "showsql";
 
 	public static final String FORMAT_SQL = "formatsql";
+	
+	public static final String BATCH_SIZE = "batchSize";
 
 	public static final String QUERY_TIMEOUT = "queryTimeout";
 
