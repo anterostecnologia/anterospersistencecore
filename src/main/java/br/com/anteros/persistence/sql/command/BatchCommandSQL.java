@@ -46,8 +46,7 @@ public class BatchCommandSQL extends CommandSQL {
 				sql = ret.getSql();
 				batchCount++;
 			} else {
-				System.out.println(batchParameters.size());
-				int[] result = queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}));
+				queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}));
 				batchParameters.clear();
 				batchParameters.add(ret.getParameters());
 				sql = ret.getSql();
