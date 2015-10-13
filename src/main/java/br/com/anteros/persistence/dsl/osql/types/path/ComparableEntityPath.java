@@ -63,4 +63,14 @@ public class ComparableEntityPath<T extends Comparable> extends ComparablePath<T
 	public EntityPath<T> excludeProjection(Path<?>... args) {
 		throw new UnsupportedOperationException();	
 	}
+
+	@Override
+	public EntityPath<T> customProjection(Object... args) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public EntityPath<T> excludeProjection(Object... args) {
+		throw new UnsupportedOperationException();
+	}
 }

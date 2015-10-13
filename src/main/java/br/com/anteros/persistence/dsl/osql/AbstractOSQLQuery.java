@@ -55,7 +55,8 @@ import br.com.anteros.persistence.session.query.SQLQueryNoResultException;
  *
  * @author tiwe modified by: Edson Martins
  *
- * @param <Q>
+ * @param
+ * 			<Q>
  *            subtipo concreto
  */
 public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends ProjectableSQLQuery<Q> {
@@ -215,10 +216,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 				}
 			}
 			if (ReflectionUtils.isCollection(arg.getType())) {
-				throw new OSQLQueryException(
-						"A expressão "
-								+ arg
-								+ " não pode ser usado para criação da consulta pois é uma coleção. Use uma junção para isto ou use o método List passando apenas a expressão que representa a coleção.");
+				throw new OSQLQueryException("A expressão " + arg
+						+ " não pode ser usado para criação da consulta pois é uma coleção. Use uma junção para isto ou use o método List passando apenas a expressão que representa a coleção.");
 			}
 		}
 	}
@@ -338,8 +337,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			 */
 			SQLSerializer serializer = serialize(forCount);
 			String sql = serializer.toString();
-			//System.out.println(sql);
-			//System.out.println();
+			// System.out.println(sql);
+			// System.out.println();
 			/*
 			 * Cria a query para execução passando a lista de classes de resultados esperadas.
 			 */
@@ -409,7 +408,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 		return (result.size() == 0 ? null : result);
 	}
 
-	/*
+	/**
 	 * Sobrescrevendo métodos para controlar quando não foi adicionado condição para o Join. Desta forma assume que o
 	 * join será feito com a primeira tabela do From e adiciona-se o Join automagicamente.
 	 */

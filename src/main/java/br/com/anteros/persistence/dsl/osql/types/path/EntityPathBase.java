@@ -12,8 +12,10 @@
  *******************************************************************************/
 package br.com.anteros.persistence.dsl.osql.types.path;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -99,6 +101,31 @@ public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 		}
 		return this;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public EntityPath<T> customProjection(Object... args) {
+		return customProjection(buildNewCustomProjectionArguments(args).toArray(new Path<?>[]{}));
+	}
+
+	protected List<Path<?>> buildNewCustomProjectionArguments(Object... args) {
+		List<Path<?>> newArgs = new ArrayList<Path<?>>();
+		for (Object arg : args){
+			if (!((arg instanceof Path<?>) || (arg instanceof Path<?>[])))
+					throw new OSQLQueryException("Para criar uma projeção customizada informe um ou mais caminhos no formato Path<?> ou Path<?>[]. Argumento inválido "+arg);
+			if (arg instanceof Path<?>)
+				newArgs.add((Path<?>) arg);
+			else if (arg instanceof Path<?>[]){
+				for (Path<?> arg2 : (Path<?>[])arg){
+					newArgs.add(arg2);
+				}
+			}
+		}
+		return newArgs;
+	}
+
 
 	/**
 	 * {@inheritDoc}
@@ -109,6 +136,14 @@ public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 			excludeProjection.add(arg);
 		}
 		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public EntityPath<T> excludeProjection(Object... args) {
+		return excludeProjection(buildNewCustomProjectionArguments(args).toArray(new Path<?>[]{}));
 	}
 
 }

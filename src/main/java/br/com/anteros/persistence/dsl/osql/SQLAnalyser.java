@@ -318,10 +318,10 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 
 		if (keyPath == null) {
 			if (inOperation) {
-				if (parsedPathsOnOperations.containsKey(path))
+				if (parsedPathsOnOperations.containsKey(path) && !parsedPathsOnOperations.get(path).isEmpty())
 					return;
 			} else {
-				if (parsedPathsOnProjections.containsKey(path))
+				if (parsedPathsOnProjections.containsKey(path) && !parsedPathsOnProjections.get(path).isEmpty())
 					return;
 			}
 		}
@@ -916,7 +916,6 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 				&& (((stage != Stage.FROM) && (stage != Stage.WHERE)) || (expr.getMetadata().getPathType() == PathType.COLLECTION_ANY)));
 
 		if ((firstCondition) || (secondCondition) || (thirdCondition) || (fourthCondition)) {
-
 			Path<?> exprOwner = ((expr.getMetadata().getPathType() == PathType.COLLECTION_ANY) ? (SetPath) expr.getMetadata().getParent() : expr);
 
 			if (!createdAliasesForDynamicJoins.containsKey(exprOwner)) {

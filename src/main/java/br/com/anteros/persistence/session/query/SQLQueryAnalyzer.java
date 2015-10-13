@@ -217,7 +217,7 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 	 *            Alias pai
 	 * @throws SQLQueryAnalyzerException
 	 */
-	protected void findAndSetOwnerToChildAlias(SelectStatementNode selectStatement, SQLQueryAnalyserAlias aliasOwner)
+	protected void findAndSetOwnerToChildAlias(SelectStatementNode selectStatement, SQLQueryAnalyserAlias aliasOwner, Set<SQLQueryAnalyserAlias> aliases)
 			throws SQLQueryAnalyzerException {
 		List<String> columnNames = null;
 		/*
@@ -262,7 +262,7 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 							 * Usando recursividade podemos encontrar os filhos
 							 * do filho
 							 */
-							findAndSetOwnerToChildAlias(selectStatement, aliasChild);
+							findAndSetOwnerToChildAlias(selectStatement, aliasChild, aliases);
 							break;
 						}
 					}
@@ -470,7 +470,8 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 		 * Associa o pai a cada alias filho usado no Select formando assim um
 		 * caminho para montar o objeto da classe de resultado.
 		 */
-		findAndSetOwnerToChildAlias(getFirstSelectStatement(mainNode), aliasResultClass);
+		findAndSetOwnerToChildAlias(getFirstSelectStatement(mainNode), aliasResultClass, aliases);
+		changeTemporaryAliases(aliases,aliasesTemporary);
 
 		/*
 		 * Adiciona as colunas da chave primária do alias(tabela) e
@@ -520,6 +521,17 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 		 * novo Select/GroupBy
 		 */
 		replaceStrings.put(oldSelectOrGroupBy, newSelectGroupBy);
+	}
+
+	private void changeTemporaryAliases(Set<SQLQueryAnalyserAlias> aliases, Set<SQLQueryAnalyserAlias> aliasesTemporary) {
+		for (SQLQueryAnalyserAlias alias : aliases){
+			for (SQLQueryAnalyserAlias aliasTemp : aliasesTemporary){
+				if (aliasTemp.getAlias().equals(alias.getAlias())){
+					aliasTemp.setOwner(alias.getOwner());
+				}
+			}
+		}
+		
 	}
 
 	void makeColumnNameAliases(Set<SQLQueryAnalyserAlias> aliasesTemporary, List<INode> newColumns,

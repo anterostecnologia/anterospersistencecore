@@ -61,12 +61,12 @@ public abstract class ProjectableQuery<Q extends ProjectableQuery<Q>>
 
     @Override
     public final Tuple singleResult(Expression<?>... args) {
-        return limit(1).uniqueResult(args);
+        return uniqueResult(args);
     }
 
     @Override
     public final <RT> RT singleResult(Expression<RT> expr) {
-        return limit(1).uniqueResult(expr);
+        return uniqueResult(expr);
     }
 
     @Override
