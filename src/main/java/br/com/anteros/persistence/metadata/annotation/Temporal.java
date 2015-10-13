@@ -25,5 +25,5 @@ import br.com.anteros.persistence.metadata.annotation.type.TemporalType;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Temporal {
-	TemporalType type() default TemporalType.DATE_TIME;
+	TemporalType value();
 }

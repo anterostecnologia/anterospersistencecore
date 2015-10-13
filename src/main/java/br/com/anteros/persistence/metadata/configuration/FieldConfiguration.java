@@ -583,7 +583,7 @@ public class FieldConfiguration {
 			} else if (annotation instanceof TableGenerator) {
 				tableGenerator(new TableGeneratorConfiguration((TableGenerator) annotation));
 			} else if (annotation instanceof Temporal) {
-				temporal(((Temporal) annotation).type());
+				temporal(((Temporal) annotation).value());
 			} else if (annotation instanceof Transient) {
 				transientField();
 			} else if (annotation instanceof SQLInsert) {
