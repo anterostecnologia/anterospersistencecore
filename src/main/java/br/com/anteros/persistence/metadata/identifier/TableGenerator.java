@@ -85,7 +85,7 @@ public class TableGenerator implements IdentifierGenerator {
 		long currentValue = 1;
 		try {
 			String sql = select.toStatementString();
-			ResultSet rsSelect = session.createQuery(sql, new Object[] { value }, LockOptions.PESSIMISTIC_WRITE).executeQuery();
+			ResultSet rsSelect = session.createQuery(sql, new Object[] { value }, LockOptions.PESSIMISTIC_WRITE).showSql(false).executeQuery();
 			if (!rsSelect.next())
 				currentValue = 0;
 			else
