@@ -32,6 +32,8 @@ public class AnterosPersistenceProperties {
 	public static final String JDBC_CATALOG = "defaultCatalog";
 
 	public static final String DIALECT = "dialect";
+	
+	public static final String CHARSET_NAME = "charsetName";
 
 	public static final String SHOW_SQL = "showsql";
 
