@@ -1698,8 +1698,12 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		if ((this.parameters.size() > 0) && (this.namedParameters.size() > 0))
 			throw new SQLQueryException("Use apenas um formato de parâmetros. Parâmetros nomeados ou lista de parâmetros.");
 
-		if (customHandler != null)
+		if (customHandler != null){
+			parsedNamedParameters = namedParameters; 
+			parsedParameters = parameters; 
+			parsedSql = sql;
 			return customHandler;
+		}
 
 		if (resultIsOneEntity()) {
 			if (this.identifier != null) {
