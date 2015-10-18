@@ -1093,7 +1093,7 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 			} else {
 				Set<ResultClassColumnInfo> columns = new LinkedHashSet<ResultClassColumnInfo>();
 				Set<SQLAnalyserColumn> tempColumns = resultColumnsFromProjections.get(expr);
-				if (columns != null) {
+				if (tempColumns != null) {
 					for (SQLAnalyserColumn column : tempColumns) {
 						ResultClassColumnInfo newColumnInfo = new ResultClassColumnInfo(column.getAliasTableName(), column.getColumnName(),
 								column.getAliasColumnName(), column.getDescriptionField(), index);
