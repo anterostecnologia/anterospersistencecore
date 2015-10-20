@@ -17,12 +17,15 @@ import br.com.anteros.persistence.session.lock.LockOptions;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyzer;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyzerException;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyzerResult;
+import br.com.anteros.persistence.sql.command.Select;
 import br.com.anteros.persistence.sql.format.SqlFormatRule;
 import br.com.anteros.persistence.sql.parser.INode;
 import br.com.anteros.persistence.sql.parser.ParserUtil;
 import br.com.anteros.persistence.sql.parser.SqlParser;
 import br.com.anteros.persistence.sql.parser.node.ColumnNode;
+import br.com.anteros.persistence.sql.parser.node.FunctionNode;
 import br.com.anteros.persistence.sql.parser.node.RootNode;
+import br.com.anteros.persistence.sql.parser.node.SelectNode;
 import br.com.anteros.persistence.sql.parser.node.SelectStatementNode;
 
 public class MultiSelectHandler implements ScrollableResultSetHandler {
@@ -153,11 +156,11 @@ public class MultiSelectHandler implements ScrollableResultSetHandler {
 	}
 
 	protected SQLQueryAnalyzerResult getAnalyzerResult(ResultClassDefinition rcd, String parsedSql, String originalSql) throws SQLQueryAnalyzerException {
-		SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance().get(
-				rcd.getResultClass().getName() + ":" + originalSql);
+		SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance()
+				.get(rcd.getResultClass().getName() + ":" + originalSql);
 		if (analyzerResult == null) {
-			analyzerResult = new SQLQueryAnalyzer(session.getEntityCacheManager(), session.getDialect(), SQLQueryAnalyzer.IGNORE_NOT_USED_ALIAS_TABLE).analyze(
-					parsedSql, rcd.getResultClass());
+			analyzerResult = new SQLQueryAnalyzer(session.getEntityCacheManager(), session.getDialect(), SQLQueryAnalyzer.IGNORE_NOT_USED_ALIAS_TABLE)
+					.analyze(parsedSql, rcd.getResultClass());
 			PersistenceMetadataCache.getInstance().put(rcd.getResultClass().getName() + ":" + originalSql, analyzerResult);
 		}
 		return analyzerResult;
@@ -203,12 +206,14 @@ public class MultiSelectHandler implements ScrollableResultSetHandler {
 		INode node = new RootNode();
 		parser.parse(node);
 
-		INode[] children = (INode[]) ParserUtil.findChildren(getFirstSelectStatement(node), ColumnNode.class.getSimpleName());
+		SelectNode selectNode = (SelectNode) ParserUtil.findFirstChild(getFirstSelectStatement(node), "SelectNode");
+
 		int i = 1;
 		/*
-		 * Localiza primeiro pelo alias da coluna caso o usuário tenha informado. O alias definido pelo usuário não será alterado durante a análise do sql.
+		 * Localiza pelo alias da coluna caso o usuário tenha informado. O alias definido pelo usuário não será alterado
+		 * durante a análise do sql.
 		 */
-		for (INode nd : children) {
+		for (INode nd : selectNode.getChildren()) {
 			if (nd instanceof ColumnNode) {
 				ColumnNode columnNode = (ColumnNode) nd;
 				if (columnNode.hasAlias()) {
@@ -217,22 +222,33 @@ public class MultiSelectHandler implements ScrollableResultSetHandler {
 					}
 				}
 				i++;
+			} else if (nd instanceof FunctionNode) {
+				FunctionNode columnNode = (FunctionNode) nd;
+				if (columnNode.hasAlias()) {
+					if (columnNode.getAliasName().equalsIgnoreCase(columnName)) {
+						return i;
+					}
+				}
+				i++;
 			}
 		}
-		
+
 		/*
-		 * Caso não encontre pelo alias da coluna procura pelo nome da coluna. 
+		 * Caso não encontre pelo alias da coluna procura pelo nome da coluna.
 		 */
 		i = 1;
-		for (INode nd : children) {
+		for (INode nd : selectNode.getChildren()) {
 			if (nd instanceof ColumnNode) {
 				ColumnNode columnNode = (ColumnNode) nd;
 				if (columnNode.getColumnName().equalsIgnoreCase(columnName)) {
 					return i;
 				}
 				i++;
+			} else if (nd instanceof FunctionNode) {
+				i++;
 			}
 		}
+
 		return -1;
 	}
 

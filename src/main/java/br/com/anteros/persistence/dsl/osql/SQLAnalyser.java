@@ -43,6 +43,7 @@ import br.com.anteros.persistence.dsl.osql.types.SubQueryExpression;
 import br.com.anteros.persistence.dsl.osql.types.TemplateExpression;
 import br.com.anteros.persistence.dsl.osql.types.Visitor;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
+import br.com.anteros.persistence.dsl.osql.types.expr.NumberOperation;
 import br.com.anteros.persistence.dsl.osql.types.path.DiscriminatorColumnPath;
 import br.com.anteros.persistence.dsl.osql.types.path.DiscriminatorValuePath;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
@@ -186,8 +187,7 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 
 				if (rigthExpression instanceof Constant) {
 					throw new SQLAnalyserException(
-							"Não é possível usar Entidades nas operações. Informe o campos da chave individualmente. Expressão constante "
-									+ rigthExpression);
+							"Não é possível usar Entidades nas operações. Informe o campos da chave individualmente. Expressão constante " + rigthExpression);
 
 				}
 				if (((Path<?>) rigthExpression).getMetadata().getPathType() == PathType.COLLECTION_ANY) {
@@ -497,7 +497,8 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 
 			if (level == MAKE_COLUMNS) {
 				Set<SQLAnalyserColumn> columnsFromProjection = getResultColumnsFromProjection(currentExpressionOnMakeColumns);
-				columnsFromProjection.add(lastColumnAdded);
+				if (columnsFromProjection != null)
+					columnsFromProjection.add(lastColumnAdded);
 			}
 
 			return true;
@@ -522,7 +523,8 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 
 				if (level == MAKE_COLUMNS) {
 					Set<SQLAnalyserColumn> columnsFromProjection = getResultColumnsFromProjection(currentExpressionOnMakeColumns);
-					columnsFromProjection.add(lastColumnAdded);
+					if (columnsFromProjection != null)
+						columnsFromProjection.add(lastColumnAdded);
 				}
 
 			}
@@ -566,6 +568,9 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 	}
 
 	private Set<SQLAnalyserColumn> getResultColumnsFromProjection(Expression<?> expr) {
+		if (expr == null)
+			return null;
+
 		Set<SQLAnalyserColumn> result = null;
 		if (resultColumnsFromProjections.containsKey(expr))
 			result = resultColumnsFromProjections.get(expr);
@@ -846,24 +851,24 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 		}
 
 		if (level == MAKE_COLUMNS) {
-//			System.out.println("PROJEÇÃO");
-//			System.out.println("-------------------------------------------");
-//			for (Expression<?> p : parsedPathsOnProjections.keySet()) {
-//				for (SQLAnalyserColumn s : parsedPathsOnProjections.get(p)) {
-//					System.out.println(p + " -> " + s);
-//				}
-//			}
-//
-//			System.out.println();
-//			System.out.println("OPERACAO");
-//			System.out.println("-------------------------------------------");
-//			for (Expression<?> p : parsedPathsOnOperations.keySet()) {
-//				for (SQLAnalyserColumn s : parsedPathsOnOperations.get(p)) {
-//					System.out.println(p + " -> " + s);
-//				}
-//			}
-//
-//			System.out.println("-------------------------------------------");
+			// System.out.println("PROJEÇÃO");
+			// System.out.println("-------------------------------------------");
+			// for (Expression<?> p : parsedPathsOnProjections.keySet()) {
+			// for (SQLAnalyserColumn s : parsedPathsOnProjections.get(p)) {
+			// System.out.println(p + " -> " + s);
+			// }
+			// }
+			//
+			// System.out.println();
+			// System.out.println("OPERACAO");
+			// System.out.println("-------------------------------------------");
+			// for (Expression<?> p : parsedPathsOnOperations.keySet()) {
+			// for (SQLAnalyserColumn s : parsedPathsOnOperations.get(p)) {
+			// System.out.println(p + " -> " + s);
+			// }
+			// }
+			//
+			// System.out.println("-------------------------------------------");
 		}
 	}
 
@@ -1101,10 +1106,20 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 						index++;
 					}
 				}
-				if (columns != null) {
-					ResultClassDefinition classDefinition = new ResultClassDefinition(expr.getType(), columns);
-					result.add(classDefinition);
+
+				if (columns.size() == 0) {
+					if (expr instanceof Operation<?>){
+						Expression<?> arg = ((Operation<?>)expr).getArg(1);
+						Path<?> path = (Path<?>) arg;
+						path.getMetadata().getName();
+						ResultClassColumnInfo newColumnInfo = new ResultClassColumnInfo("", path.getMetadata().getName(),
+								path.getMetadata().getName(), null, 0);
+						columns.add(newColumnInfo);
+					}
 				}
+				ResultClassDefinition classDefinition = null;
+				classDefinition = new ResultClassDefinition(expr.getType(), columns);
+				result.add(classDefinition);
 			}
 		}
 		return result;

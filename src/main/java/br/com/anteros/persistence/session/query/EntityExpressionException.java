@@ -17,8 +17,5 @@ public class EntityExpressionException extends Exception {
 		super(message, cause);
 	}
 
-	public EntityExpressionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
 
 }
