@@ -146,7 +146,7 @@ public class SchemaManager implements Comparator<TableSchema> {
 										sequenceGeneratorSchema.setName(((SequenceGenerator) generator).getSequenceName());
 										sequenceGeneratorSchema.setInitialValue(((SequenceGenerator) generator).getInitialValue());
 										sequenceGeneratorSchema.setCacheSize(0);
-										sequenceGeneratorSchema.setIncrementSize(1);
+										sequenceGeneratorSchema.setAllocationSize(((SequenceGenerator) generator).getAllocationSize());
 										sequences.add(sequenceGeneratorSchema);
 									} else if (generator instanceof TableGenerator) {
 										TableGeneratorSchema tableGeneratorSchema = new TableGeneratorSchema();

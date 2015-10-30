@@ -337,8 +337,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			 */
 			SQLSerializer serializer = serialize(forCount);
 			String sql = serializer.toString();
-			// System.out.println(sql);
-			// System.out.println();
+			//System.out.println(sql);
 			/*
 			 * Cria a query para execução passando a lista de classes de resultados esperadas.
 			 */

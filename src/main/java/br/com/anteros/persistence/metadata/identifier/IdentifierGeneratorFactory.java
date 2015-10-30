@@ -51,7 +51,7 @@ public class IdentifierGeneratorFactory {
 			return new IdentifyGenerator(column.getField().getType());
 		} else if (type.equals(GeneratedType.SEQUENCE)) {
 			return new SequenceGenerator(session, generator.getCatalog(), generator.getSchema(), generator.getSequenceName(), null, column.getField()
-					.getType(), generator.getInitialValue());
+					.getType(), generator.getInitialValue(), generator.getAllocationSize());
 		} else if (type.equals(GeneratedType.TABLE)) {
 			return new TableGenerator(session, generator.getTableName(), generator.getPkColumnName(), generator.getValueColumnName(),
 					generator.getValue(), column.getField().getType(), null, generator.getCatalog(), generator.getSchema(),

@@ -28,6 +28,8 @@ public class SequenceGeneratorConfiguration {
 	private int startsWith = 1;
 
 	private String schema = "";
+	
+	private int allocationSize = 1;
 
 	public SequenceGeneratorConfiguration(String sequenceName, String catalog, int initialValue, int startsWith, String schema) {
 		this.sequenceName = sequenceName;
@@ -43,6 +45,7 @@ public class SequenceGeneratorConfiguration {
 		this.initialValue = sequenceGenerator.initialValue();
 		this.startsWith = sequenceGenerator.startsWith();
 		this.schema = sequenceGenerator.schema();
+		this.allocationSize = sequenceGenerator.allocationSize();
 	}
 
 	public String getSequenceName() {
@@ -69,6 +72,15 @@ public class SequenceGeneratorConfiguration {
 
 	public SequenceGeneratorConfiguration initialValue(int initialValue) {
 		this.initialValue = initialValue;
+		return this;
+	}
+	
+	public int getAllocationSize() {
+		return allocationSize;
+	}
+
+	public SequenceGeneratorConfiguration allocationSize(int allocationSize) {
+		this.allocationSize = allocationSize;
 		return this;
 	}
 

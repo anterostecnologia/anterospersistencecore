@@ -358,6 +358,9 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 			 * for uma propriedade da entidade, pega o pai mais adequado.
 			 */
 			Path<?> entityPath = this.getAppropriateAliasByEntityPath(path);
+			if (!(entityPath instanceof EntityPath<?>))
+				return;
+			
 			if (aliasTableName == null) {
 				aliasTableName = entityPath.getMetadata().getName();
 			}
@@ -981,7 +984,6 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 	 * @return Alias encontrado
 	 */
 	public Path<?> getAppropriateAliasByEntityPath(Path<?> path) {
-
 		if (path.getMetadata().isRoot())
 			return path;
 
@@ -1010,7 +1012,11 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 			}
 		} else { // PAP.usuarioSistema.id
 			if (path.getMetadata().getParent().getMetadata().isRoot())
-				result = (EntityPath<?>) path.getMetadata().getParent();
+				if (path.getMetadata().getParent() instanceof EntityPath<?>) {
+					result = (EntityPath<?>) path.getMetadata().getParent();
+				} else {
+					return path.getMetadata().getParent();
+				}
 			else {
 
 				EntityCache entityCacheOwner = this.configuration.getEntityCacheManager().getEntityCache(path.getMetadata().getParent().getType());
@@ -1108,12 +1114,12 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 				}
 
 				if (columns.size() == 0) {
-					if (expr instanceof Operation<?>){
-						Expression<?> arg = ((Operation<?>)expr).getArg(1);
+					if (expr instanceof Operation<?>) {
+						Expression<?> arg = ((Operation<?>) expr).getArg(1);
 						Path<?> path = (Path<?>) arg;
 						path.getMetadata().getName();
-						ResultClassColumnInfo newColumnInfo = new ResultClassColumnInfo("", path.getMetadata().getName(),
-								path.getMetadata().getName(), null, 0);
+						ResultClassColumnInfo newColumnInfo = new ResultClassColumnInfo("", path.getMetadata().getName(), path.getMetadata().getName(), null,
+								0);
 						columns.add(newColumnInfo);
 					}
 				}

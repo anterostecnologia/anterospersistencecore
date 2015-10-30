@@ -281,4 +281,16 @@ public interface SQLSession {
 	
 	public void batchSize(int batchSize);
 
+	public boolean validationIsActive();
+	
+	public void activateValidation();
+	
+	public void deactivateValidation();
+
+	public boolean hasNextValFromCacheSequence(String sequenceName);
+
+	public void storeNextValToCacheSession(String sequenceName, Long firstValue, Long lastValue);
+
+	public Long getNextValFromCacheSequence(String sequenceName);
+
 }

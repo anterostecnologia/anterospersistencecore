@@ -1943,6 +1943,7 @@ public class EntityCacheManager {
 				descriptionGenerator.setSchema(fieldConfiguration.getSequenceGenerator().getSchema());
 				descriptionGenerator.setStartsWith(fieldConfiguration.getSequenceGenerator().getStartsWith());
 				descriptionGenerator.setSequenceName(fieldConfiguration.getSequenceGenerator().getSequenceName());
+				descriptionGenerator.setAllocationSize(fieldConfiguration.getSequenceGenerator().getAllocationSize());
 				descriptionGenerator.setGeneratedType(GeneratedType.SEQUENCE);
 				descriptionColumn.getGenerators().put(GeneratedType.SEQUENCE, descriptionGenerator);
 			} else {

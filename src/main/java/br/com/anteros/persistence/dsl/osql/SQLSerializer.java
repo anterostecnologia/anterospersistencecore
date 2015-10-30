@@ -585,7 +585,7 @@ public class SQLSerializer extends SerializerBase<SQLSerializer> {
 				if ((stage == Stage.SELECT) || (stage == Stage.GROUP_BY) || (stage == Stage.HAVING) || (stage == Stage.ORDER_BY)) {
 					Set<SQLAnalyserColumn> columns = analyser.getParsedPathsOnProjections().get(path);
 					if ((columns == null) || (columns.size() == 0)) {
-						append(path.getMetadata().getName());
+						append(path.toString());
 					} else {
 						boolean appendSep = false;
 						for (SQLAnalyserColumn column : columns) {

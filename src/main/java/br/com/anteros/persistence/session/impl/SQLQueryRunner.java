@@ -90,7 +90,6 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		Object result = null;
-
 		try {
 			statement = this.prepareStatement(connection, sql);
 			if (timeOut > 0)
@@ -103,6 +102,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 
 			resultSet = this.wrap(statement.executeQuery());
 			result = resultSetHandler.handle(resultSet);
+			System.out.println("Executou consulta");
 		} catch (SQLException e) {
 			this.rethrow(e, sql, parameters, clientId);
 

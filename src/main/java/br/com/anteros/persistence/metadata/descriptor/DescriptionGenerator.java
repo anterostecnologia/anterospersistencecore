@@ -28,6 +28,7 @@ public class DescriptionGenerator {
 	private String tableName;
 	private String valueColumnName;
 	private String sequenceName;
+	private int allocationSize;
 	private int startsWith = 1;
 
 	public DescriptionGenerator() {
@@ -142,6 +143,14 @@ public class DescriptionGenerator {
 
 	public int getStartsWith() {
 		return startsWith;
+	}
+
+	public int getAllocationSize() {
+		return allocationSize;
+	}
+
+	public void setAllocationSize(int allocationSize) {
+		this.allocationSize = allocationSize;
 	}
 
 }

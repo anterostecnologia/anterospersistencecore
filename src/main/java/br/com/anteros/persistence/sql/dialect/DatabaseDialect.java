@@ -508,8 +508,8 @@ public abstract class DatabaseDialect {
 	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter) throws IOException {
 		schemaWriter.write(getCreateSequenceString() + " ");
 		schemaWriter.write(sequenceGeneratorSchema.getName());
-		if (sequenceGeneratorSchema.getIncrementSize() != 1) {
-			schemaWriter.write(" INCREMENT BY " + sequenceGeneratorSchema.getIncrementSize());
+		if (sequenceGeneratorSchema.getAllocationSize() != 1) {
+			schemaWriter.write(" INCREMENT BY " + sequenceGeneratorSchema.getAllocationSize());
 		}
 		schemaWriter.write(" START WITH " + sequenceGeneratorSchema.getInitialValue());
 		return schemaWriter;

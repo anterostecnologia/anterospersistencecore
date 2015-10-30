@@ -23,7 +23,7 @@ import br.com.anteros.persistence.session.SQLSession;
 public class SequenceGeneratorSchema extends GeneratorSchema {
 
 	protected int initialValue = 1;
-	protected int incrementSize = 1;
+	protected int allocationSize = 1;
 	protected int cacheSize = 0;
 
 	public int getInitialValue() {
@@ -34,12 +34,12 @@ public class SequenceGeneratorSchema extends GeneratorSchema {
 		this.initialValue = initialValue;
 	}
 
-	public int getIncrementSize() {
-		return incrementSize;
+	public int getAllocationSize() {
+		return allocationSize;
 	}
 
-	public void setIncrementSize(int incrementSize) {
-		this.incrementSize = incrementSize;
+	public void setAllocationSize(int allocationSize) {
+		this.allocationSize = allocationSize;
 	}
 
 	public int getCacheSize() {

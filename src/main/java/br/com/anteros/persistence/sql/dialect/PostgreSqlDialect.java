@@ -12,6 +12,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.sql.dialect;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -26,6 +27,7 @@ import java.util.Map;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.SQLTemplates;
 import br.com.anteros.persistence.dsl.osql.templates.PostgresTemplates;
+import br.com.anteros.persistence.schema.definition.SequenceGeneratorSchema;
 import br.com.anteros.persistence.schema.definition.type.ColumnDatabaseType;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
 import br.com.anteros.persistence.session.lock.LockAcquisitionException;
@@ -56,10 +58,10 @@ public class PostgreSqlDialect extends DatabaseDialect {
 		registerJavaColumnType(Character.class, new ColumnDatabaseType("CHAR", 1, Types.CHAR));
 		registerJavaColumnType(Byte[].class, new ColumnDatabaseType("BYTEA", false, Types.NUMERIC));
 		registerJavaColumnType(Character[].class, new ColumnDatabaseType("TEXT", false, Types.LONGVARCHAR));
-		registerJavaColumnType(byte[].class, new ColumnDatabaseType("BYTEA", false,Types.VARBINARY));
-		registerJavaColumnType(char[].class, new ColumnDatabaseType("TEXT", false,Types.LONGVARCHAR));
-		registerJavaColumnType(java.sql.Blob.class, new ColumnDatabaseType("BYTEA",Types.VARBINARY));
-		registerJavaColumnType(java.sql.Clob.class, new ColumnDatabaseType("TEXT", false,Types.LONGVARCHAR));
+		registerJavaColumnType(byte[].class, new ColumnDatabaseType("BYTEA", false, Types.VARBINARY));
+		registerJavaColumnType(char[].class, new ColumnDatabaseType("TEXT", false, Types.LONGVARCHAR));
+		registerJavaColumnType(java.sql.Blob.class, new ColumnDatabaseType("BYTEA", Types.VARBINARY));
+		registerJavaColumnType(java.sql.Clob.class, new ColumnDatabaseType("TEXT", false, Types.LONGVARCHAR));
 		registerJavaColumnType(java.sql.Date.class, new ColumnDatabaseType("TIMESTAMP", false, Types.TIMESTAMP));
 		registerJavaColumnType(java.util.Date.class, new ColumnDatabaseType("TIMESTAMP", false, Types.TIMESTAMP));
 		registerJavaColumnType(java.sql.Time.class, new ColumnDatabaseType("TIME", false, Types.TIME));
@@ -135,7 +137,7 @@ public class PostgreSqlDialect extends DatabaseDialect {
 	public int getMaxTableNameSize() {
 		return 31;
 	}
-	
+
 	@Override
 	public int getMaxColumnNameSize() {
 		return 31;
@@ -300,12 +302,13 @@ public class PostgreSqlDialect extends DatabaseDialect {
 	public LimitClauseResult getLimitClause(String sql, int offset, int limit, boolean namedParameter) {
 		LimitClauseResult result;
 		if (namedParameter) {
-			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql)
-					.append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(), "PLIMIT", (offset > 0 ? "POFFSET" : ""),limit, offset);
+			result = new LimitClauseResult(
+					new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(),
+					"PLIMIT", (offset > 0 ? "POFFSET" : ""), limit, offset);
 		} else {
-			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?")
-					.toString(), (offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER),
-					(offset > 0 ? LimitClauseResult.LAST_PARAMETER : LimitClauseResult.NONE_PARAMETER),limit, offset);
+			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?").toString(),
+					(offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER),
+					(offset > 0 ? LimitClauseResult.LAST_PARAMETER : LimitClauseResult.NONE_PARAMETER), limit, offset);
 		}
 		return result;
 	}
@@ -323,5 +326,19 @@ public class PostgreSqlDialect extends DatabaseDialect {
 	@Override
 	public String getIndexHint(Map<String, String> indexes) {
 		return "";
+	}
+
+	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter) throws IOException {
+		schemaWriter.write(getCreateSequenceString() + " ");
+		schemaWriter.write(sequenceGeneratorSchema.getName());
+		if (sequenceGeneratorSchema.getAllocationSize() != 1) {
+			schemaWriter.write(" INCREMENT BY " + sequenceGeneratorSchema.getAllocationSize());
+		}
+		schemaWriter.write(" START WITH " + sequenceGeneratorSchema.getInitialValue());
+		if (sequenceGeneratorSchema.getCacheSize() > 0)
+			schemaWriter.write(" CACHE " + sequenceGeneratorSchema.getCacheSize());
+		else
+			schemaWriter.write(" NOCACHE ");
+		return schemaWriter;
 	}
 }

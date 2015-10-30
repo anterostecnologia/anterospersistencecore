@@ -122,7 +122,7 @@ public class InsertCommandSQL extends CommandSQL {
 							if (inBatchMode) {
 								return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
 							} else {
-								queryRunner.update(session.getConnection(), sql, NamedParameter.getAllValues(namedParameters), showSql, session.getListeners(),
+								queryRunner.update(session.getConnection(), sql+" --session id "+session.clientId(), NamedParameter.getAllValues(namedParameters), showSql, session.getListeners(),
 										session.clientId());
 							}
 						}

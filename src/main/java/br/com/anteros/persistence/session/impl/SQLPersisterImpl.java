@@ -86,7 +86,7 @@ public class SQLPersisterImpl implements SQLPersister {
 
 
 	public Object save(SQLSession session, Object object) throws Exception {
-		if (getValidator() != null)
+		if (getValidator() != null && session.validationIsActive())
 			getValidator().validateBean(object);
 		this.session = session;
 		return save(object, null);

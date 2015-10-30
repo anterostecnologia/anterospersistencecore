@@ -33,5 +33,7 @@ public @interface SequenceGenerator {
 	int startsWith() default 1;
 
 	String schema() default "";
+	
+	int allocationSize() default 1;
 
 }

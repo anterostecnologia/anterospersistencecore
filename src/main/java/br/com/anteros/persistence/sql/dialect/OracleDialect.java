@@ -281,8 +281,8 @@ public class OracleDialect extends DatabaseDialect {
 	public Map<String, IndexMetadata> getAllIndexesByTable(Connection conn, String tableName) throws Exception {
 		Map<String, IndexMetadata> indexes = new HashMap<String, IndexMetadata>();
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement
-				.executeQuery("SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
+		ResultSet resultSet = statement.executeQuery(
+				"SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
 						+ tableName.toUpperCase() + "' ORDER BY I.INDEX_NAME, IC.COLUMN_POSITION ");
 		try {
 			IndexMetadata index = null;
@@ -311,8 +311,8 @@ public class OracleDialect extends DatabaseDialect {
 	public Map<String, IndexMetadata> getAllUniqueIndexesByTable(Connection conn, String tableName) throws Exception {
 		Map<String, IndexMetadata> indexes = new HashMap<String, IndexMetadata>();
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement
-				.executeQuery("SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
+		ResultSet resultSet = statement.executeQuery(
+				"SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
 						+ tableName.toUpperCase() + "' AND I.UNIQUENESS = 'UNIQUE' ORDER BY I.INDEX_NAME, IC.COLUMN_POSITION ");
 		try {
 			IndexMetadata index = null;
@@ -340,8 +340,8 @@ public class OracleDialect extends DatabaseDialect {
 	@Override
 	public boolean checkUniqueKeyExists(Connection conn, String tableName, String uniqueKeyName) throws Exception {
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery("SELECT I.INDEX_NAME FROM USER_INDEXES I  WHERE I.INDEX_NAME = '" + uniqueKeyName.toUpperCase()
-				+ "' AND I.UNIQUENESS = 'UNIQUE' ");
+		ResultSet resultSet = statement.executeQuery(
+				"SELECT I.INDEX_NAME FROM USER_INDEXES I  WHERE I.INDEX_NAME = '" + uniqueKeyName.toUpperCase() + "' AND I.UNIQUENESS = 'UNIQUE' ");
 		try {
 			if (resultSet.next()) {
 				return true;
@@ -397,8 +397,8 @@ public class OracleDialect extends DatabaseDialect {
 
 		Map<String, ForeignKeyMetadata> fks = new HashMap<String, ForeignKeyMetadata>();
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement
-				.executeQuery("SELECT A.CONSTRAINT_NAME, A.TABLE_NAME, A.COLUMN_NAME FROM USER_CONS_COLUMNS A  JOIN USER_CONSTRAINTS C ON A.OWNER = C.OWNER  AND A.CONSTRAINT_NAME = C.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = 'R' AND C.TABLE_NAME = '"
+		ResultSet resultSet = statement.executeQuery(
+				"SELECT A.CONSTRAINT_NAME, A.TABLE_NAME, A.COLUMN_NAME FROM USER_CONS_COLUMNS A  JOIN USER_CONSTRAINTS C ON A.OWNER = C.OWNER  AND A.CONSTRAINT_NAME = C.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = 'R' AND C.TABLE_NAME = '"
 						+ tableName.toUpperCase() + "'");
 
 		try {
@@ -561,16 +561,12 @@ public class OracleDialect extends DatabaseDialect {
 		}
 		switch (lockMode) {
 		case PESSIMISTIC_READ:
-			return sql
-					+ " FOR UPDATE "
-					+ aliases
-					+ (lockOptions.getTimeOut() >= LockOptions.NO_WAIT ? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ") : "");
+			return sql + " FOR UPDATE " + aliases + (lockOptions.getTimeOut() >= LockOptions.NO_WAIT
+					? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ") : "");
 		case PESSIMISTIC_WRITE:
 		case PESSIMISTIC_FORCE_INCREMENT:
-			return sql
-					+ " FOR UPDATE "
-					+ aliases
-					+ (lockOptions.getTimeOut() >= LockOptions.NO_WAIT ? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ") : "");
+			return sql + " FOR UPDATE " + aliases + (lockOptions.getTimeOut() >= LockOptions.NO_WAIT
+					? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ") : "");
 		default:
 			return sql;
 		}
@@ -655,11 +651,14 @@ public class OracleDialect extends DatabaseDialect {
 	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter) throws IOException {
 		schemaWriter.write(getCreateSequenceString() + " ");
 		schemaWriter.write(sequenceGeneratorSchema.getName());
-		if (sequenceGeneratorSchema.getIncrementSize() != 1) {
-			schemaWriter.write(" INCREMENT BY " + sequenceGeneratorSchema.getIncrementSize());
+		if (sequenceGeneratorSchema.getAllocationSize() != 1) {
+			schemaWriter.write(" INCREMENT BY " + sequenceGeneratorSchema.getAllocationSize());
 		}
 		schemaWriter.write(" START WITH " + sequenceGeneratorSchema.getInitialValue());
-		schemaWriter.write(" NOCACHE ");
+		if (sequenceGeneratorSchema.getCacheSize() > 0)
+			schemaWriter.write(" CACHE "+sequenceGeneratorSchema.getCacheSize());
+		else
+			schemaWriter.write(" NOCACHE ");
 		return schemaWriter;
 	}
 
