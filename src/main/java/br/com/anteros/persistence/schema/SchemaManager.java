@@ -28,9 +28,11 @@ import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityCacheManager;
 import br.com.anteros.persistence.metadata.annotation.type.BooleanType;
 import br.com.anteros.persistence.metadata.annotation.type.DiscriminatorType;
+import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionConvert;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionGenerator;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionIndex;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionUniqueConstraint;
 import br.com.anteros.persistence.metadata.identifier.IdentifierGenerator;
@@ -120,6 +122,31 @@ public class SchemaManager implements Comparator<TableSchema> {
 						tables.add(table);
 					}
 					/*
+					 * Adiciona as sequências e tabelas de sequências contidas na entidade
+					 */
+					if (entityCache.hasGenerators()) {
+						for (GeneratedType type : entityCache.getGenerators().keySet()) {
+							DescriptionGenerator generator = entityCache.getGenerators().get(type);
+							if (type == GeneratedType.SEQUENCE) {
+								SequenceGeneratorSchema sequenceGeneratorSchema = new SequenceGeneratorSchema();
+								sequenceGeneratorSchema.setName(generator.getSequenceName());
+								sequenceGeneratorSchema.setInitialValue(generator.getInitialValue());
+								sequenceGeneratorSchema.setCacheSize(0);
+								sequenceGeneratorSchema.setAllocationSize(generator.getAllocationSize());
+								sequences.add(sequenceGeneratorSchema);
+							} else if (type == GeneratedType.TABLE) {
+								TableGeneratorSchema tableGeneratorSchema = new TableGeneratorSchema();
+								tableGeneratorSchema.setCatalogName(generator.getCatalog());
+								tableGeneratorSchema.setSchemaName(generator.getSchema());
+								tableGeneratorSchema.setName(generator.getTableName());
+								tableGeneratorSchema.setPkColumnName(generator.getPkColumnName());
+								tableGeneratorSchema.setValueColumnName(generator.getValueColumnName());
+								sequences.add(tableGeneratorSchema);
+							}
+						}
+					}
+
+					/*
 					 * Adiciona as colunas na tabela baseado nos campos da entidade
 					 */
 
@@ -187,8 +214,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 								for (DescriptionColumn descriptionColumn : descriptionField.getDescriptionColumns()) {
 									if (descriptionColumn.getReferencedColumnName().equalsIgnoreCase(column.getColumnName())) {
 										foreignKeySchema.addColumns(new ColumnSchema(descriptionColumn.getColumnName(), descriptionField.getFieldClass()),
-												new ColumnSchema(descriptionColumn.getReferencedColumn().getColumnName(), descriptionColumn
-														.getReferencedColumn().getFieldType()));
+												new ColumnSchema(descriptionColumn.getReferencedColumn().getColumnName(),
+														descriptionColumn.getReferencedColumn().getFieldType()));
 									}
 								}
 							}
@@ -451,8 +478,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 							foreignKeySchema.setReferencedTable(new TableSchema().setName(entityCache.getTableName()));
 
 							if (StringUtils.isEmpty(foreignKeySchema.getName()))
-								foreignKeySchema.setName(generateForeignKeyConstraintName(table, table.getName(), descriptionField.getLastJoinColumn()
-										.getColumnName()));
+								foreignKeySchema.setName(
+										generateForeignKeyConstraintName(table, table.getName(), descriptionField.getLastJoinColumn().getColumnName()));
 						} catch (Exception e) {
 							throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo de origem [" + descriptionField.getName()
 									+ "] da classe " + entityCache.getEntityClass().getName());
@@ -463,8 +490,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 							foreignKeySchemaTarget.setReferencedTable(new TableSchema().setName(descriptionField.getTargetEntity().getTableName()));
 
 							if (StringUtils.isEmpty(foreignKeySchemaTarget.getName()))
-								foreignKeySchemaTarget.setName(generateForeignKeyConstraintName(table, table.getName(), descriptionField
-										.getLastInversedColumn().getColumnName()));
+								foreignKeySchemaTarget.setName(
+										generateForeignKeyConstraintName(table, table.getName(), descriptionField.getLastInversedColumn().getColumnName()));
 						} catch (Exception e) {
 							throw new SchemaGeneratorException("Não foi possível montar a chave estrangeira do campo de destino [" + descriptionField.getName()
 									+ "] da classe " + entityCache.getEntityClass().getName());
@@ -487,8 +514,8 @@ public class SchemaManager implements Comparator<TableSchema> {
 								} else if (descriptionColumn.isForeignKey() && descriptionColumn.isInversedJoinColumn()) {
 									DescriptionColumn referenColumn = descriptionColumn.getReferencedColumn();
 									if (referenColumn == null)
-										referenColumn = descriptionField.getTargetEntity().getDescriptionColumnByName(
-												descriptionColumn.getReferencedColumnName());
+										referenColumn = descriptionField.getTargetEntity()
+												.getDescriptionColumnByName(descriptionColumn.getReferencedColumnName());
 									foreignKeySchemaTarget.addColumns(new ColumnSchema(descriptionColumn.getColumnName(), descriptionColumn.getFieldType()),
 											new ColumnSchema(descriptionColumn.getReferencedColumnName(), referenColumn.getFieldType()));
 								}
@@ -588,11 +615,11 @@ public class SchemaManager implements Comparator<TableSchema> {
 		}
 
 		if (dbType == null)
-			throw new SchemaGeneratorException("Tipo " + descriptionField.getFieldClass().getSimpleName() + " "
-					+ (descriptionField.getFieldClass().isEnum() ? "(ENUM)" : "") + " não disponível para este banco de dados. Verifique o campo ["
-					+ descriptionField.getField().getName() + "] na classe " + descriptionField.getEntityCache().getEntityClass().getName()
-					+ " se o mesmo não é uma chave estrangeira ou se a classe do tipo " + descriptionField.getFieldClass().getName()
-					+ " possuí algum campo incorreto.");
+			throw new SchemaGeneratorException(
+					"Tipo " + descriptionField.getFieldClass().getSimpleName() + " " + (descriptionField.getFieldClass().isEnum() ? "(ENUM)" : "")
+							+ " não disponível para este banco de dados. Verifique o campo [" + descriptionField.getField().getName() + "] na classe "
+							+ descriptionField.getEntityCache().getEntityClass().getName() + " se o mesmo não é uma chave estrangeira ou se a classe do tipo "
+							+ descriptionField.getFieldClass().getName() + " possuí algum campo incorreto.");
 
 		if (dbType.isSizeAllowed() || dbType.isSizeRequired()) {
 			if (descriptionColumn.isBoolean()) {

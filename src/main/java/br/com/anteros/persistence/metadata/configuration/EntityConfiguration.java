@@ -46,7 +46,9 @@ import br.com.anteros.persistence.metadata.annotation.SQLDelete;
 import br.com.anteros.persistence.metadata.annotation.SQLDeleteAll;
 import br.com.anteros.persistence.metadata.annotation.SQLInsert;
 import br.com.anteros.persistence.metadata.annotation.SQLUpdate;
+import br.com.anteros.persistence.metadata.annotation.SequenceGenerator;
 import br.com.anteros.persistence.metadata.annotation.Table;
+import br.com.anteros.persistence.metadata.annotation.TableGenerator;
 import br.com.anteros.persistence.metadata.annotation.UniqueConstraint;
 import br.com.anteros.persistence.metadata.annotation.type.DiscriminatorType;
 import br.com.anteros.persistence.metadata.annotation.type.InheritanceType;
@@ -81,6 +83,8 @@ public class EntityConfiguration {
 	private String catalog = "";
 	private RemoteConfiguration remote;
 	private ConvertConfiguration[] converts = {};
+	private TableGeneratorConfiguration tableGenerator;
+	private SequenceGeneratorConfiguration sequenceGenerator;
 
 	public EntityConfiguration(Class<? extends Serializable> sourceClazz, PersistenceModelConfiguration model) {
 		this.sourceClazz = sourceClazz;
@@ -558,6 +562,32 @@ public class EntityConfiguration {
 		this.converts = new ConvertConfiguration[] { convert };
 		this.annotations.add(Convert.class);
 		return this;
+	}
+	
+	public EntityConfiguration tableGenerator(TableGeneratorConfiguration tableGeneratorConfiguration) {
+		annotations.add(TableGenerator.class);
+		this.tableGenerator = tableGeneratorConfiguration;
+		return this;
+	}
+	
+	public EntityConfiguration sequenceGenerator(String sequenceName, String catalog, int initialValue, int startsWith, String schema) {
+		annotations.add(SequenceGenerator.class);
+		this.sequenceGenerator = new SequenceGeneratorConfiguration(sequenceName, catalog, initialValue, startsWith, schema);
+		return this;
+	}
+
+	public EntityConfiguration sequenceGenerator(SequenceGeneratorConfiguration sequenceGeneratorConfiguration) {
+		annotations.add(SequenceGenerator.class);
+		this.sequenceGenerator = sequenceGeneratorConfiguration;
+		return this;
+	}
+
+	public TableGeneratorConfiguration getTableGenerator() {
+		return tableGenerator;
+	}
+	
+	public SequenceGeneratorConfiguration getSequenceGenerator() {
+		return sequenceGenerator;
 	}
 
 }

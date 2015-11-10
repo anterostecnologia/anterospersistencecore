@@ -26,4 +26,6 @@ import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface GeneratedValue {
 	GeneratedType strategy() default GeneratedType.AUTO;
+	
+	String generator() default "";
 }

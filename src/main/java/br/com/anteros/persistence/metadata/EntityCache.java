@@ -29,10 +29,12 @@ import br.com.anteros.core.converter.ConversionHelper;
 import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
+import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
 import br.com.anteros.persistence.metadata.annotation.type.ScopeType;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionConvert;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionGenerator;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionIndex;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
@@ -72,6 +74,7 @@ public class EntityCache {
 	private ConnectivityType importConnectivityType = ConnectivityType.ALL_CONNECTION;
 	private ConnectivityType exportConnectivityType = ConnectivityType.ALL_CONNECTION;
 	private List<DescriptionConvert> converts = new ArrayList<DescriptionConvert>();
+	private Map<GeneratedType, DescriptionGenerator> generators = new HashMap<GeneratedType, DescriptionGenerator>();
 
 	public String generateAndGetAliasTableName() {
 		generateAliasTableName();
@@ -144,7 +147,7 @@ public class EntityCache {
 		return entityClass;
 	}
 
-	public void addDescriptionColumn(DescriptionColumn descriptionColumn) {
+	public void add(DescriptionColumn descriptionColumn) {
 		if (descriptionColumn.getColumnType() == ColumnType.PRIMARY_KEY || descriptionColumn.isCompositeId()) {
 			this.primaryKey.add(descriptionColumn);
 		} else if (descriptionColumn.getColumnType() == ColumnType.DISCRIMINATOR)
@@ -171,7 +174,7 @@ public class EntityCache {
 
 	public void addAllDescriptionColumn(Set<DescriptionColumn> columns) {
 		for (DescriptionColumn c : columns) {
-			addDescriptionColumn(c);
+			add(c);
 		}
 	}
 
@@ -192,7 +195,7 @@ public class EntityCache {
 	}
 
 	public void addPrimaryKeyColumn(DescriptionColumn primaryKey) {
-		addDescriptionColumn(primaryKey);
+		add(primaryKey);
 	}
 
 	public List<DescriptionColumn> getPrimaryKeyColumns() {
@@ -287,7 +290,7 @@ public class EntityCache {
 
 	public void addDescriptionColumns(List<DescriptionColumn> descriptionColumn) {
 		for (DescriptionColumn d : descriptionColumn) {
-			addDescriptionColumn(d);
+			add(d);
 		}
 	}
 
@@ -305,7 +308,7 @@ public class EntityCache {
 		return sb.toString();
 	}
 
-	public void addDescriptionField(DescriptionField descriptionField) {
+	public void add(DescriptionField descriptionField) {
 		this.fields.add(descriptionField);
 
 	}
@@ -934,4 +937,24 @@ public class EntityCache {
 		return false;
 	}
 
+	public Map<GeneratedType, DescriptionGenerator> getGenerators() {
+		return Collections.unmodifiableMap(generators);
+	}
+
+	public void add(GeneratedType type, DescriptionGenerator descriptionGenerator) {
+		generators.put(type, descriptionGenerator);		
+	}
+
+	public DescriptionGenerator getGeneratorByName(String generator) {
+		for (DescriptionGenerator descriptionGenerator : generators.values()){
+			if (descriptionGenerator.getValue().equalsIgnoreCase(generator)){
+				return descriptionGenerator;
+			}
+		}
+		return null;		
+	}
+
+	public boolean hasGenerators() {
+		return getGenerators().size()>0;
+	}
 }

@@ -102,7 +102,6 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 
 			resultSet = this.wrap(statement.executeQuery());
 			result = resultSetHandler.handle(resultSet);
-			System.out.println("Executou consulta");
 		} catch (SQLException e) {
 			this.rethrow(e, sql, parameters, clientId);
 

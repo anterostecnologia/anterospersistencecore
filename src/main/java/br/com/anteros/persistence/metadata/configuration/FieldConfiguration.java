@@ -112,6 +112,7 @@ public class FieldConfiguration {
 	private String mapKeyConvert;
 	private RemoteConfiguration remote;
 	private boolean externalFile;
+	private String generator;
 
 	public boolean isExternalFile() {
 		return externalFile;
@@ -254,6 +255,13 @@ public class FieldConfiguration {
 	public FieldConfiguration generatedValue(GeneratedType strategy) {
 		annotations.add(GeneratedValue.class);
 		this.generatedType = strategy;
+		return this;
+	}
+	
+	public FieldConfiguration generatedValue(GeneratedType strategy, String generator) {
+		annotations.add(GeneratedValue.class);
+		this.generatedType = strategy;
+		this.generator = generator;
 		return this;
 	}
 
@@ -569,7 +577,7 @@ public class FieldConfiguration {
 					cascade(CascadeType.DELETE_ORPHAN);
 				}
 			} else if (annotation instanceof GeneratedValue) {
-				generatedValue(((GeneratedValue) annotation).strategy());
+				generatedValue(((GeneratedValue) annotation).strategy(), ((GeneratedValue) annotation).generator());
 			} else if (annotation instanceof Id) {
 				id();
 			} else if (annotation instanceof JoinTable) {
@@ -883,6 +891,10 @@ public class FieldConfiguration {
 
 	public boolean isCollectionOrMap() {
 		return isCollection() || isMap();
+	}
+
+	public String getGenerator() {
+		return generator;
 	}
 
 }

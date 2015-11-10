@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -427,18 +428,14 @@ public class DescriptionField {
 	}
 
 	public List<DescriptionColumn> getDescriptionColumns() {
-		return columns;
-	}
-
-	public void setDescriptionColumns(List<DescriptionColumn> descriptionColumns) {
-		this.columns = descriptionColumns;
+		return Collections.unmodifiableList(columns);
 	}
 
 	public void setMappedBy(DescriptionMappedBy mappedBy) {
 		this.mappedBy = mappedBy;
 	}
 
-	public void addDescriptionColumns(DescriptionColumn descriptionColumn) throws Exception {
+	public void add(DescriptionColumn descriptionColumn) throws Exception {
 		for (DescriptionColumn column : columns) {
 			if (column.getColumnName().equals(descriptionColumn.getColumnName())) {
 				throw new EntityCacheException("Coluna " + descriptionColumn.getColumnName() + " já adicionada no campo " + this.getName()

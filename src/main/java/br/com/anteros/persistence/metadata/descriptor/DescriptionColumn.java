@@ -14,6 +14,7 @@ package br.com.anteros.persistence.metadata.descriptor;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -384,11 +385,7 @@ public class DescriptionColumn {
 	}
 
 	public Map<GeneratedType, DescriptionGenerator> getGenerators() {
-		return generators;
-	}
-
-	public void setGenerators(Map<GeneratedType, DescriptionGenerator> generators) {
-		this.generators = generators;
+		return Collections.unmodifiableMap(generators);
 	}
 
 	public GeneratedType getGeneratedType() {
@@ -706,5 +703,9 @@ public class DescriptionColumn {
 		value = ReflectionUtils.invokeMethod(converter, "convertToDatabaseColumn", new Object[] { value },
 				new Class[] { convert.getEntityAttributeType() });
 		return value;
+	}
+
+	public void add(GeneratedType type, DescriptionGenerator descriptionGenerator) {
+		generators.put(type, descriptionGenerator);		
 	}
 }
