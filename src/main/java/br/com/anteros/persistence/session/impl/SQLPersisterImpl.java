@@ -65,9 +65,8 @@ public class SQLPersisterImpl implements SQLPersister {
 	private SQLSession session;
 
 	private SQLSessionValidatior validator;
-	
+
 	private int currentBatchSize = 0;
-	
 
 	@Override
 	public SQLSessionValidatior getValidator() {
@@ -83,7 +82,6 @@ public class SQLPersisterImpl implements SQLPersister {
 		this.currentBatchSize = batchSize;
 		return save(session, object);
 	}
-
 
 	public Object save(SQLSession session, Object object) throws Exception {
 		if (getValidator() != null && session.validationIsActive())
@@ -241,11 +239,11 @@ public class SQLPersisterImpl implements SQLPersister {
 		result.add(new InsertCommandSQL(session,
 				generateSql(entityCache.getTableName(), SQLStatementType.INSERT, NamedParameter.convertToList(namedParameters.values())),
 				NamedParameter.convertToList(namedParameters.values()), targetObject, entityCache, entityCache.getTableName(), session.isShowSql(),
-				identifierPostInsert, identifyColumn, entityCache.getDescriptionSqlByType(SQLStatementType.INSERT),executeInBatchMode()));
+				identifierPostInsert, identifyColumn, entityCache.getDescriptionSqlByType(SQLStatementType.INSERT), executeInBatchMode()));
 	}
 
 	protected boolean executeInBatchMode() {
-		return session.getBatchSize()>0 || currentBatchSize>0;
+		return session.getBatchSize() > 0 || currentBatchSize > 0;
 	}
 
 	protected void insertRelationships(Object targetObject, EntityCache entityCache) throws Exception {
@@ -670,7 +668,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 		String sql = generateSql(entityCache.getTableName(), SQLStatementType.UPDATE, namedParameters);
 		result.add(new UpdateCommandSQL(session, sql, namedParameters, targetObject, entityCache, entityCache.getTableName(), session.isShowSql(),
-				entityCache.getDescriptionSqlByType(SQLStatementType.UPDATE),executeInBatchMode()));
+				entityCache.getDescriptionSqlByType(SQLStatementType.UPDATE), executeInBatchMode()));
 	}
 
 	protected void updateRelationships(Object targetObject, EntityCache entityCache) throws Exception {
@@ -819,7 +817,7 @@ public class SQLPersisterImpl implements SQLPersister {
 						}
 					} else
 						result.add(new DeleteCommandSQL(session, generateSql(tableName, SQLStatementType.DELETE, keyParameters), keyParameters, null, null,
-								tableName, session.isShowSql(), descriptionField.getDescriptionSqlByType(SQLStatementType.DELETE),executeInBatchMode()));
+								tableName, session.isShowSql(), descriptionField.getDescriptionSqlByType(SQLStatementType.DELETE), executeInBatchMode()));
 				}
 			}
 		}
@@ -833,7 +831,8 @@ public class SQLPersisterImpl implements SQLPersister {
 			keyParameters.add(new NamedParameter(entityCache.getVersionColumnName(), entityManaged.getOldVersion(), true));
 
 		result.add(new DeleteCommandSQL(session, generateSql(entityCache.getTableName(), SQLStatementType.DELETE, keyParameters), keyParameters, targetObject,
-				entityCache, entityCache.getTableName(), session.isShowSql(), entityCache.getDescriptionSqlByType(SQLStatementType.DELETE),executeInBatchMode()));
+				entityCache, entityCache.getTableName(), session.isShowSql(), entityCache.getDescriptionSqlByType(SQLStatementType.DELETE),
+				executeInBatchMode()));
 
 		return result;
 	}
@@ -901,7 +900,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), null, null, field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), null, null, field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE)) {
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
 					if (descriptionColumn.isPrimaryKey()) {
@@ -929,7 +928,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isPrimaryKey()) {
@@ -939,7 +938,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
 		}
 		return result;
@@ -980,7 +979,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), null, null, field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), null, null, field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE)) {
 				Map<String, Object> foreignKeyRight = session.getIdentifier(value).getColumns();
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
@@ -997,7 +996,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
 				Map<String, Object> foreignKeyRight = session.getIdentifier(value).getColumns();
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
@@ -1013,7 +1012,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
 		}
 		return result;
@@ -1046,7 +1045,7 @@ public class SQLPersisterImpl implements SQLPersister {
 						namedParameters.add(new NamedParameter(column.getColumnName(), value));
 				}
 				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), null, null, field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), null, null, field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isPrimaryKey()) {
@@ -1057,7 +1056,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isPrimaryKey()) {
@@ -1066,7 +1065,7 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement),executeInBatchMode()));
+						field.getTableName(), session.isShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
 		}
 		return result;

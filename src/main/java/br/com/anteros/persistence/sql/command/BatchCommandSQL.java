@@ -19,8 +19,8 @@ public class BatchCommandSQL extends CommandSQL {
 		super(session, sql, namedParameters, targetObject, entityCache, targetTableName, showSql, descriptionSQL, true);
 	}
 
-	public BatchCommandSQL(SQLSession session, CommandSQL[] commands, int batchSize) {
-		super(session, null, null, null, null, null, false, null, true);
+	public BatchCommandSQL(SQLSession session, CommandSQL[] commands, int batchSize, boolean showSql) {
+		super(session, null, null, null, null, null, showSql, null, true);
 		this.commands = commands;
 		this.batchSize = batchSize;
 	}
@@ -36,25 +36,32 @@ public class BatchCommandSQL extends CommandSQL {
 				returns.add(sqlReturn);
 			}
 		}
-		
+
 		List<Object[]> batchParameters = new ArrayList<Object[]>();
 		String sql = null;
-		int batchCount = 1;
+		int batchCount = 0;
 		for (CommandSQLReturn ret : returns) {
-			if ((ret.getSql().equals(sql) || (sql == null)) && (batchCount <= batchSize)) {
+			if ((ret.getSql().equals(sql) || (sql == null)) && (batchCount < batchSize)) {
 				batchParameters.add(ret.getParameters());
 				sql = ret.getSql();
 				batchCount++;
 			} else {
-				queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}));
+				/*
+				 * Executa e zera fila, reinicia contagem
+				 */
+				queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}), showSql, session.isFormatSql(), null, null);
 				batchParameters.clear();
+				batchCount = 0;
+				/*
+				 * Adiciona e incrementa 1(um)
+				 */
 				batchParameters.add(ret.getParameters());
 				sql = ret.getSql();
-				batchCount = 1;
+				batchCount++;
 			}
 		}
-		if (batchSize > 0) {
-			queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}));
+		if (batchCount > 0) {
+			queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}), showSql, session.isFormatSql(), null, null);
 		}
 
 		return null;

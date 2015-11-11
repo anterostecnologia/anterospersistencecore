@@ -1860,20 +1860,6 @@ public class EntityCacheManager {
 			descriptionGenerator.setGeneratedType(GeneratedType.TABLE);
 			descriptionGenerator.setValue(entityConfiguration.getTableGenerator().getValue());
 			entityCache.add(GeneratedType.TABLE, descriptionGenerator);
-		} else {
-			/*
-			 * Valor default caso não encontre TableGenerator
-			 */
-			DescriptionGenerator descriptionGenerator = new DescriptionGenerator();
-			descriptionGenerator.setInitialValue(1);
-			descriptionGenerator.setPkColumnName("GEN_ID");
-			descriptionGenerator.setValue(entityCache.getTableName() + "_GEN_VALUE");
-			descriptionGenerator.setTableName("ANTEROS_SEQUENCES");
-			descriptionGenerator.setValueColumnName("GEN_VALUE");
-			descriptionGenerator.setCatalog(entityCache.getCatalog());
-			descriptionGenerator.setSchema(entityCache.getSchema());
-			descriptionGenerator.setGeneratedType(GeneratedType.TABLE);
-			entityCache.add(GeneratedType.TABLE, descriptionGenerator);
 		}
 
 		/*
@@ -1887,17 +1873,6 @@ public class EntityCacheManager {
 			descriptionGenerator.setStartsWith(entityConfiguration.getSequenceGenerator().getStartsWith());
 			descriptionGenerator.setSequenceName(entityConfiguration.getSequenceGenerator().getSequenceName());
 			descriptionGenerator.setAllocationSize(entityConfiguration.getSequenceGenerator().getAllocationSize());
-			descriptionGenerator.setGeneratedType(GeneratedType.SEQUENCE);
-			entityCache.add(GeneratedType.SEQUENCE, descriptionGenerator);
-		} else {
-			/*
-			 * Valor default caso o sequence não tenha sido configurado
-			 */
-			DescriptionGenerator descriptionGenerator = new DescriptionGenerator();
-			descriptionGenerator.setInitialValue(1);
-			descriptionGenerator.setSequenceName("ANTEROS_SEQ" + entityCache.getTableName());
-			descriptionGenerator.setCatalog(entityCache.getCatalog());
-			descriptionGenerator.setSchema(entityCache.getSchema());
 			descriptionGenerator.setGeneratedType(GeneratedType.SEQUENCE);
 			entityCache.add(GeneratedType.SEQUENCE, descriptionGenerator);
 		}

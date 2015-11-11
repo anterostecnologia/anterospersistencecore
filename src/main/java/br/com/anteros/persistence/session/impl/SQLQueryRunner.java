@@ -53,16 +53,20 @@ import br.com.anteros.persistence.sql.statement.NamedParameterStatement;
  * @author Edson Martins - Anteros
  * 
  */
-@SuppressWarnings({"rawtypes","unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class SQLQueryRunner extends AbstractSQLRunner {
 
-	public int[] batch(Connection connection, String sql, Object[][] parameters) throws Exception {
+	public int[] batch(Connection connection, String sql, Object[][] parameters, boolean showSql, boolean formatSql, List<SQLSessionListener> listeners,
+			String clientId) throws Exception {
 		PreparedStatement statement = null;
 		int[] rows = null;
 		try {
 			statement = this.prepareStatement(connection, sql);
 
 			for (int i = 0; i < parameters.length; i++) {
+				if (showSql) {
+					showSQLAndParameters(sql, parameters[i], formatSql, listeners, clientId);
+				}
 				this.fillStatement(statement, parameters[i]);
 				statement.addBatch();
 			}
@@ -76,10 +80,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 		return rows;
 	}
 
-	public int[] batch(String sql, Object[][] parameters) throws Exception {
+	public int[] batch(String sql, Object[][] parameters, boolean showSql, boolean formatSql, List<SQLSessionListener> listeners, String clientId)
+			throws Exception {
 		Connection connection = this.prepareConnection();
 		try {
-			return this.batch(connection, sql, parameters);
+			return this.batch(connection, sql, parameters, showSql, formatSql, listeners, clientId);
 		} finally {
 			close(connection);
 		}
@@ -151,7 +156,6 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 		return result;
 	}
 
-	
 	public SQLSessionResult queryWithResultSet(Connection connection, String sql, ResultSetHandler resultSetHandler, NamedParameter[] parameters,
 			boolean showSql, boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
 		SQLSessionResult result = new SQLSessionResult();
@@ -182,7 +186,6 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 		return result;
 	}
 
-	
 	public SQLSessionResult queryWithResultSet(Connection connection, String sql, ResultSetHandler resultSetHandler, Object[] parameters, boolean showSql,
 			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
 		SQLSessionResult result = new SQLSessionResult();
@@ -327,8 +330,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			} else {
 				NamedParameter namedParameter = NamedParameter.getNamedParameterByName(parameters, p.getName());
 				if (namedParameter == null) {
-					throw new SQLQueryException("Parâmetro " + p.getName()
-							+ " não encontrado na lista de parâmetros informados para execução do procedimento/função " + spName);
+					throw new SQLQueryException(
+							"Parâmetro " + p.getName() + " não encontrado na lista de parâmetros informados para execução do procedimento/função " + spName);
 				}
 				if (((p.getParameterType() == StoredParameterType.OUT) || (p.getParameterType() == StoredParameterType.IN_OUT))
 						&& !(namedParameter instanceof OutputNamedParameter)) {
