@@ -3,6 +3,7 @@ package br.com.anteros.persistence.dsl.osql;
 import java.io.InputStream;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -172,6 +173,9 @@ public final class Configuration {
 		if (value == null)
 			return "";
 		ColumnDatabaseType columnDatabaseType = dialect.convertJavaToDatabaseType(value.getClass());
+		if ((value.getClass().isEnum()) && (columnDatabaseType == null)) {
+			columnDatabaseType = dialect.convertJavaToDatabaseType(String.class);
+		}
 		if (columnDatabaseType != null) {
 			return templates.serialize(convertObjectToLiteral(value), columnDatabaseType.getSqlType());
 		} else {
