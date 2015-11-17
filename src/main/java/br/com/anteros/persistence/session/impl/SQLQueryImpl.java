@@ -1016,7 +1016,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			SQLQuery query = session.createQuery(sql);
 			query.setLockOptions(lockOptions);
 			result = query.setParameters(params.toArray(new NamedParameter[] {})).resultSetHandler(new ElementCollectionHandler(descriptionFieldOwner))
-					.getSingleResult();
+					.getResultList();
 
 		} else if (descriptionFieldOwner.getFieldType() == FieldType.COLLECTION_MAP_TABLE) {
 			String sqlKey = "COLLECTION_MAP_TABLE" + descriptionFieldOwner.getEntityCache().getEntityClass().getName() + "_"
