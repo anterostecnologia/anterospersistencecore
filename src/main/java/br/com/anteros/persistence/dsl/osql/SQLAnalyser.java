@@ -854,24 +854,24 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 		}
 
 		if (level == MAKE_COLUMNS) {
-			// System.out.println("PROJEÇÃO");
-			// System.out.println("-------------------------------------------");
-			// for (Expression<?> p : parsedPathsOnProjections.keySet()) {
-			// for (SQLAnalyserColumn s : parsedPathsOnProjections.get(p)) {
-			// System.out.println(p + " -> " + s);
-			// }
-			// }
-			//
-			// System.out.println();
-			// System.out.println("OPERACAO");
-			// System.out.println("-------------------------------------------");
-			// for (Expression<?> p : parsedPathsOnOperations.keySet()) {
-			// for (SQLAnalyserColumn s : parsedPathsOnOperations.get(p)) {
-			// System.out.println(p + " -> " + s);
-			// }
-			// }
-			//
-			// System.out.println("-------------------------------------------");
+//			 System.out.println("PROJEÇÃO");
+//			 System.out.println("-------------------------------------------");
+//			 for (Expression<?> p : parsedPathsOnProjections.keySet()) {
+//			 for (SQLAnalyserColumn s : parsedPathsOnProjections.get(p)) {
+//			 System.out.println(p + " -> " + s);
+//			 }
+//			 }
+//			
+//			 System.out.println();
+//			 System.out.println("OPERACAO");
+//			 System.out.println("-------------------------------------------");
+//			 for (Expression<?> p : parsedPathsOnOperations.keySet()) {
+//			 for (SQLAnalyserColumn s : parsedPathsOnOperations.get(p)) {
+//			 System.out.println(p + " -> " + s);
+//			 }
+//			 }
+//			
+//			 System.out.println("-------------------------------------------");
 		}
 	}
 
