@@ -392,9 +392,9 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 						result.add(new NamedParameter(param.getName(), params.get(param), TemporalType.DATE_TIME));
 					else if (param.getType() == Enum.class)
 						if (param instanceof EnumParam)
-							result.add(new EnumeratedParameter(param.getName(), ((EnumParam) param).getFormat(), (Enum<?>) params.get(param)));
+							result.add(EnumeratedParameter.withFormatParameter(param.getName(), ((EnumParam) param).getFormat(), (Enum<?>) params.get(param)));
 						else
-							result.add(new EnumeratedParameter(param.getName(), EnumeratedFormatSQL.STRING, (Enum<?>) params.get(param)));
+							result.add(EnumeratedParameter.withFormatParameter(param.getName(), EnumeratedFormatSQL.STRING, (Enum<?>) params.get(param)));
 					else
 						result.add(new NamedParameter(param.getName(), params.get(param)));
 				}

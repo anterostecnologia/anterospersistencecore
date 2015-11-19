@@ -26,14 +26,19 @@ public class EnumeratedParameter extends SubstitutedParameter {
 
 	private EnumeratedFormatSQL format;
 
-	public EnumeratedParameter(String name, EnumeratedFormatSQL format, Enum<?>... value) {
+	protected EnumeratedParameter(String name, Object value) {
 		super(name, value);
-		this.format = format;
 	}
-
-	public EnumeratedParameter(String name, Enum<?>... value) {
-		super(name, value);
-		this.format = EnumeratedFormatSQL.STRING;
+	
+	public static EnumeratedParameter defaultParameter(String name, Enum<?>... value){
+		EnumeratedParameter result = new EnumeratedParameter(name,value);
+		result.format = EnumeratedFormatSQL.STRING;
+		return result;
+	}
+	public static EnumeratedParameter withFormatParameter(String name, EnumeratedFormatSQL format, Enum<?>... value){
+		EnumeratedParameter result = new EnumeratedParameter(name,value);
+		result.format = format;
+		return result;
 	}
 
 	@Override

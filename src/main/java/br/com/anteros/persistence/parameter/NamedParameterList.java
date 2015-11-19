@@ -41,13 +41,13 @@ public class NamedParameterList extends ArrayList<NamedParameter> {
 		return this;
 	}
 
-	public NamedParameterList addEnumeratedParameter(String name, EnumeratedFormatSQL format, Enum<?>... value) {
-		this.add(new EnumeratedParameter(name, format, value));
+	public NamedParameterList addEnumeratedParameterWithFormat(String name, EnumeratedFormatSQL format, Enum<?>... value) {
+		this.add(EnumeratedParameter.withFormatParameter(name, format, value));
 		return this;
 	}
 
 	public NamedParameterList addEnumeratedParameter(String name, Enum<?>... value) {
-		this.add(new EnumeratedParameter(name, value));
+		this.add(EnumeratedParameter.defaultParameter(name, value));
 		return this;
 	}
 
