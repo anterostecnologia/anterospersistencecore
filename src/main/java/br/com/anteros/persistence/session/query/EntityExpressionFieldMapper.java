@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.session.query;
 
@@ -22,6 +19,7 @@ import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.handler.EntityHandlerException;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityManaged;
+import br.com.anteros.persistence.metadata.FieldEntityValue;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
 import br.com.anteros.persistence.proxy.LazyLoadFactory;
 import br.com.anteros.persistence.session.SQLSession;
@@ -41,8 +39,8 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 	private boolean isAbstract;
 	private String[] aliasPrimaryKeyColumns;
 
-	public EntityExpressionFieldMapper(EntityCache targetEntityCache, DescriptionField descriptionField, String aliasTable,
-			String aliasDiscriminatorColumnName, String[] aliasPrimaryKeyColumns) {
+	public EntityExpressionFieldMapper(EntityCache targetEntityCache, DescriptionField descriptionField, String aliasTable, String aliasDiscriminatorColumnName,
+			String[] aliasPrimaryKeyColumns) {
 		super(targetEntityCache, descriptionField, "");
 		this.aliasTable = aliasTable;
 		this.aliasDiscriminatorColumnName = aliasDiscriminatorColumnName;
@@ -51,16 +49,17 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 	}
 
 	@Override
-	public void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged, Object targetObject, Cache transactionCache)
-			throws Exception {
-		
+	public void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged, Object targetObject, Cache transactionCache) throws Exception {
+
 		if (!session.getEntityCacheManager().getEntityCache(targetObject.getClass()).containsDescriptionField(descriptionField))
 			return;
-		
+
 		Object newObject = null;
+		EntityManaged newEntityManaged = null;
 		/*
 		 * Se o campo do objeto alvo ainda não foi inicializado
 		 */
+
 		if (descriptionField.isNull(targetObject)) {
 			/*
 			 * Se for um campo abstrato
@@ -82,8 +81,7 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 					/*
 					 * Se encontrou o valor do discriminator busca a classe concreta referente ao valor.
 					 */
-					EntityCache concreteEntityCache = session.getEntityCacheManager().getEntityCache(descriptionField.getField().getType(),
-							discriminatorValue);
+					EntityCache concreteEntityCache = session.getEntityCacheManager().getEntityCache(descriptionField.getField().getType(), discriminatorValue);
 					/*
 					 * Busca os valores da chave do objeto no resultSet.
 					 */
@@ -143,17 +141,13 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 			/*
 			 * Adiciona o objeto na lista de entidades gerenciadas pelo contexto da sessão porém como somente leitura
 			 */
-			session.getPersistenceContext().addEntityManaged(newObject, true, false);
+			newEntityManaged = session.getPersistenceContext().addEntityManaged(newObject, true, false);
 		} else {
 			/*
 			 * Caso já tenha sido criado pega o objeto do field
 			 */
 			newObject = descriptionField.getObjectValue(targetObject);
-			/*
-			 * Adiciona o campo na lista de campos que poderão ser alterados. Se o campo não for buscado no select não
-			 * poderá ser alterado.
-			 */
-			entityManaged.getFieldsForUpdate().add(descriptionField.getField().getName());
+			newEntityManaged = session.getPersistenceContext().getEntityManaged(newObject);
 		}
 
 		/*
@@ -161,13 +155,26 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 		 * terminar a árvore de expressões.
 		 */
 		for (ExpressionFieldMapper expField : children) {
-			expField.execute(session, resultSet, entityManaged, newObject, transactionCache);
+			expField.execute(session, resultSet, newEntityManaged, newObject, transactionCache);
 		}
-
+		
 		/*
 		 * Atribui o novo objeto ao campo do objeto alvo.
 		 */
 		descriptionField.setObjectValue(targetObject, newObject);
+		
+		/*
+		 * Guarda o valor na lista de valores anteriores
+		 */
+		FieldEntityValue fieldEntityValue = descriptionField.getFieldEntityValue(session, targetObject);
+		entityManaged.addOriginalValue(fieldEntityValue);
+		entityManaged.addLastValue(fieldEntityValue);
+		entityManaged.getFieldsForUpdate().add(descriptionField.getField().getName());
+		/*
+		 * Adiciona o campo na lista de campos que poderão ser alterados. Se o campo não for buscado no select não
+		 * poderá ser alterado.
+		 */
+		entityManaged.getFieldsForUpdate().add(descriptionField.getField().getName());
 	}
 
 	/**
@@ -190,16 +197,16 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 				index = resultSet.findColumn(aliasColumnName);
 				if (index < 0) {
 					/*
-					 * Esta exception não deverá ocorrer nunca pois as colunas estão sendo parseadas pela análise do SQL. Se
-					 * isto ocorrer pode ser um erro na análise.
+					 * Esta exception não deverá ocorrer nunca pois as colunas estão sendo parseadas pela análise do
+					 * SQL. Se isto ocorrer pode ser um erro na análise.
 					 */
 					throw new SQLException("NÃO ACHOU COLUNA " + aliasColumnName);
-				}	
+				}
 			} catch (Exception e) {
-				throw new EntityExpressionException("Ocorreu um erro localizando coluna "+aliasColumnName+" referente ao campo "+descriptionField.getField().getName()+" da classe "+targetEntityCache.getEntityClass(),e);
+				throw new EntityExpressionException("Ocorreu um erro localizando coluna " + aliasColumnName + " referente ao campo "
+						+ descriptionField.getField().getName() + " da classe " + targetEntityCache.getEntityClass(), e);
 			}
-			
-		
+
 			/*
 			 * Concatena o valor da coluna na chave do objeto
 			 */
@@ -216,9 +223,9 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 
 	@Override
 	public String toString(int level) {
-		StringBuilder sb = new StringBuilder(StringUtils.repeat(" ", level * 4) + descriptionField.getField().getName() + " -> "
-				+ targetEntityCache.getEntityClass().getSimpleName() + " : " + aliasColumnName
-				+ ("".equals(aliasDiscriminatorColumnName) ? "" : " discriminator column " + aliasDiscriminatorColumnName));
+		StringBuilder sb = new StringBuilder(
+				StringUtils.repeat(" ", level * 4) + descriptionField.getField().getName() + " -> " + targetEntityCache.getEntityClass().getSimpleName() + " : "
+						+ aliasColumnName + ("".equals(aliasDiscriminatorColumnName) ? "" : " discriminator column " + aliasDiscriminatorColumnName));
 		level = level + 1;
 		for (ExpressionFieldMapper expressionFieldMapper : children) {
 			sb.append("\n").append(expressionFieldMapper.toString(level));
