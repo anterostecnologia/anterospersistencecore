@@ -845,6 +845,8 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			params.add(new NamedParameter("P" + columnName, columnKeyTarget.get(columnName)));
 			appendOperator = true;
 		}
+		
+		session.forceFlush(SQLParserUtil.getTableNames(select.toStatementString(), session.getDialect()));
 
 		ResultSet resultSet = session.createQuery(select.toStatementString()).setParameters(params.toArray(new NamedParameter[] {})).executeQuery();
 		if (resultSet.next()) {
@@ -1182,6 +1184,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		/*
 		 * Seleciona os dados
 		 */
+		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
 		result = getResultOneToLazyLoad(sql, params.toArray(new NamedParameter[] {}), descriptionFieldOwner.getTargetEntity().getEntityClass(),
 				transactionCache);
 		return result;
@@ -1287,6 +1290,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		/*
 		 * Seleciona os dados
 		 */
+		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
 		result = getResultListToLoadData(sql, params.toArray(new NamedParameter[] {}), descriptionFieldOwner.getTargetEntity().getEntityClass(),
 				transactionCache);
 		return result;
@@ -1350,6 +1354,8 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		parsedSql = (session.getDialect().supportsLock() ? session.applyLock(analyzerResult.getParsedSql(), resultClass, lockOpts)
 				: analyzerResult.getParsedSql());
 
+		session.forceFlush(SQLParserUtil.getTableNames(parsedSql, session.getDialect()));
+		
 		List result = (List) session.getRunner().query(session.getConnection(), parsedSql, handler, namedParameter, showSql, formatSql, 0,
 				session.getListeners(), session.clientId());
 
@@ -1393,6 +1399,8 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 		sql = (session.getDialect().supportsLock() ? session.applyLock(analyzerResult.getParsedSql(), resultClass, lockOpts) : analyzerResult.getParsedSql());
 
+		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
+		
 		result = (List) session.getRunner().query(session.getConnection(), sql, handler, parameter, showSql, formatSql, 0, session.getListeners(),
 				session.clientId());
 
