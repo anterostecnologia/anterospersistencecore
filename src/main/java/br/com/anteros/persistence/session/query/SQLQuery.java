@@ -51,7 +51,7 @@ public interface SQLQuery {
 
 	public String getSql();
 
-	public SQLQuery showSql(boolean showSql);
+	public SQLQuery showSql(ShowSQLType... showSql);
 
 	public SQLQuery formatSql(boolean formatSql);
 

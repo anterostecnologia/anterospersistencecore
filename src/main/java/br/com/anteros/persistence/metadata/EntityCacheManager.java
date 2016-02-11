@@ -2346,7 +2346,8 @@ public class EntityCacheManager {
 			if (discriminatorValue.equals(entityCache.getDiscriminatorValue()) && ReflectionUtils.isExtendsClass(abstractClazz, entityCache.getEntityClass()))
 				return entityCache;
 		}
-		throw new RuntimeException("Não existe classe com o valor " + discriminatorValue);
+		//throw new RuntimeException("Não existe classe com o valor " + discriminatorValue+". "+abstractClazz.getName());
+		return null;
 	}
 
 	/**

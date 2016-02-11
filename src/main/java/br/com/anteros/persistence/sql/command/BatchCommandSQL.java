@@ -8,6 +8,7 @@ import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.SQLSession;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 
 public class BatchCommandSQL extends CommandSQL {
 
@@ -15,11 +16,11 @@ public class BatchCommandSQL extends CommandSQL {
 	private int batchSize;
 
 	private BatchCommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object targetObject, EntityCache entityCache,
-			String targetTableName, boolean showSql, DescriptionSQL descriptionSQL) {
+			String targetTableName, ShowSQLType[] showSql, DescriptionSQL descriptionSQL) {
 		super(session, sql, namedParameters, targetObject, entityCache, targetTableName, showSql, descriptionSQL, true);
 	}
 
-	public BatchCommandSQL(SQLSession session, CommandSQL[] commands, int batchSize, boolean showSql) {
+	public BatchCommandSQL(SQLSession session, CommandSQL[] commands, int batchSize, ShowSQLType[] showSql) {
 		super(session, null, null, null, null, null, showSql, null, true);
 		this.commands = commands;
 		this.batchSize = batchSize;

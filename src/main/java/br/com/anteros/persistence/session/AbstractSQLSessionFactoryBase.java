@@ -31,6 +31,7 @@ import br.com.anteros.persistence.session.configuration.AnterosPersistenceProper
 import br.com.anteros.persistence.session.configuration.SessionFactoryConfiguration;
 import br.com.anteros.persistence.session.context.CurrentSQLSessionContext;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
 import br.com.anteros.persistence.transaction.TransactionFactory;
 
@@ -44,7 +45,7 @@ public abstract class AbstractSQLSessionFactoryBase implements SQLSessionFactory
 	protected SessionFactoryConfiguration configuration;
 	protected CurrentSQLSessionContext currentSessionContext;
 
-	private boolean showSql = false;
+	private ShowSQLType[] showSql = {ShowSQLType.NONE};
 	private boolean formatSql = false;
 	private int queryTimeout = 0;
 	private int lockTimeout = 0;
@@ -71,8 +72,11 @@ public abstract class AbstractSQLSessionFactoryBase implements SQLSessionFactory
 		this.dialect.setDefaultCatalog(configuration.getProperty(AnterosPersistenceProperties.JDBC_CATALOG));
 		this.dialect.setDefaultSchema(configuration.getProperty(AnterosPersistenceProperties.JDBC_SCHEMA));
 
-		if (configuration.getProperty(AnterosPersistenceProperties.SHOW_SQL) != null)
-			this.showSql = new Boolean(configuration.getProperty(AnterosPersistenceProperties.SHOW_SQL));
+		if (configuration.getProperty(AnterosPersistenceProperties.SHOW_SQL) != null){
+			String propertyShowSql = configuration.getProperty(AnterosPersistenceProperties.SHOW_SQL);
+			String[] splitShowSql = propertyShowSql.split("\\,");
+			this.showSql = ShowSQLType.parse(splitShowSql);
+		}
 
 		if (configuration.getProperty(AnterosPersistenceProperties.FORMAT_SQL) != null)
 			this.formatSql = new Boolean(configuration.getProperty(AnterosPersistenceProperties.FORMAT_SQL));
@@ -247,10 +251,10 @@ public abstract class AbstractSQLSessionFactoryBase implements SQLSessionFactory
 	}
 
 	public boolean isShowSql() {
-		return showSql;
+		return showSql!=null;
 	}
 
-	public void setShowSql(boolean showSql) {
+	public void setShowSql(ShowSQLType... showSql) {
 		this.showSql = showSql;
 	}
 

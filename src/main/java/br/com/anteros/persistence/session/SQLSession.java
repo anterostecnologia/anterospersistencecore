@@ -36,6 +36,7 @@ import br.com.anteros.persistence.session.query.AbstractSQLRunner;
 import br.com.anteros.persistence.session.query.ExpressionFieldMapper;
 import br.com.anteros.persistence.session.query.SQLQuery;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyserAlias;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 import br.com.anteros.persistence.session.query.TypedSQLQuery;
 import br.com.anteros.persistence.sql.command.CommandSQL;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
@@ -89,6 +90,10 @@ public interface SQLSession {
 	public void refresh(Object entity, LockOptions lockOptions) throws Exception;
 
 	public void refresh(Object entity, LockOptions lockOptions, Map<String, Object> properties) throws Exception;
+	/*
+	 * Força a geração do ID usando a estratégia de geração configurada
+	 */
+	public void forceGenerationIdentifier(Object entity) throws Exception;
 
 	/*
 	 * Bloqueia o objeto
@@ -235,9 +240,11 @@ public interface SQLSession {
 
 	public void setFormatSql(boolean sql);
 
-	public void setShowSql(boolean sql);
+	public void setShowSql(ShowSQLType... sql);
 
 	public boolean isShowSql();
+	
+	public ShowSQLType[] getShowSql();
 
 	public String clientId();
 

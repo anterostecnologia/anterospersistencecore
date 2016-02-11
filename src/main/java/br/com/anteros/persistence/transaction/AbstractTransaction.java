@@ -107,7 +107,7 @@ public abstract class AbstractTransaction implements Transaction {
 		log.debug("rollback");
 
 		if (status != TransactionSatus.FAILED_COMMIT) {
-			getPersistenceContext().onBeforeExecuteCommit(getConnection());
+			getPersistenceContext().onBeforeExecuteRollback(getConnection());
 			try {
 				doRollback();
 				status = TransactionSatus.ROLLED_BACK;

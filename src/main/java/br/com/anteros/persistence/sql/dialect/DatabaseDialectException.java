@@ -21,4 +21,8 @@ public class DatabaseDialectException extends RuntimeException {
 	public DatabaseDialectException(String message) {
 		super(message);
 	}
+	
+	public DatabaseDialectException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

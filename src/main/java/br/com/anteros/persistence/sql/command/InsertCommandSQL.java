@@ -32,6 +32,7 @@ import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.ProcedureResult;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 
 public class InsertCommandSQL extends CommandSQL {
 
@@ -41,7 +42,7 @@ public class InsertCommandSQL extends CommandSQL {
 	private static Logger LOG = LoggerProvider.getInstance().getLogger(InsertCommandSQL.class.getName());
 
 	public InsertCommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object targetObject, EntityCache entityCache,
-			String targetTableName, boolean showSql, IdentifierPostInsert identifierPostInsert, DescriptionColumn identifyColumn, DescriptionSQL descriptionSQL,
+			String targetTableName, ShowSQLType[] showSql, IdentifierPostInsert identifierPostInsert, DescriptionColumn identifyColumn, DescriptionSQL descriptionSQL,
 			boolean inBatchMode) {
 		super(session, sql, namedParameters, targetObject, entityCache, targetTableName, showSql, descriptionSQL, inBatchMode);
 		this.identifierPostInsert = identifierPostInsert;
@@ -76,7 +77,7 @@ public class InsertCommandSQL extends CommandSQL {
 						else
 							successValue = result.getFunctionResult();
 
-						if (showSql) {
+						if (ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
 							LOG.debug("RESULT = " + successValue);
 							LOG.debug("");
 						}

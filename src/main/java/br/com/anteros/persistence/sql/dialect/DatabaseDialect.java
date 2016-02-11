@@ -187,14 +187,14 @@ public abstract class DatabaseDialect {
 		registerJavaColumnType(Byte[].class, new ColumnDatabaseType("BLOB", false, Types.BLOB));
 		registerJavaColumnType(Character[].class, new ColumnDatabaseType("CLOB", false, Types.CLOB));
 		registerJavaColumnType(byte[].class, new ColumnDatabaseType("BLOB", false, Types.BLOB));
-		registerJavaColumnType(char[].class, new ColumnDatabaseType("CLOB", false,  Types.CLOB));
-		registerJavaColumnType(java.sql.Blob.class, new ColumnDatabaseType("BLOB", false,  Types.BLOB));
+		registerJavaColumnType(char[].class, new ColumnDatabaseType("CLOB", false, Types.CLOB));
+		registerJavaColumnType(java.sql.Blob.class, new ColumnDatabaseType("BLOB", false, Types.BLOB));
 		registerJavaColumnType(java.sql.Clob.class, new ColumnDatabaseType("CLOB", false, Types.CLOB));
 		registerJavaColumnType(java.sql.Date.class, new ColumnDatabaseType("DATE", Types.DATE));
 		registerJavaColumnType(java.util.Date.class, new ColumnDatabaseType("DATE", Types.DATE));
 		registerJavaColumnType(java.sql.Timestamp.class, new ColumnDatabaseType("TIMESTAMP", Types.TIMESTAMP));
 		registerJavaColumnType(java.sql.Time.class, new ColumnDatabaseType("TIME", Types.TIME));
-		registerJavaColumnType(java.util.Calendar.class, new ColumnDatabaseType("TIMESTAMP",Types.TIMESTAMP));
+		registerJavaColumnType(java.util.Calendar.class, new ColumnDatabaseType("TIMESTAMP", Types.TIMESTAMP));
 		registerJavaColumnType(java.util.Date.class, new ColumnDatabaseType("TIMESTAMP", Types.TIMESTAMP));
 		registerJavaColumnType(java.lang.Number.class, new ColumnDatabaseType("NUMBER", 10, Types.NUMERIC));
 	}
@@ -231,25 +231,34 @@ public abstract class DatabaseDialect {
 			}
 			if (parameter.getValue() instanceof LobParameterBinding) {
 				if (((LobParameterBinding) parameter.getValue()).getType() == Types.BLOB) {
-					Blob blob = createTemporaryBlob(call.getConnection(), (byte[]) (((LobParameterBinding) parameter.getValue()).getValue()));
+					Blob blob;
+					blob = createTemporaryBlob(call.getConnection(), (byte[]) (((LobParameterBinding) parameter.getValue()).getValue()));
+
 					if (blob != null)
 						call.setBlob(index, blob);
 					else
 						call.setObject(index, parameter.getValue());
 				} else if (((LobParameterBinding) parameter.getValue()).getType() == Types.CLOB) {
-					Clob clob = createTemporaryClob(call.getConnection(), (byte[]) (((LobParameterBinding) parameter.getValue()).getValue()));
+					Clob clob;
+					clob = createTemporaryClob(call.getConnection(), (byte[]) (((LobParameterBinding) parameter.getValue()).getValue()));
 					if (clob != null)
 						call.setClob(index, clob);
 					else
 						call.setObject(index, parameter.getValue());
-				} else
+
+				} else {
 					call.setObject(index, parameter.getValue());
+				}
 			} else if (parameter instanceof NamedParameter) {
-				Object value = ((NamedParameter) parameter).getValue();
-				if (value instanceof DateParameterBinding)
-					((ParameterBinding) value).bindValue(call, index);
-				else
-					call.setObject(index, value);
+				try {
+					Object value = ((NamedParameter) parameter).getValue();
+					if (value instanceof DateParameterBinding)
+						((ParameterBinding) value).bindValue(call, index);
+					else
+						call.setObject(index, value);
+				} catch (Exception e) {
+					throw new DatabaseDialectException("Ocorreu um erro atribuindo o parâmetro "+parameter.getName(), e);
+				}
 			} else
 				call.setObject(index, parameter.getValue());
 		}
@@ -1173,7 +1182,7 @@ public abstract class DatabaseDialect {
 	public int getMaxColumnNameSize() {
 		return 30;
 	}
-	
+
 	public int getMaxTableNameSize() {
 		return 30;
 	}

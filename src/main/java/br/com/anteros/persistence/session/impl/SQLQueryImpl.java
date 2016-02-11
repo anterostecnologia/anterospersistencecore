@@ -79,6 +79,7 @@ import br.com.anteros.persistence.session.query.SQLQueryNoResultException;
 import br.com.anteros.persistence.session.query.SQLQueryNonUniqueResultException;
 import br.com.anteros.persistence.session.query.ScrollableResultSet;
 import br.com.anteros.persistence.session.query.ScrollableResultSetImpl;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 import br.com.anteros.persistence.session.query.TypedSQLQuery;
 import br.com.anteros.persistence.sql.command.Select;
 import br.com.anteros.persistence.sql.dialect.type.LimitClauseResult;
@@ -95,7 +96,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	protected SQLSession session;
 	private List<ResultClassDefinition> resultClassDefinitionsList = new ArrayList<ResultClassDefinition>();
 	protected Identifier identifier;
-	protected boolean showSql;
+	protected ShowSQLType[] showSql={ShowSQLType.NONE};
 	protected boolean formatSql;
 	protected ResultSetHandler customHandler;
 	protected ResultSetTransformer<T> resultTransformer;
@@ -171,7 +172,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		return sql;
 	}
 
-	public TypedSQLQuery<T> showSql(boolean showSql) {
+	public TypedSQLQuery<T> showSql(ShowSQLType[] showSql) {
 		this.showSql = showSql;
 		return this;
 	}
@@ -1293,6 +1294,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
 		result = getResultListToLoadData(sql, params.toArray(new NamedParameter[] {}), descriptionFieldOwner.getTargetEntity().getEntityClass(),
 				transactionCache);
+		
 		return result;
 	}
 

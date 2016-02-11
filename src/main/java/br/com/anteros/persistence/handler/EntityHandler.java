@@ -116,7 +116,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		} catch (SQLException ex) {
 			throw new EntityHandlerException("Erro processando handler para criação da classe " + resultClass.getName() + ". " + ex.getMessage(), ex);
 		}
-		
+
 		return result;
 	}
 
@@ -159,8 +159,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		return result.toArray();
 	}
 
-	Object handleRow(ResultSet resultSet, List<Object> result, EntityCache entityCache, boolean loadAllFields) throws EntityHandlerException, SQLException,
-			Exception {
+	Object handleRow(ResultSet resultSet, List<Object> result, EntityCache entityCache, boolean loadAllFields)
+			throws EntityHandlerException, SQLException, Exception {
 		/*
 		 * Cria o objeto
 		 */
@@ -180,19 +180,15 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		EntityCache result = entityCacheManager.getEntityCache(resultClass);
 		try {
 			/*
-			 * Verifica se a classe é abstrat e busca o tipo da classe concreta
+			 * Busca a classe referente ao discriminator value
 			 */
-			if (result.hasDiscriminatorColumn() && ReflectionUtils.isAbstractClass(result.getEntityClass())) {
+			if (result.hasDiscriminatorColumn()) {
 				String dsValue = resultSet.getString(getAliasColumnName(result, result.getDiscriminatorColumn().getColumnName()));
 				result = entityCacheManager.getEntityCache(resultClass, dsValue);
-			} else if (result.hasDiscriminatorColumn()) {
-				String dsValue = resultSet.getString(getAliasColumnName(result, result.getDiscriminatorColumn().getColumnName()));
-				if (!result.getDiscriminatorValue().equals(dsValue)) {
-					/*
-					 * Se retornar nulo é porque a linha do resultSet contém um classe cujo discrimintator column é
-					 * diferente do esperado
-					 */
-					return null;
+				if (result != null) {
+					if (!ReflectionUtils.isExtendsClass(resultClass, result.getEntityClass())) {
+						return null;
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -273,8 +269,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		addObjectToCache(entityCache, mainObject, uniqueId);
 
 		if (entityCache.isVersioned()) {
-			entityManaged.setOriginalVersion(ObjectUtils.cloneObject(ReflectionUtils.getFieldValueByName(mainObject, entityCache.getVersionColumn().getField()
-					.getName())));
+			entityManaged.setOriginalVersion(
+					ObjectUtils.cloneObject(ReflectionUtils.getFieldValueByName(mainObject, entityCache.getVersionColumn().getField().getName())));
 			entityManaged.setOldVersion(entityManaged.getOriginalVersion());
 			entityManaged.setCurrentVersion(entityManaged.getOriginalVersion());
 		}

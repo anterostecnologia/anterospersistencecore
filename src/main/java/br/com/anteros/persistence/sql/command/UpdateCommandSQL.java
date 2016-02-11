@@ -26,13 +26,14 @@ import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.ProcedureResult;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 
 public class UpdateCommandSQL extends CommandSQL {
 
 	private static Logger LOG = LoggerProvider.getInstance().getLogger(UpdateCommandSQL.class.getName());
 
 	public UpdateCommandSQL(SQLSession session, String sql, List<NamedParameter> params, Object targetObject, EntityCache entityCache, String targetTableName,
-			boolean showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
+			ShowSQLType[] showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
 		super(session, sql, params, targetObject, entityCache, targetTableName, showSql, descriptionSQL, inBatchMode);
 	}
 
@@ -64,7 +65,7 @@ public class UpdateCommandSQL extends CommandSQL {
 						else
 							successValue = result.getFunctionResult();
 
-						if (showSql) {
+						if (ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
 							LOG.debug("RESULT = " + successValue);
 							LOG.debug("");
 						}

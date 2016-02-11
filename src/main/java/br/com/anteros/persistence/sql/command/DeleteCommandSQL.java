@@ -26,13 +26,14 @@ import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.ProcedureResult;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 
 public class DeleteCommandSQL extends CommandSQL {
 
 	private static Logger LOG = LoggerProvider.getInstance().getLogger(DeleteCommandSQL.class.getName());
 
 	public DeleteCommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object targetObject, EntityCache entityCache,
-			String targetTableName, boolean showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
+			String targetTableName, ShowSQLType[] showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
 		super(session, sql, namedParameters, targetObject, entityCache, targetTableName, showSql, descriptionSQL, inBatchMode);
 	}
 
@@ -65,7 +66,7 @@ public class DeleteCommandSQL extends CommandSQL {
 						else
 							successValue = result.getFunctionResult();
 
-						if (showSql) {
+						if (ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
 							LOG.debug("RESULT = " + successValue);
 							LOG.debug("");
 						}

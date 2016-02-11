@@ -24,6 +24,7 @@ import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.lock.LockOptions;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 import br.com.anteros.persistence.sql.command.Insert;
 import br.com.anteros.persistence.sql.command.Select;
 import br.com.anteros.persistence.sql.command.Update;
@@ -85,7 +86,7 @@ public class TableGenerator implements IdentifierGenerator {
 		long currentValue = 1;
 		try {
 			String sql = select.toStatementString();
-			ResultSet rsSelect = session.createQuery(sql, new Object[] { value }, LockOptions.PESSIMISTIC_WRITE).showSql(false).executeQuery();
+			ResultSet rsSelect = session.createQuery(sql, new Object[] { value }, LockOptions.PESSIMISTIC_WRITE).showSql(ShowSQLType.NONE).executeQuery();
 			if (!rsSelect.next())
 				currentValue = 0;
 			else

@@ -32,7 +32,7 @@ public interface TypedSQLQuery<X> extends SQLQuery {
 
 	public TypedSQLQuery<X> sql(String sql);
 
-	public TypedSQLQuery<X> showSql(boolean showSql);
+	public TypedSQLQuery<X> showSql(ShowSQLType... showSql);
 
 	public TypedSQLQuery<X> formatSql(boolean formatSql);
 

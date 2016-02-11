@@ -30,6 +30,7 @@ import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessag
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.configuration.AnterosPersistenceProperties;
 import br.com.anteros.persistence.session.impl.SQLQueryRunner;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 
 public abstract class CommandSQL {
 
@@ -38,7 +39,7 @@ public abstract class CommandSQL {
 	protected List<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 	protected SQLSession session;
 	protected Object targetObject;
-	protected boolean showSql;
+	protected ShowSQLType[] showSql;
 	protected EntityCache entityCache;
 	protected Serializable generatedId;
 	protected SQLQueryRunner queryRunner = new SQLQueryRunner();
@@ -47,7 +48,7 @@ public abstract class CommandSQL {
 	protected boolean inBatchMode = false;
 
 	public CommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object targetObject,
-			EntityCache entityCache, String targetTableName, boolean showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
+			EntityCache entityCache, String targetTableName, ShowSQLType[] showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
 		this.sql = sql;
 		this.namedParameters = namedParameters;
 		this.session = session;
@@ -85,11 +86,11 @@ public abstract class CommandSQL {
 		this.targetObject = targetObject;
 	}
 
-	public boolean isShowSql() {
+	public ShowSQLType[] getShowSql() {
 		return showSql;
 	}
 
-	public void setShowSql(boolean showSql) {
+	public void setShowSql(ShowSQLType[] showSql) {
 		this.showSql = showSql;
 	}
 

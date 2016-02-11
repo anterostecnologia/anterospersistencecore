@@ -24,6 +24,7 @@ import javax.swing.text.StyleContext.SmallAttributeSet;
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.persistence.session.SQLSession;
+import br.com.anteros.persistence.session.query.ShowSQLType;
 
 public class SequenceGenerator implements IdentifierGenerator {
 
@@ -84,7 +85,7 @@ public class SequenceGenerator implements IdentifierGenerator {
 	}
 
 	protected Long getNextvalFromDatabase() throws Exception {
-		ResultSet rs = session.createQuery(sql).showSql(false).executeQuery();
+		ResultSet rs = session.createQuery(sql).showSql(ShowSQLType.NONE).executeQuery();
 		try {
 			Long value = new Long(1);
 			if (rs.next())
