@@ -49,6 +49,8 @@ public class IdentifierGeneratorFactory {
 
 		if (type.equals(GeneratedType.IDENTITY)) {
 			return new IdentifyGenerator(column.getField().getType());
+		} else if (type.equals(GeneratedType.UUID)) {
+			return new UUIDGenerator(column.getGenerators().get(column.getGeneratedType()));
 		} else if (type.equals(GeneratedType.SEQUENCE)) {
 			return new SequenceGenerator(session, generator.getCatalog(), generator.getSchema(), generator.getSequenceName(), null, column.getField()
 					.getType(), generator.getInitialValue(), generator.getAllocationSize());

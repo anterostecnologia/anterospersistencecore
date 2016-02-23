@@ -17,6 +17,6 @@ package br.com.anteros.persistence.metadata.annotation.type;
 
 public enum GeneratedType {
 
-	AUTO, IDENTITY, SEQUENCE, TABLE
+	AUTO, IDENTITY, SEQUENCE, TABLE, UUID
 
 }

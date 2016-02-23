@@ -270,9 +270,8 @@ public class DescriptionField {
 				setValue(object, value);
 			} else if ((value == null) || (value.getClass() == field.getType())) {
 				setValue(object, value);
-			} else if ("".equals(value)
-					&& (ReflectionUtils.isExtendsClass(Number.class, field.getType()) || (field.getType() == SQLiteDate.class)
-							|| (field.getType() == java.sql.Date.class) || (field.getType() == Date.class))) {
+			} else if ("".equals(value) && (ReflectionUtils.isExtendsClass(Number.class, field.getType()) || (field.getType() == SQLiteDate.class)
+					|| (field.getType() == java.sql.Date.class) || (field.getType() == Date.class))) {
 				setValue(object, null);
 			} else if ((field.getType() == Date.class) && (value instanceof String)) {
 				setStringValueToDate(object, String.valueOf(value));
@@ -609,8 +608,8 @@ public class DescriptionField {
 			if (fieldValue instanceof Collection) {
 				if ((fieldValue != null) && this.isInitialized(session, fieldValue)) {
 					for (Object entity : ((Collection) fieldValue))
-						listTemporary.add(new FieldEntityValue(session.getIdentifier(entity).getDatabaseUniqueId(), session.getIdentifier(entity).getColumns(),
-								entity));
+						listTemporary.add(
+								new FieldEntityValue(session.getIdentifier(entity).getDatabaseUniqueId(), session.getIdentifier(entity).getColumns(), entity));
 				}
 				return new FieldEntityValue(this.getField().getName(), listTemporary.toArray(new FieldEntityValue[] {}), ((Collection) fieldValue));
 			}
@@ -730,7 +729,8 @@ public class DescriptionField {
 	public Object getColumnValue(String columnName, Object object) throws Exception {
 		DescriptionColumn column = getDescriptionColumnByName(columnName);
 		if (column == null)
-			throw new EntityCacheException("Coluna " + columnName + " não encontrada no campo " + getName() + " " + getEntityCache().getEntityClass().getName());
+			throw new EntityCacheException(
+					"Coluna " + columnName + " não encontrada no campo " + getName() + " " + getEntityCache().getEntityClass().getName());
 		return column.getColumnValue(object);
 	}
 
@@ -1027,7 +1027,9 @@ public class DescriptionField {
 			}
 		}
 
-		if (this.isEnumerated())
+		if (columnValue == null) {
+			return new NamedParameter(sourceColumn.getColumnName(), columnValue);
+		} else if (this.isEnumerated())
 			return new NamedParameter(sourceColumn.getColumnName(), this.getValueEnum(columnValue.toString()));
 		else if (this.isBoolean())
 			return new NamedParameter(sourceColumn.getColumnName(), this.getBooleanValue((Boolean) columnValue));

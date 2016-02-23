@@ -49,6 +49,7 @@ import br.com.anteros.persistence.metadata.annotation.SQLUpdate;
 import br.com.anteros.persistence.metadata.annotation.SequenceGenerator;
 import br.com.anteros.persistence.metadata.annotation.Table;
 import br.com.anteros.persistence.metadata.annotation.TableGenerator;
+import br.com.anteros.persistence.metadata.annotation.UUIDGenerator;
 import br.com.anteros.persistence.metadata.annotation.UniqueConstraint;
 import br.com.anteros.persistence.metadata.annotation.type.DiscriminatorType;
 import br.com.anteros.persistence.metadata.annotation.type.InheritanceType;
@@ -85,6 +86,7 @@ public class EntityConfiguration {
 	private ConvertConfiguration[] converts = {};
 	private TableGeneratorConfiguration tableGenerator;
 	private SequenceGeneratorConfiguration sequenceGenerator;
+	private UUIDGeneratorConfiguration uuidGenerator;
 
 	public EntityConfiguration(Class<? extends Serializable> sourceClazz, PersistenceModelConfiguration model) {
 		this.sourceClazz = sourceClazz;
@@ -575,10 +577,22 @@ public class EntityConfiguration {
 		this.sequenceGenerator = new SequenceGeneratorConfiguration(sequenceName, catalog, initialValue, startsWith, schema);
 		return this;
 	}
+	
+	public EntityConfiguration uuidGenerator(UUIDGenerator uuidGenerator) {
+		annotations.add(UUIDGenerator.class);
+		this.uuidGenerator = new UUIDGeneratorConfiguration(uuidGenerator);
+		return this;
+	}
 
 	public EntityConfiguration sequenceGenerator(SequenceGeneratorConfiguration sequenceGeneratorConfiguration) {
 		annotations.add(SequenceGenerator.class);
 		this.sequenceGenerator = sequenceGeneratorConfiguration;
+		return this;
+	}
+	
+	public EntityConfiguration uuidGenerator(UUIDGeneratorConfiguration uuidGeneratorConfiguration) {
+		annotations.add(UUIDGenerator.class);
+		this.uuidGenerator = uuidGeneratorConfiguration;
 		return this;
 	}
 
@@ -588,6 +602,10 @@ public class EntityConfiguration {
 	
 	public SequenceGeneratorConfiguration getSequenceGenerator() {
 		return sequenceGenerator;
+	}
+
+	public UUIDGeneratorConfiguration getUuidGenerator() {
+		return uuidGenerator;
 	}
 
 }

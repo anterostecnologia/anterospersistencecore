@@ -68,7 +68,10 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			statement = this.prepareStatement(connection, sql);
 
 			for (int i = 0; i < parameters.length; i++) {
-				if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL)
+						|| (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) 
+						|| (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE))
+						|| (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE))) {
 					showSQLAndParameters(sql, parameters[i], formatSql, listeners, clientId);
 				}
 				this.fillStatement(statement, parameters[i]);
@@ -460,7 +463,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			statement = new NamedParameterStatement(connection, sql, parameters);
 			for (NamedParameter namedParameter : parameters)
 				statement.setObject(namedParameter.getName(), namedParameter.getValue());
-			if (ShowSQLType.contains(showSql,ShowSQLType.ALL,ShowSQLType.SELECT)) {
+			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
 				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
 			}
 			result = this.wrap(statement.executeQuery());
@@ -482,7 +485,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			if (timeOut > 0)
 				statement.setQueryTimeout(timeOut);
 			this.fillStatement(statement, parameters);
-			if (ShowSQLType.contains(showSql,ShowSQLType.ALL,ShowSQLType.SELECT)) {
+			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
 				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
 			}
 			result = this.wrap(statement.executeQuery());
@@ -507,7 +510,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				statement.setObject(key, parameters.get(key));
 			}
 
-			if (ShowSQLType.contains(showSql,ShowSQLType.ALL,ShowSQLType.SELECT)) {
+			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
 				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
 			}
 
@@ -530,12 +533,12 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 
 	public int update(Connection connection, String sql, Object[] parameters, List<SQLSessionListener> listeners) throws Exception {
 
-		return this.update(connection, sql, parameters, new ShowSQLType[]{ShowSQLType.NONE}, listeners, "");
+		return this.update(connection, sql, parameters, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
 	}
 
 	public int update(Connection connection, String sql, NamedParameter[] parameters, List<SQLSessionListener> listeners) throws Exception {
 
-		return this.update(connection, sql, parameters, new ShowSQLType[]{ShowSQLType.NONE}, listeners, "");
+		return this.update(connection, sql, parameters, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
 	}
 
 	public int update(Connection connection, String sql, Object[] parameters, ShowSQLType[] showSql, List<SQLSessionListener> listeners, String clientId)
@@ -548,20 +551,33 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			statement = this.prepareStatement(connection, sql);
 			this.fillStatement(statement, parameters);
 
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.INSERT, ShowSQLType.UPDATE, ShowSQLType.DELETE)){
+			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
 				showSQLAndParameters(sql, parameters, true, listeners, clientId);
 			}
 
 			rows = statement.executeUpdate();
 
-		} catch (SQLException e) {
+		} catch (
+
+		SQLException e)
+
+		{
 			this.rethrow(e, sql, parameters, clientId);
 
-		} finally {
+		} finally
+
+		{
 			close(statement);
 		}
 
 		return rows;
+
 	}
 
 	public int update(Connection connection, String sql, Object[] parameters, IdentifierPostInsert identifierPostInsert, String identitySelectString,
@@ -573,7 +589,13 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 		try {
 			statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 			this.fillStatement(statement, parameters);
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.INSERT, ShowSQLType.UPDATE, ShowSQLType.DELETE)){
+			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
 				showSQLAndParameters(sql, parameters, true, listeners, clientId);
 			}
 
@@ -614,7 +636,13 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			for (NamedParameter namedParameter : parameters) {
 				statement.setObject(namedParameter.getName(), namedParameter.getValue());
 			}
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.INSERT, ShowSQLType.UPDATE, ShowSQLType.DELETE)){
+			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
 				showSQLAndParameters(sql, parameters, true, listeners, clientId);
 			}
 
@@ -641,7 +669,13 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			for (NamedParameter namedParameter : parameters) {
 				statement.setObject(namedParameter.getName(), namedParameter.getValue());
 			}
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.INSERT, ShowSQLType.UPDATE, ShowSQLType.DELETE)){
+			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
 				showSQLAndParameters(sql, parameters, true, listeners, clientId);
 			}
 
@@ -685,7 +719,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 
 	@Override
 	public int update(Connection connection, String sql, Object parameter, List<SQLSessionListener> listeners) throws Exception {
-		return update(connection, sql, new Object[] { parameter }, new ShowSQLType[]{ShowSQLType.NONE}, listeners, "");
+		return update(connection, sql, new Object[] { parameter }, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
 	}
 
 	@Override

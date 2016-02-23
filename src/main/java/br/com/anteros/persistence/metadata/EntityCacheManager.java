@@ -74,6 +74,7 @@ import br.com.anteros.persistence.metadata.annotation.Table;
 import br.com.anteros.persistence.metadata.annotation.TableGenerator;
 import br.com.anteros.persistence.metadata.annotation.Temporal;
 import br.com.anteros.persistence.metadata.annotation.Transient;
+import br.com.anteros.persistence.metadata.annotation.UUIDGenerator;
 import br.com.anteros.persistence.metadata.annotation.Version;
 import br.com.anteros.persistence.metadata.annotation.type.CallableType;
 import br.com.anteros.persistence.metadata.annotation.type.CascadeType;
@@ -111,6 +112,7 @@ import br.com.anteros.persistence.metadata.descriptor.type.ColumnType;
 import br.com.anteros.persistence.metadata.descriptor.type.FieldType;
 import br.com.anteros.persistence.metadata.descriptor.type.SQLStatementType;
 import br.com.anteros.persistence.metadata.exception.EntityCacheManagerException;
+import br.com.anteros.persistence.metadata.identifier.UUIDProviderImpl;
 import br.com.anteros.persistence.parameter.NamedParameterParserResult;
 import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessages;
 import br.com.anteros.persistence.session.cache.PersistenceMetadataCache;
@@ -1072,13 +1074,14 @@ public class EntityCacheManager {
 		/*
 		 * Se possuir SequenceGenerator e TableGenerator
 		 */
-		if (fieldConfiguration.isAnnotationPresent(SequenceGenerator.class) || fieldConfiguration.isAnnotationPresent(TableGenerator.class)) {
+		if (fieldConfiguration.isAnnotationPresent(SequenceGenerator.class) || fieldConfiguration.isAnnotationPresent(TableGenerator.class)
+				|| fieldConfiguration.isAnnotationPresent(UUIDGenerator.class)) {
 			/*
 			 * Se não possuir GenerateValue
 			 */
 			if (!fieldConfiguration.isAnnotationPresent(GeneratedValue.class)) {
 				throw new EntityCacheException("O campo " + fieldConfiguration.getName() + " da entidade " + fieldConfiguration.getType().getName()
-						+ " possui SequenceGenerator/TableGenerator e deve estar acompanhdo da configuração GenerateValue ");
+						+ " possui SequenceGenerator/TableGenerator/UUIDGenerator e deve estar acompanhdo da configuração GeneratedValue ");
 			}
 
 			/*
@@ -1097,6 +1100,15 @@ public class EntityCacheManager {
 					&& (fieldConfiguration.getGeneratedType() != GeneratedType.SEQUENCE && fieldConfiguration.getGeneratedType() != GeneratedType.AUTO)) {
 				throw new EntityCacheException("O campo " + fieldConfiguration.getName() + " da entidade " + fieldConfiguration.getType().getName()
 						+ " possui SequenceGenerator e o GeneratedType deve ser: SEQUENCE ou AUTO");
+			}
+
+			/*
+			 * Se possuir UUIDGenerator, GeneratedType deve ser UUID
+			 */
+			if (fieldConfiguration.isAnnotationPresent(SequenceGenerator.class)
+					&& (fieldConfiguration.getGeneratedType() != GeneratedType.UUID && fieldConfiguration.getGeneratedType() != GeneratedType.AUTO)) {
+				throw new EntityCacheException("O campo " + fieldConfiguration.getName() + " da entidade " + fieldConfiguration.getType().getName()
+						+ " possui UUIDGenerator e o GeneratedType deve ser: UUID ou AUTO");
 			}
 		}
 
@@ -1846,8 +1858,7 @@ public class EntityCacheManager {
 
 		if (entityConfiguration.isAnnotationPresent(TableGenerator.class)) {
 			if (StringUtils.isEmpty(entityConfiguration.getTableGenerator().getValue()))
-				throw new EntityCacheException("Informe o valor para o TableGenerator na classe "
-						+ entityCache.getEntityClass().getName());
+				throw new EntityCacheException("Informe o valor para o TableGenerator na classe " + entityCache.getEntityClass().getName());
 
 			DescriptionGenerator descriptionGenerator = new DescriptionGenerator();
 
@@ -1875,6 +1886,17 @@ public class EntityCacheManager {
 			descriptionGenerator.setAllocationSize(entityConfiguration.getSequenceGenerator().getAllocationSize());
 			descriptionGenerator.setGeneratedType(GeneratedType.SEQUENCE);
 			entityCache.add(GeneratedType.SEQUENCE, descriptionGenerator);
+		}
+
+		/*
+		 * Se possuir UUIDGenerator
+		 */
+		if (entityConfiguration.isAnnotationPresent(UUIDGenerator.class)) {
+			DescriptionGenerator descriptionGenerator = new DescriptionGenerator();
+			descriptionGenerator.setUuidClassGenerator(entityConfiguration.getUuidGenerator().getUUIDClassGenerator());
+			descriptionGenerator.setGeneratedType(GeneratedType.UUID);
+			descriptionGenerator.setUuidType(String.class);
+			entityCache.add(GeneratedType.UUID, descriptionGenerator);
 		}
 	}
 
@@ -1960,15 +1982,35 @@ public class EntityCacheManager {
 				descriptionGenerator.setGeneratedType(GeneratedType.SEQUENCE);
 				descriptionColumn.add(GeneratedType.SEQUENCE, descriptionGenerator);
 			}
-			
+
+			/*
+			 * Se possuir UUIDGenerator
+			 */
+			if (fieldConfiguration.isAnnotationPresent(UUIDGenerator.class)) {
+				DescriptionGenerator descriptionGenerator = new DescriptionGenerator();
+				descriptionGenerator.setUuidClassGenerator(fieldConfiguration.getUuidGenerator().getUUIDClassGenerator());
+				descriptionGenerator.setGeneratedType(GeneratedType.UUID);
+				descriptionGenerator.setUuidType(fieldConfiguration.getType());
+				descriptionColumn.add(GeneratedType.UUID, descriptionGenerator);
+			} else {
+				/*
+				 * Valor default caso o UUID não tenha sido configurado
+				 */
+				DescriptionGenerator descriptionGenerator = new DescriptionGenerator();
+				descriptionGenerator.setUuidClassGenerator(UUIDProviderImpl.class);
+				descriptionGenerator.setGeneratedType(GeneratedType.UUID);
+				descriptionGenerator.setUuidType(fieldConfiguration.getType());
+				descriptionColumn.add(GeneratedType.UUID, descriptionGenerator);
+			}
+
 			/*
 			 * Adiciona o generator referenciado no field no generatedValue caso exista na entidade.
 			 */
-			if (StringUtils.isNotEmpty(fieldConfiguration.getGenerator())){
+			if (StringUtils.isNotEmpty(fieldConfiguration.getGenerator())) {
 				DescriptionGenerator descriptionGenerator = entityCache.getGeneratorByName(fieldConfiguration.getGenerator());
-				if (descriptionGenerator==null)
-					throw new EntityCacheException("Não foi localizado o generator " + fieldConfiguration.getGenerator() + " do campo "+fieldConfiguration.getField().getName()+" na classe "
-							+ entityCache.getEntityClass().getName());
+				if (descriptionGenerator == null)
+					throw new EntityCacheException("Não foi localizado o generator " + fieldConfiguration.getGenerator() + " do campo "
+							+ fieldConfiguration.getField().getName() + " na classe " + entityCache.getEntityClass().getName());
 				descriptionColumn.add(descriptionGenerator.getGeneratedType(), descriptionGenerator);
 			}
 		}
@@ -2346,7 +2388,8 @@ public class EntityCacheManager {
 			if (discriminatorValue.equals(entityCache.getDiscriminatorValue()) && ReflectionUtils.isExtendsClass(abstractClazz, entityCache.getEntityClass()))
 				return entityCache;
 		}
-		//throw new RuntimeException("Não existe classe com o valor " + discriminatorValue+". "+abstractClazz.getName());
+		// throw new RuntimeException("Não existe classe com o valor " + discriminatorValue+".
+		// "+abstractClazz.getName());
 		return null;
 	}
 

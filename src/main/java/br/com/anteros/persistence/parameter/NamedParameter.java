@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright 2012 Anteros Tecnologia
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package br.com.anteros.persistence.parameter;
 
@@ -35,7 +32,7 @@ public class NamedParameter {
 	private Object value;
 	private boolean key;
 	private TemporalType temporalType;
-	
+
 	public NamedParameter(String name) {
 		this.name = name;
 		this.key = false;
@@ -166,11 +163,11 @@ public class NamedParameter {
 		}
 		return result;
 	}
-	
-	public static NamedParameter[] toArray(List<NamedParameter> parameters){
-		if (parameters==null)
+
+	public static NamedParameter[] toArray(List<NamedParameter> parameters) {
+		if (parameters == null)
 			return null;
-		return parameters.toArray(new NamedParameter[]{});
+		return parameters.toArray(new NamedParameter[] {});
 	}
 
 	public static NamedParameter getNamedParameterByName(Collection<NamedParameter> parameters, String name) {
@@ -180,7 +177,7 @@ public class NamedParameter {
 		}
 		return null;
 	}
-	
+
 	public static NamedParameter getNamedParameterByName(NamedParameter[] parameters, String name) {
 		for (NamedParameter param : parameters) {
 			if (param.getName().equalsIgnoreCase(name))
@@ -204,29 +201,28 @@ public class NamedParameter {
 
 		return result.toArray(new NamedParameter[] {});
 	}
-	
-	public static boolean hasOutputParameters(NamedParameter[] parameters){
-		if (parameters ==null)
+
+	public static boolean hasOutputParameters(NamedParameter[] parameters) {
+		if (parameters == null)
 			return false;
-		
-		for (NamedParameter parameter : parameters){
-			if (parameter instanceof OutputNamedParameter)
-				return true;
-		}
-		return false;
-	}
-	
-	public static boolean hasOutputParameters(Collection<NamedParameter> parameters){
-		if (parameters ==null)
-			return false;
-		
-		for (NamedParameter parameter : parameters){
+
+		for (NamedParameter parameter : parameters) {
 			if (parameter instanceof OutputNamedParameter)
 				return true;
 		}
 		return false;
 	}
 
+	public static boolean hasOutputParameters(Collection<NamedParameter> parameters) {
+		if (parameters == null)
+			return false;
+
+		for (NamedParameter parameter : parameters) {
+			if (parameter instanceof OutputNamedParameter)
+				return true;
+		}
+		return false;
+	}
 
 	public TemporalType getTemporalType() {
 		return temporalType;
@@ -261,26 +257,35 @@ public class NamedParameter {
 		return true;
 	}
 
-	public static int countOutputParameters(NamedParameter[] parameters){
-		if (parameters ==null)
+	public static int countOutputParameters(NamedParameter[] parameters) {
+		if (parameters == null)
 			return 0;
 		int result = 0;
-		for (NamedParameter parameter : parameters){
+		for (NamedParameter parameter : parameters) {
 			if (parameter instanceof OutputNamedParameter)
 				result++;
 		}
 		return result;
 	}
-	
-	public static int countOutputParameters(Collection<NamedParameter> parameters){
-		if (parameters ==null)
+
+	public static int countOutputParameters(Collection<NamedParameter> parameters) {
+		if (parameters == null)
 			return 0;
 		int result = 0;
-		for (NamedParameter parameter : parameters){
+		for (NamedParameter parameter : parameters) {
 			if (parameter instanceof OutputNamedParameter)
 				result++;
 		}
 		return result;
+	}
+
+	public static boolean contains(ArrayList<NamedParameter> namedParameters, String parameterName) {
+		for (NamedParameter parameter : namedParameters) {
+			if (parameter.getName().equalsIgnoreCase(parameterName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

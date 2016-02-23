@@ -241,7 +241,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			DescriptionColumn identifyColumn = null;
 			insertParametersKey(targetObject, entityCache, namedParameters);
 			insertRelationships(targetObject, entityCache, result);
-			insertCommonsParameters(targetObject, entityCache, namedParameters);			
+			insertCommonsParameters(targetObject, entityCache, namedParameters);
 			insertObject(targetObject, entityCache, result, namedParameters, identifierPostInsert, identifyColumn);
 			insertChildrenCollections(targetObject, entityCache, result, identifierPostInsert, identifyColumn,
 					session.getIdentifier(targetObject).getDatabaseColumns());
@@ -397,8 +397,10 @@ public class SQLPersisterImpl implements SQLPersister {
 				if ((fieldModified.getObjectValue(targetObject) != null) || (fieldModified.hasGenerator())) {
 					for (DescriptionColumn columnModified : fieldModified.getDescriptionColumns()) {
 						if (!columnModified.isPrimaryKey()) {
-							namedParameters.put(columnModified.getColumnName(),
-									fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject, columnModified));
+							if (!namedParameters.containsKey(columnModified.getColumnName())) {
+								namedParameters.put(columnModified.getColumnName(),
+										fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject, columnModified));
+							}
 						}
 					}
 				}
@@ -790,11 +792,15 @@ public class SQLPersisterImpl implements SQLPersister {
 								allowChangeField = entityCache.fieldCanbeChanged(session, targetObject, columnModified.getField().getName());
 
 							if (allowChangeField) {
-								if (columnModified.isForeignKey())
-									namedParameters
-											.add(new NamedParameter(columnModified.getColumnName(), foreignKey.get(columnModified.getReferencedColumnName())));
-								else {
-									namedParameters.add(fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject, columnModified));
+								if (columnModified.isForeignKey()) {
+									if (!NamedParameter.contains(namedParameters, columnModified.getColumnName())) {
+										namedParameters.add(
+												new NamedParameter(columnModified.getColumnName(), foreignKey.get(columnModified.getReferencedColumnName())));
+									}
+								} else {
+									if (!NamedParameter.contains(namedParameters, columnModified.getColumnName())) {
+										namedParameters.add(fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject, columnModified));
+									}
 								}
 							}
 						}

@@ -61,6 +61,7 @@ import br.com.anteros.persistence.metadata.annotation.SequenceGenerator;
 import br.com.anteros.persistence.metadata.annotation.TableGenerator;
 import br.com.anteros.persistence.metadata.annotation.Temporal;
 import br.com.anteros.persistence.metadata.annotation.Transient;
+import br.com.anteros.persistence.metadata.annotation.UUIDGenerator;
 import br.com.anteros.persistence.metadata.annotation.UniqueConstraint;
 import br.com.anteros.persistence.metadata.annotation.Version;
 import br.com.anteros.persistence.metadata.annotation.type.BooleanType;
@@ -113,6 +114,7 @@ public class FieldConfiguration {
 	private RemoteConfiguration remote;
 	private boolean externalFile;
 	private String generator;
+	private UUIDGeneratorConfiguration uuidGenerator;
 
 	public boolean isExternalFile() {
 		return externalFile;
@@ -291,6 +293,12 @@ public class FieldConfiguration {
 	public FieldConfiguration sequenceGenerator(SequenceGeneratorConfiguration sequenceGeneratorConfiguration) {
 		annotations.add(SequenceGenerator.class);
 		this.sequenceGenerator = sequenceGeneratorConfiguration;
+		return this;
+	}
+	
+	public FieldConfiguration uuidGenerator(UUIDGeneratorConfiguration uuidGeneratorConfiguration) {
+		annotations.add(UUIDGenerator.class);
+		this.uuidGenerator = uuidGeneratorConfiguration;
 		return this;
 	}
 
@@ -606,6 +614,8 @@ public class FieldConfiguration {
 				remote(new RemoteConfiguration((Remote) annotation));
 			} else if (annotation instanceof SequenceGenerator) {
 				sequenceGenerator(new SequenceGeneratorConfiguration((SequenceGenerator) annotation));
+			} else if (annotation instanceof UUIDGenerator) {
+				uuidGenerator(new UUIDGeneratorConfiguration((UUIDGenerator) annotation));	
 			} else if (annotation instanceof Comment) {
 				comment(((Comment) annotation).value());
 			} else if (annotation instanceof ExternalFile) {
@@ -895,6 +905,10 @@ public class FieldConfiguration {
 
 	public String getGenerator() {
 		return generator;
+	}
+
+	public UUIDGeneratorConfiguration getUuidGenerator() {
+		return uuidGenerator;
 	}
 
 }

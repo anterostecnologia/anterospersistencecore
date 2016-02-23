@@ -30,6 +30,8 @@ public class DescriptionGenerator {
 	private String sequenceName;
 	private int allocationSize;
 	private int startsWith = 1;
+	private Class<?> uuidClassGenerator;
+	private Class<?> uuidType;
 
 	public DescriptionGenerator() {
 	}
@@ -151,6 +153,22 @@ public class DescriptionGenerator {
 
 	public void setAllocationSize(int allocationSize) {
 		this.allocationSize = allocationSize;
+	}
+
+	public Class<?> getUuidClassGenerator() {
+		return uuidClassGenerator;
+	}
+
+	public void setUuidClassGenerator(Class<?> uuidClassGenerator) {
+		this.uuidClassGenerator = uuidClassGenerator;
+	}
+
+	public Class<?> getUuidType() {
+		return uuidType;
+	}
+
+	public void setUuidType(Class<?> uuidType) {
+		this.uuidType = uuidType;
 	}
 
 }

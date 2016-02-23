@@ -64,6 +64,10 @@ public class BatchCommandSQL extends CommandSQL {
 		if (batchCount > 0) {
 			queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}), showSql, session.isFormatSql(), null, null);
 		}
+		
+		for (CommandSQL command : commands) {
+			command.setEntityManaged();
+		}
 
 		return null;
 	}
