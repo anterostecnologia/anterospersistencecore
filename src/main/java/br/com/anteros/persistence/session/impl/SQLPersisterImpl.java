@@ -551,7 +551,10 @@ public class SQLPersisterImpl implements SQLPersister {
 									Field mappedByField = descriptionField.getTargetEntity().getDescriptionField(descriptionField.getMappedBy()).getField();
 									mappedByField.set(entity, targetObject);
 								}
-								session.save(entity);
+								if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
+										|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE))) {
+									session.save(entity);
+								}
 							}
 						} else if (descriptionField.isJoinTable()) {
 							/*
