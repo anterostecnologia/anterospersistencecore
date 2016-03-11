@@ -331,5 +331,9 @@ public abstract class AbstractSQLSessionFactoryBase implements SQLSessionFactory
 	public int getBatchSize() {
 		return batchSize;
 	}
+
+	public ShowSQLType[] getShowSql() {
+		return showSql;
+	}
 	
 }
