@@ -106,7 +106,5 @@ public class AnterosPersistenceProperties {
 	public static final String ANTEROS_SPRING = "ANTEROS_SPRING";
 
 	public static final String ANTEROS_ANDROID = "ANTEROS_ANDROID";
-	
-	public static final String CHARSET_NAME = "charsetName";
 
 }
