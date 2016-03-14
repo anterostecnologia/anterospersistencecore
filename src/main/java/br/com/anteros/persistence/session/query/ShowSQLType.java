@@ -22,17 +22,17 @@ public enum ShowSQLType {
 	public static ShowSQLType[] parse(String[] splitShowSql) {
 		Set<ShowSQLType> result = new HashSet<ShowSQLType>();
 		for (String s : splitShowSql){
-			if (s.toLowerCase().equals("true")){
+			if (s.trim().toLowerCase().equals("true")){
 				result.add(ShowSQLType.ALL);
-			} else if (s.toLowerCase().equals("false")){
+			} else if (s.trim().toLowerCase().equals("false")){
 				result.add(ShowSQLType.NONE);
-			} else if (s.toLowerCase().equals("select")){
+			} else if (s.trim().toLowerCase().equals("select")){
 				result.add(ShowSQLType.SELECT);
-			} else if (s.toLowerCase().equals("insert")){
+			} else if (s.trim().toLowerCase().equals("insert")){
 				result.add(ShowSQLType.INSERT);
-			} else if (s.toLowerCase().equals("delete")){
+			} else if (s.trim().toLowerCase().equals("delete")){
 				result.add(ShowSQLType.DELETE);
-			} else if (s.toLowerCase().equals("update")){
+			} else if (s.trim().toLowerCase().equals("update")){
 				result.add(ShowSQLType.UPDATE);
 			}
 		}
