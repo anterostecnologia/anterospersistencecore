@@ -32,6 +32,8 @@ public class AnterosPersistenceProperties {
 	public static final String JDBC_CATALOG = "defaultCatalog";
 
 	public static final String DIALECT = "dialect";
+	
+	public static final String CHARSET_NAME = "charsetName";
 
 	public static final String SHOW_SQL = "showsql";
 
@@ -104,7 +106,5 @@ public class AnterosPersistenceProperties {
 	public static final String ANTEROS_SPRING = "ANTEROS_SPRING";
 
 	public static final String ANTEROS_ANDROID = "ANTEROS_ANDROID";
-	
-	public static final String CHARSET_NAME = "charsetName";
 
 }
