@@ -170,8 +170,7 @@ public class Identifier<T> implements Serializable {
 	}
 
 	public Collection<Object> getValues() throws Exception {
-		Map<String, Object> primaryKeysAndValues = entityCache.getPrimaryKeysAndValues(owner);
-		return primaryKeysAndValues.values();
+		return getColumns().values();
 	}
 	
 	public Collection<Object> getDatabaseValues() throws Exception {
