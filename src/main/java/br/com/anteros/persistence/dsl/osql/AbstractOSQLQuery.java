@@ -223,7 +223,6 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	}
 
 	private List<?> getResultList(SQLQuery query) throws Exception {
-		query.allowDuplicateObjects(true);
 		if (projection != null) {
 			List<?> results = query.getResultList();
 			List<Object> rv = new ArrayList<Object>(results.size());
