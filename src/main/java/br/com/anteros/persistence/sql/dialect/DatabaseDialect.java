@@ -433,7 +433,7 @@ public abstract class DatabaseDialect {
 				/*
 				 * Se a coluna for de Identidade (auto incremento)
 				 */
-				if (columnSchema.isAutoIncrement() && supportsIdentity() && !columnSchema.hasSequenceName()) {
+				if ((columnSchema.isAutoIncrement() && supportsIdentity()) && (columnSchema.hasSequenceName() && !(supportsSequences()))) {
 					writeColumnIdentityClauseDDLStatement(schemaWriter);
 				}
 

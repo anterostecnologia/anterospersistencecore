@@ -236,14 +236,12 @@ public class SQLPersisterImpl implements SQLPersister {
 	protected List<CommandSQL> getCommandsToInsertObject(Object targetObject, EntityCache entityCache) throws Exception {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 		try {
-			LinkedHashMap<String, NamedParameter> namedParameters = new LinkedHashMap<String, NamedParameter>();
-			IdentifierPostInsert identifierPostInsert = null;
-			DescriptionColumn identifyColumn = null;
-			insertParametersKey(targetObject, entityCache, namedParameters);
+			LinkedHashMap<String, NamedParameter> namedParameters = new LinkedHashMap<String, NamedParameter>();			
+			IdentifierResult identifierResult = insertParametersKey(targetObject, entityCache, namedParameters);
 			insertRelationships(targetObject, entityCache, result);
 			insertCommonsParameters(targetObject, entityCache, namedParameters);
-			insertObject(targetObject, entityCache, result, namedParameters, identifierPostInsert, identifyColumn);
-			insertChildrenCollections(targetObject, entityCache, result, identifierPostInsert, identifyColumn,
+			insertObject(targetObject, entityCache, result, namedParameters, identifierResult.identifierPostInsert, identifierResult.identifyColumn);
+			insertChildrenCollections(targetObject, entityCache, result, identifierResult.identifierPostInsert, identifierResult.identifyColumn,
 					session.getIdentifier(targetObject).getDatabaseColumns());
 		} finally {
 			session.getCacheIdentifier().remove(targetObject);
@@ -338,7 +336,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected void insertParametersKey(Object targetObject, EntityCache entityCache, LinkedHashMap<String, NamedParameter> namedParameters) throws Exception {
+	protected IdentifierResult insertParametersKey(Object targetObject, EntityCache entityCache, LinkedHashMap<String, NamedParameter> namedParameters) throws Exception {
 		IdentifierPostInsert identifierPostInsert = null;
 		DescriptionColumn identifyColumn = null;
 		/*
@@ -385,6 +383,7 @@ public class SQLPersisterImpl implements SQLPersister {
 				}
 			}
 		}
+		return new IdentifierResult(identifyColumn, identifierPostInsert);
 	}
 
 	protected void insertCommonsParameters(Object targetObject, EntityCache entityCache, LinkedHashMap<String, NamedParameter> namedParameters)
@@ -1136,6 +1135,19 @@ public class SQLPersisterImpl implements SQLPersister {
 
 	public void save(SQLSession session, Class<?> clazz, String[] columns, String[] values) throws Exception {
 		throw new SQLSessionException("Método não suportado.");
+	}
+	
+	private class IdentifierResult {
+		public DescriptionColumn identifyColumn = null;
+		public IdentifierPostInsert identifierPostInsert=null;
+		
+		public IdentifierResult(DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert) {
+			super();
+			this.identifyColumn = identifyColumn;
+			this.identifierPostInsert = identifierPostInsert;
+		}
+		
+		
 	}
 
 }

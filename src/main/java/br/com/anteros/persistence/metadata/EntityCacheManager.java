@@ -1916,7 +1916,8 @@ public class EntityCacheManager {
 				/*
 				 * Se for um generator IDENTIFY
 				 */
-				if (descriptionColumn.getGeneratedType().equals(GeneratedType.IDENTITY)) {
+				boolean supportIdentity = (descriptionColumn.getGeneratedType().equals(GeneratedType.AUTO) && databaseDialect.supportsIdentity());
+				if (descriptionColumn.getGeneratedType().equals(GeneratedType.IDENTITY) || supportIdentity) {
 					DescriptionGenerator descriptionGenerator = new DescriptionGenerator();
 					descriptionGenerator.setGeneratedType(GeneratedType.IDENTITY);
 					descriptionColumn.add(GeneratedType.IDENTITY, descriptionGenerator);

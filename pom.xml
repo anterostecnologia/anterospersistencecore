@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 
 	<properties>
 		<java.versao>1.6</java.versao>
@@ -15,9 +15,9 @@
 		<maven.compiler.target>1.6</maven.compiler.target>
 	</properties>
 
-	<name>Anteros Persistence CORE</name>
+	<name>Anteros Persistence Core</name>
 	<description>
-         Anteros Persistence CORE for Java.
+         Anteros Persistence Core for Java.
     </description>
 	<organization>
 		<name>Anteros Tecnologia</name>

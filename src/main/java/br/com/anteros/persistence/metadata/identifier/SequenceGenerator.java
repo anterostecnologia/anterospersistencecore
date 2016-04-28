@@ -55,7 +55,7 @@ public class SequenceGenerator implements IdentifierGenerator {
 			sb.append(session.getDialect().quote(sequenceName));
 			this.sequenceName = sb.toString();
 		}
-		sql = session.getDialect().getSequenceNextValString(this.sequenceName) + " --session id " + session.clientId();
+		sql = session.getDialect().getSequenceNextValString(this.sequenceName);
 	}
 
 	public Serializable generate() throws Exception {
