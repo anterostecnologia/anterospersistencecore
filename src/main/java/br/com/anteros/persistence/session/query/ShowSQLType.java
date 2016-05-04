@@ -18,6 +18,11 @@ public enum ShowSQLType {
 		}
 		return false;
 	}
+	
+	public static ShowSQLType[] parse(String showSql) {
+		String[] splitShowSql = showSql.split("\\,");
+		return ShowSQLType.parse(splitShowSql);
+	}
 
 	public static ShowSQLType[] parse(String[] splitShowSql) {
 		Set<ShowSQLType> result = new HashSet<ShowSQLType>();
@@ -37,5 +42,33 @@ public enum ShowSQLType {
 			}
 		}
 		return result.toArray(new ShowSQLType[]{});
+	}
+	
+	public static String parse(ShowSQLType[] showSql) {
+		String result = "";
+		boolean appendDelimiter = false;
+		for (ShowSQLType s : showSql){
+			if (appendDelimiter)
+				result += ",";
+			result += s.toString();
+		}
+		return result;
+	}
+	
+	@Override
+	public String toString() {
+		if (this.equals(ALL))
+		return "true";
+		else if (this.equals(DELETE))
+			return  "delete";
+		else if (this.equals(INSERT))
+			return "insert";
+		else if (this.equals(NONE))
+			return "false";
+		else if (this.equals(SELECT))
+			return "select";
+		else if (this.equals(UPDATE))
+			return "update";
+		return "false";
 	}
 }
