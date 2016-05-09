@@ -18,14 +18,13 @@ package br.com.anteros.persistence.session.impl;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
-
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.persistence.session.SQLSessionValidatior;
 import br.com.anteros.persistence.util.AnterosBeanValidationHelper;
+import br.com.anteros.validation.api.ConstraintViolation;
+import br.com.anteros.validation.api.ConstraintViolationException;
+import br.com.anteros.validation.api.Validator;
 
 public class SQLSessionValidatorImpl implements SQLSessionValidatior {
 	

@@ -15,9 +15,9 @@
  *******************************************************************************/
 package br.com.anteros.persistence.util;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
+import br.com.anteros.validation.api.Validation;
+import br.com.anteros.validation.api.Validator;
+import br.com.anteros.validation.api.ValidatorFactory;
 
 public class AnterosBeanValidationHelper {
 
