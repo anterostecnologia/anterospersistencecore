@@ -800,7 +800,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	}
 
 	/**
-	 * Atribui um objeto para ser atualizado. Se for atribuido um objeto não será criado uma nova instência para a
+	 * Atribui um objeto para ser atualizado. Se for atribuido um objeto não será criado uma nova instância para a
 	 * classe de resultado.
 	 * 
 	 * @param objectToRefresh
