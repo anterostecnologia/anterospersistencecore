@@ -634,7 +634,7 @@ public class SQLTemplates extends Templates {
 
 					}
 				} catch (IllegalAccessException e) {
-					throw new QueryException(e.getMessage(), e);
+					throw new FilterException(e.getMessage(), e);
 				}
 			}
 		}

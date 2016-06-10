@@ -16,7 +16,7 @@ package br.com.anteros.persistence.dsl.osql;
  * @author tiwe
  *
  */
-public class NonUniqueResultException extends QueryException{
+public class NonUniqueResultException extends FilterException{
 
     private static final long serialVersionUID = -1757423191400510323L;
 

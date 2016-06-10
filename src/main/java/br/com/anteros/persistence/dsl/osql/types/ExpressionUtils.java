@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 import br.com.anteros.core.utils.ListUtils;
-import br.com.anteros.persistence.dsl.osql.QueryException;
+import br.com.anteros.persistence.dsl.osql.FilterException;
 
 
 /**
@@ -337,9 +337,9 @@ public final class ExpressionUtils {
                     escape = true;
                     continue;
                 } else if (!escape && (ch == '[' || ch == ']' || ch == '^' || ch == '.' || ch == '*')) {
-                    throw new QueryException("'" + str + "' can't be converted to like form");
+                    throw new FilterException("'" + str + "' can't be converted to like form");
                 } else if (escape && (ch == 'd' || ch == 'D' || ch == 's' || ch == 'S' || ch == 'w' || ch == 'W')) {
-                    throw new QueryException("'" + str + "' can't be converted to like form");
+                    throw new FilterException("'" + str + "' can't be converted to like form");
                 }
                 rv.append(ch);
                 escape = false;
