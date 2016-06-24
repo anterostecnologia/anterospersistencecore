@@ -43,5 +43,7 @@ public @interface Remote {
 	ConnectivityType importConnectivityType() default ConnectivityType.ALL_CONNECTION;
 
 	ConnectivityType exportConnectivityType() default ConnectivityType.ALL_CONNECTION;
+	
+	int maxRecordBlockExport() default 0;
 
 }

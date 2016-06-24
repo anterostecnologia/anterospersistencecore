@@ -235,7 +235,7 @@ public class DefaultQueryMetadata implements QueryMetadata, Cloneable {
 			clone.flags = copyOfSorted(flags);
 			return clone;
 		} catch (CloneNotSupportedException e) {
-			throw new QueryException(e);
+			throw new FilterException(e);
 		}
 	}
 

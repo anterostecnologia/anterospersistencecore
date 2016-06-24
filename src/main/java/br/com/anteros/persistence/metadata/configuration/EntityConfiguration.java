@@ -513,10 +513,10 @@ public class EntityConfiguration {
 	public EntityConfiguration remote(String displayLabel, String mobileActionExport, String mobileActionImport,
 			RemoteParamConfiguration[] importParams, RemoteParamConfiguration[] exportParams,
 			int exportOrderToSendData, String[] exportFields, ConnectivityType importConnectivityType,
-			ConnectivityType exportConnectivityType) {
+			ConnectivityType exportConnectivityType, int maxRecordBlockExport) {
 		annotations.add(Remote.class);
 		this.remote = new RemoteConfiguration(displayLabel, mobileActionExport, mobileActionImport, importParams,
-				exportParams, exportOrderToSendData, exportFields, importConnectivityType, exportConnectivityType);
+				exportParams, exportOrderToSendData, exportFields, importConnectivityType, exportConnectivityType, maxRecordBlockExport);
 		return this;
 	}
 

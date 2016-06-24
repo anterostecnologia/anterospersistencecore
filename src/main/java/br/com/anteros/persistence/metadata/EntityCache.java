@@ -75,6 +75,7 @@ public class EntityCache {
 	private ConnectivityType exportConnectivityType = ConnectivityType.ALL_CONNECTION;
 	private List<DescriptionConvert> converts = new ArrayList<DescriptionConvert>();
 	private Map<GeneratedType, DescriptionGenerator> generators = new HashMap<GeneratedType, DescriptionGenerator>();
+	private int maxRecordBlockExport;
 
 	public String generateAndGetAliasTableName() {
 		generateAliasTableName();
@@ -970,5 +971,13 @@ public class EntityCache {
 
 	public boolean hasGenerators() {
 		return getGenerators().size() > 0;
+	}
+
+	public int getMaxRecordBlockExport() {
+		return maxRecordBlockExport;
+	}
+
+	public void setMaxRecordBlockExport(int maxRecordBlockExport) {
+		this.maxRecordBlockExport = maxRecordBlockExport;
 	}
 }

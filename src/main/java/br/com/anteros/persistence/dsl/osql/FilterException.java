@@ -13,19 +13,19 @@ package br.com.anteros.persistence.dsl.osql;
  * @author tiwe
  *
  */
-public class QueryException extends RuntimeException{
+public class FilterException extends RuntimeException{
 
     private static final long serialVersionUID = 2345665389612058703L;
 
-    public QueryException(String msg) {
+    public FilterException(String msg) {
         super(msg);
     }
 
-    public QueryException(String msg, Throwable t) {
+    public FilterException(String msg, Throwable t) {
         super(msg, t);
     }
 
-    public QueryException(Throwable t) {
+    public FilterException(Throwable t) {
         super(t);
     }
 

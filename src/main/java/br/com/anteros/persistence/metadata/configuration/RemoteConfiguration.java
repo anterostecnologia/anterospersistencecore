@@ -30,12 +30,14 @@ public class RemoteConfiguration {
 	private String[] exportColumns;
 	private ConnectivityType importConnectivityType;
 	private ConnectivityType exportConnectivityType;
+	private int maxRecordBlockExport = 0;
 
 	public RemoteConfiguration() {
 	}
 
 	public RemoteConfiguration(String displayLabel, String mobileActionExport, String mobileActionImport, RemoteParamConfiguration[] importParams,
-			RemoteParamConfiguration[] exportParams, int exportOrderToSendData, String[] exportColumns, ConnectivityType importConnectivityType, ConnectivityType exportConnectivityType) {
+			RemoteParamConfiguration[] exportParams, int exportOrderToSendData, String[] exportColumns, ConnectivityType importConnectivityType, 
+			ConnectivityType exportConnectivityType, int maxRecordBlockExport) {
 		this.mobileActionExport = mobileActionExport;
 		this.mobileActionImport = mobileActionImport;
 		this.displayLabel = displayLabel;
@@ -45,6 +47,7 @@ public class RemoteConfiguration {
 		this.exportColumns = exportColumns;
 		this.importConnectivityType = importConnectivityType;
 		this.exportConnectivityType = exportConnectivityType;
+		this.maxRecordBlockExport = maxRecordBlockExport;
 	}
 
 	public RemoteConfiguration(Remote remote) {
@@ -69,6 +72,7 @@ public class RemoteConfiguration {
 		this.exportOrderToSendData = remote.exportOrderToSendData();
 		this.importConnectivityType = remote.importConnectivityType();
 		this.exportConnectivityType = remote.exportConnectivityType();
+		this.maxRecordBlockExport = remote.maxRecordBlockExport();
 
 	}
 
@@ -159,5 +163,14 @@ public class RemoteConfiguration {
 
 	public void exportConnectivityType(ConnectivityType exportConnectivityType) {
 		this.exportConnectivityType = exportConnectivityType;
+	}
+	
+	public int getMaxRecordBlockExport() {
+		return maxRecordBlockExport;
+	}
+
+	public RemoteConfiguration maxRecordBlockExport(int maxRecordBlockExport) {
+		this.maxRecordBlockExport = maxRecordBlockExport;
+		return this;
 	}
 }

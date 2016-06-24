@@ -605,6 +605,7 @@ public class EntityCacheManager {
 			entityCache.setExportColumns(entityConfiguration.getRemote().getExportColumns());
 			entityCache.setExportConnectivityType(entityConfiguration.getRemote().getExportConnectivityType());
 			entityCache.setImportConnectivityType(entityConfiguration.getRemote().getImportConnectivityType());
+			entityCache.setMaxRecordBlockExport(entityConfiguration.getRemote().getMaxRecordBlockExport());
 
 			RemoteParamConfiguration[] exportParams = entityConfiguration.getRemote().getExportParams();
 			for (RemoteParamConfiguration param : exportParams)
