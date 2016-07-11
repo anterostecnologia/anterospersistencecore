@@ -1262,24 +1262,53 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	}
 
 	protected Object getObjectFromCache(EntityCache targetEntityCache, String uniqueId, Cache transactionCache) {
+//		Object result = null;
+//		if (transactionCache != null) {
+//
+//			/*
+//			 * Se a classe for abstrata pega todas as implementações não
+//			 * abstratas e verifica se existe um objeto da classe + ID no
+//			 * entityCache
+//			 */
+//			EntityCache[] entitiesCache = session.getEntityCacheManager()
+//					.getEntitiesBySuperClassIncluding(targetEntityCache);
+//			for (EntityCache entityCache : entitiesCache) {
+//				result = transactionCache.get(entityCache.getEntityClass().getName() + "_" + uniqueId);
+//				if (result != null)
+//					break;
+//				result = session.getPersistenceContext()
+//						.getObjectFromCache(entityCache.getEntityClass().getName() + "_" + uniqueId);
+//				if (result != null)
+//					break;
+//			}
+//		}
+//		return result;
+		
 		Object result = null;
 		if (transactionCache != null) {
 
 			/*
-			 * Se a classe for abstrata pega todas as implementações não
-			 * abstratas e verifica se existe um objeto da classe + ID no
-			 * entityCache
+			 * Se a classe for abstrata pega todas as implementações não abstratas e verifica se existe um objeto da
+			 * classe + ID no entityCache
 			 */
-			EntityCache[] entitiesCache = session.getEntityCacheManager()
-					.getEntitiesBySuperClassIncluding(targetEntityCache);
-			for (EntityCache entityCache : entitiesCache) {
-				result = transactionCache.get(entityCache.getEntityClass().getName() + "_" + uniqueId);
-				if (result != null)
-					break;
-				result = session.getPersistenceContext()
-						.getObjectFromCache(entityCache.getEntityClass().getName() + "_" + uniqueId);
-				if (result != null)
-					break;
+			if (ReflectionUtils.isAbstractClass(targetEntityCache.getEntityClass())) {
+				EntityCache[] entitiesCache = session.getEntityCacheManager().getEntitiesBySuperClassIncluding(targetEntityCache);
+				for (EntityCache entityCache : entitiesCache) {
+					result = transactionCache.get(entityCache.getEntityClass().getName() + "_" + uniqueId);
+					if (result != null)
+						break;
+					result = session.getPersistenceContext().getObjectFromCache(entityCache.getEntityClass().getName() + "_" + uniqueId);
+					if (result != null)
+						break;
+				}
+			} else {
+				/*
+				 * Caso não seja abstrata localiza classe+ID no entityCache
+				 */
+				result = transactionCache.get(targetEntityCache.getEntityClass().getName() + "_" + uniqueId);
+
+				if (result == null)
+					result = session.getPersistenceContext().getObjectFromCache(targetEntityCache.getEntityClass().getName() + "_" + uniqueId);
 			}
 		}
 		return result;

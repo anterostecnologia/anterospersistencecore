@@ -114,6 +114,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 
 			resultSet = this.wrap(statement.executeQuery());
 			result = resultSetHandler.handle(resultSet);
+			
 		} catch (SQLException e) {
 			this.rethrow(e, sql, parameters, clientId);
 
