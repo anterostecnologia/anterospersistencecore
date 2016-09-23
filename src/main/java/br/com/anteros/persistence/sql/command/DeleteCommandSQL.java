@@ -79,7 +79,7 @@ public class DeleteCommandSQL extends CommandSQL {
 					}
 				} else {
 					if (descriptionSQL != null)
-						queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters), showSql,
+						queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters), showSql,
 								session.getListeners(), session.clientId());
 					else {
 						if (inBatchMode) {

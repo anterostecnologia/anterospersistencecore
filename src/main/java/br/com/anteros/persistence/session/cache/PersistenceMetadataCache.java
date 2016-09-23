@@ -15,18 +15,23 @@
  *******************************************************************************/
 package br.com.anteros.persistence.session.cache;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import br.com.anteros.persistence.metadata.EntityCacheManager;
+
 public class PersistenceMetadataCache implements Cache {
 
-	private static PersistenceMetadataCache metadataCache;
+	private static Map<Integer, PersistenceMetadataCache> metadatasCache = new HashMap<Integer, PersistenceMetadataCache>();
 
-	public static PersistenceMetadataCache getInstance() {
+	public static PersistenceMetadataCache getInstance(EntityCacheManager entityCacheManager) {
 		synchronized (PersistenceMetadataCache.class) {
-			if (metadataCache == null)
-				metadataCache = new PersistenceMetadataCache();
-			return metadataCache;
+
+			if (!metadatasCache.containsKey(entityCacheManager.hashCode()))
+				metadatasCache.put(entityCacheManager.hashCode(),
+						new PersistenceMetadataCache());
+			return metadatasCache.get(entityCacheManager.hashCode());
 		}
 	}
 

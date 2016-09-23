@@ -214,12 +214,12 @@ public class EntityCacheManager {
 		for (EntityCache entityCache : entities.values()) {
 			if (entityCache.hasNamedQueries()) {
 				for (DescriptionNamedQuery namedQuery : entityCache.getDescriptionNamedQueries()) {
-					SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance()
+					SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance(this)
 							.get(namedQuery.getResultClass().getName() + ":" + namedQuery.getQuery());
 					if (analyzerResult == null) {
 						analyzerResult = new SQLQueryAnalyzer(this, databaseDialect, !SQLQueryAnalyzer.IGNORE_NOT_USED_ALIAS_TABLE)
 								.analyze(namedQuery.getQuery(), namedQuery.getResultClass());
-						PersistenceMetadataCache.getInstance().put(namedQuery.getResultClass().getName() + ":" + namedQuery.getQuery(), analyzerResult);
+						PersistenceMetadataCache.getInstance(this).put(namedQuery.getResultClass().getName() + ":" + namedQuery.getQuery(), analyzerResult);
 					}
 				}
 			}
@@ -235,11 +235,11 @@ public class EntityCacheManager {
 			 * SQLInsert,SQLUpdate,SQLDelete,SQLDeleteAll existem na lista de colunas da classe.
 			 */
 			for (DescriptionSQL descriptionSQL : entityCache.getDescriptionSql().values()) {
-				NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache.getInstance()
+				NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache.getInstance(this)
 						.get("NamedParameters:" + descriptionSQL.getSql());
 				if (parserResult == null) {
 					parserResult = NamedParameterStatement.parse(descriptionSQL.getSql(), null);
-					PersistenceMetadataCache.getInstance().put("NamedParameters:" + descriptionSQL.getSql(), parserResult);
+					PersistenceMetadataCache.getInstance(this).put("NamedParameters:" + descriptionSQL.getSql(), parserResult);
 				}
 				if (parserResult != null) {
 					for (String param : parserResult.getParsedParams().keySet()) {
@@ -270,11 +270,11 @@ public class EntityCacheManager {
 				 * SQLInsert,SQLUpdate,SQLDelete,SQLDeleteAll do campo existem na lista de colunas da classe do campo.
 				 */
 				for (DescriptionSQL descriptionSQL : descriptionField.getDescriptionSql().values()) {
-					NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache.getInstance()
+					NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache.getInstance(this)
 							.get("NamedParameters:" + descriptionSQL.getSql());
 					if (parserResult == null) {
 						parserResult = NamedParameterStatement.parse(descriptionSQL.getSql(), null);
-						PersistenceMetadataCache.getInstance().put("NamedParameters:" + descriptionSQL.getSql(), parserResult);
+						PersistenceMetadataCache.getInstance(this).put("NamedParameters:" + descriptionSQL.getSql(), parserResult);
 					}
 					if (parserResult != null) {
 						for (String param : parserResult.getParsedParams().keySet()) {

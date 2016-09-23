@@ -107,7 +107,7 @@ public class InsertCommandSQL extends CommandSQL {
 				} else {
 					if (identifierPostInsert != null) {
 						if (descriptionSQL != null) {
-							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters),
+							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters),
 									identifierPostInsert, session.getDialect().getIdentitySelectString(), showSql, session.getListeners(), session.clientId());
 						} else {
 							queryRunner.update(session.getConnection(), sql, NamedParameter.getAllValues(namedParameters), identifierPostInsert,
@@ -117,7 +117,7 @@ public class InsertCommandSQL extends CommandSQL {
 						ReflectionUtils.setObjectValueByFieldName(targetObject, identifyColumn.getField().getName(), generatedId);
 					} else {
 						if (descriptionSQL != null) {
-							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters), showSql,
+							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(),namedParameters), showSql,
 									session.getListeners(), session.clientId());
 						} else {
 							if (inBatchMode) {

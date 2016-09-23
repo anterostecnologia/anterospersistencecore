@@ -15,11 +15,13 @@
  *******************************************************************************/
 package br.com.anteros.persistence.metadata.descriptor;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import br.com.anteros.persistence.metadata.EntityCacheManager;
 import br.com.anteros.persistence.metadata.annotation.type.CallableType;
 import br.com.anteros.persistence.metadata.descriptor.type.SQLStatementType;
 import br.com.anteros.persistence.parameter.NamedParameter;
@@ -37,6 +39,7 @@ public class DescriptionSQL {
 	private CallableType callableType;
 	private String successParameter;
 	private String successValue;
+	private WeakReference<EntityCacheManager> entityCacheManager;
 	/*
 	 * Mapa PARAMETRO X COLUNA
 	 */
@@ -46,7 +49,7 @@ public class DescriptionSQL {
 
 	}
 
-	public DescriptionSQL(SQLStatementType sqlType, boolean callable, String sql, CallableType callableType,
+	public DescriptionSQL(EntityCacheManager entityCacheManager, SQLStatementType sqlType, boolean callable, String sql, CallableType callableType,
 			String successParameter, String successValue, Map<String, String> parametersId) {
 		this.callable = callable;
 		this.sql = sql;
@@ -55,6 +58,7 @@ public class DescriptionSQL {
 		this.successValue = successValue;
 		this.parametersId = parametersId;
 		this.sqlType = sqlType;
+		this.entityCacheManager = new WeakReference<EntityCacheManager>(entityCacheManager);
 	}
 
 	public boolean isCallable() {
@@ -123,11 +127,11 @@ public class DescriptionSQL {
 
 	public NamedParameter[] getParameters() {
 		List<NamedParameter> result = new ArrayList<NamedParameter>();
-		NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache.getInstance()
+		NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache.getInstance(entityCacheManager.get())
 				.get("NamedParameters:" + sql);
 		if (parserResult == null) {
 			parserResult = NamedParameterStatement.parse(sql, null);
-			PersistenceMetadataCache.getInstance().put("NamedParameters:" + sql, parserResult);
+			PersistenceMetadataCache.getInstance(entityCacheManager.get()).put("NamedParameters:" + sql, parserResult);
 		}
 
 		for (NamedParameter parameter : parserResult.getNamedParameters()) {
@@ -140,7 +144,7 @@ public class DescriptionSQL {
 		return result.toArray(new NamedParameter[] {});
 	}
 
-	public NamedParameter[] processParameters(List<NamedParameter> namedParameters) {
+	public NamedParameter[] processParameters(EntityCacheManager entityCacheManager, List<NamedParameter> namedParameters) {
 		List<NamedParameter> result = new ArrayList<NamedParameter>();
 		String[] names = this.getParametersName();
 		NamedParameter namedParam;

@@ -79,7 +79,7 @@ public class UpdateCommandSQL extends CommandSQL {
 				} else {
 					int rowsUpdated;
 					if (descriptionSQL != null)
-						rowsUpdated = queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(namedParameters),
+						rowsUpdated = queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(),namedParameters),
 								showSql, session.getListeners(), session.clientId());
 					else {
 						if (inBatchMode) {

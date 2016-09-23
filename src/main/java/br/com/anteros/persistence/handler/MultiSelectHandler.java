@@ -156,18 +156,18 @@ public class MultiSelectHandler implements ScrollableResultSetHandler {
 	}
 
 	protected SQLQueryAnalyzerResult getAnalyzerResult(ResultClassDefinition rcd, String parsedSql, String originalSql) throws SQLQueryAnalyzerException {
-		SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance()
+		SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance(session.getEntityCacheManager())
 				.get(rcd.getResultClass().getName() + ":" + originalSql);
 		if (analyzerResult == null) {
 			analyzerResult = new SQLQueryAnalyzer(session.getEntityCacheManager(), session.getDialect(), SQLQueryAnalyzer.IGNORE_NOT_USED_ALIAS_TABLE)
 					.analyze(parsedSql, rcd.getResultClass());
-			PersistenceMetadataCache.getInstance().put(rcd.getResultClass().getName() + ":" + originalSql, analyzerResult);
+			PersistenceMetadataCache.getInstance(session.getEntityCacheManager()).put(rcd.getResultClass().getName() + ":" + originalSql, analyzerResult);
 		}
 		return analyzerResult;
 	}
 
 	protected SQLQueryAnalyzerResult getAnalyzerResult(ResultClassDefinition rcd) throws SQLQueryAnalyzerException {
-		SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance().get(rcd.getResultClass().getName() + ":" + sql);
+		SQLQueryAnalyzerResult analyzerResult = (SQLQueryAnalyzerResult) PersistenceMetadataCache.getInstance(session.getEntityCacheManager()).get(rcd.getResultClass().getName() + ":" + sql);
 		if (analyzerResult == null) {
 			throw new MultiSelectHandlerException("Não foi possível encontrar a análise do SQL para a classe de resultado " + rcd.getResultClass().getName());
 		}
