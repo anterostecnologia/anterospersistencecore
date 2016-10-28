@@ -316,18 +316,24 @@ public class EntityCache {
 
 	private Object getValue(String columnName, Object object) throws Exception {
 		for (DescriptionColumn column : this.getDescriptionColumns()) {
-			if (column.isForeignKey() && column.isPrimaryKey()) {
-				try {
-					Object value = column.getDescriptionField().getObjectValue(object);
-					return column.getDescriptionField().getTargetEntity().getValue(
-							(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName() : column.getReferencedColumnName()), value);
-				} catch (Exception ex) {
-				}
-			} else if (column.isPrimaryKey()) {
-				try {
-					Object value = column.getDescriptionField().getObjectValue(object);
-					return value;
-				} catch (Exception ex) {
+			if (columnName.equals(column.getColumnName())) {
+				if (column.isForeignKey() && column.isPrimaryKey()) {
+					try {
+						Object value = column.getDescriptionField().getObjectValue(object);
+						return column
+								.getDescriptionField()
+								.getTargetEntity()
+								.getValue(
+										(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName()
+												: column.getReferencedColumnName()), value);
+					} catch (Exception ex) {
+					}
+				} else if (column.isPrimaryKey()) {
+					try {
+						Object value = column.getDescriptionField().getObjectValue(object);
+						return value;
+					} catch (Exception ex) {
+					}
 				}
 			}
 		}
@@ -363,7 +369,7 @@ public class EntityCache {
 				try {
 					Object value = ReflectionUtils.getFieldValueByName(object, column.getField().getName());
 					Object columnValue = column.getDescriptionField().getTargetEntity().getColumnValue(
-							(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName() : column.getReferencedColumnName()), value);
+						    (StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName() : column.getReferencedColumnName()), value);
 					result.put(column.getColumnName(), ObjectUtils.cloneObject(columnValue));
 				} catch (Exception ex) {
 				}

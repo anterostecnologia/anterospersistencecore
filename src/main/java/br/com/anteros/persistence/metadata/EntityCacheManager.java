@@ -2445,11 +2445,19 @@ public class EntityCacheManager {
 			return allConcrete[0].getEntityClass();
 	}
 
+	/*
+	 * Necessário usar o split porque se o valor '$' não existir ele retorna a String completa
+	 * getCanonicalName() retorna nulo para objetos anonimos;
+	 * Se usasse substring com indexOf, poderia retornar indice -1;
+	 * Verificar melhor forma de implementar.
+	 */
 	public String convertEnumToValue(Enum<?> en) {
-		for (EntityCache entityCache : getEntities().values()) {
-			for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
-				if (descriptionField.getFieldClass() == en.getClass()) {
-					return descriptionField.getEnumValue(en.toString());
+		if (en != null) {
+			for (EntityCache entityCache : getEntities().values()) {
+				for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
+					if (descriptionField.getFieldClass().getName().equals(en.getClass().getName().split("\\$")[0])) { //TODO: VERIFICAR FORMA MAIS CORRETA
+						return descriptionField.getValueEnum(en.toString());
+					}
 				}
 			}
 		}

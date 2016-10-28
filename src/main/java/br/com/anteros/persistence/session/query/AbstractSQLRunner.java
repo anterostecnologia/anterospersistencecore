@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,8 +106,14 @@ public abstract class AbstractSQLRunner {
 	public void setParameterValueStatement(PreparedStatement statement, Object parameter, int parameterIndex) throws Exception {
 		if (parameter instanceof ParameterBinding) {
 			((ParameterBinding) parameter).bindValue(statement, parameterIndex);
-		} else
-			statement.setObject(parameterIndex, parameter);
+		} else {
+			if (parameter instanceof Date) {
+				java.sql.Date newParameter = new java.sql.Date(((Date) parameter).getTime());
+				statement.setDate(parameterIndex, newParameter);
+			} else {
+				statement.setObject(parameterIndex, parameter);
+			}
+		}
 	}
 
 	public void fillStatementWithBean(PreparedStatement statement, Object bean, PropertyDescriptor[] properties) throws Exception {

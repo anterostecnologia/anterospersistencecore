@@ -19,6 +19,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -189,7 +190,11 @@ public class SQLPersisterImpl implements SQLPersister {
 			if (appendOperator)
 				select.and();
 			select.addCondition(key, "=", ":P" + key);
-			params.add(new NamedParameter("P" + key, value));
+			if (value instanceof Date) {
+				params.add(new NamedParameter("P" + key, value, TemporalType.DATE));
+			} else {
+				params.add(new NamedParameter("P" + key, value));
+			}
 			appendOperator = true;
 		}
 
@@ -719,10 +724,13 @@ public class SQLPersisterImpl implements SQLPersister {
 		 */
 		Map<String, Object> primaryKey = session.getIdentifier(targetObject).getDatabaseColumns();
 		for (DescriptionColumn column : entityCache.getPrimaryKeyColumns()) {
-			if (session.getPersistenceContext().isExistsEntityManaged(targetObject))
-				namedParameters.add(new NamedParameter(column.getColumnName(), entityCache.getLastValueByColumn(session, targetObject, column), true));
-			else
-				namedParameters.add(new NamedParameter(column.getColumnName(), primaryKey.get(column.getColumnName()), true));
+			if (session.getPersistenceContext().isExistsEntityManaged(targetObject)) {
+				if (!NamedParameter.contains(namedParameters, column.getColumnName()))
+					namedParameters.add(new NamedParameter(column.getColumnName(), entityCache.getLastValueByColumn(session, targetObject, column), true));
+			} else {
+				if (!NamedParameter.contains(namedParameters, column.getColumnName()))
+					namedParameters.add(new NamedParameter(column.getColumnName(), primaryKey.get(column.getColumnName()), true));
+			}
 		}
 	}
 
