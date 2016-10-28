@@ -137,7 +137,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public T findOne(String sql, LockOptions lockOptions, boolean readOnly) {
+	public T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly) {
 		List<T> result = find(sql, readOnly);
 		if ((result != null) && (result.size() > 0))
 			return result.get(0);
@@ -145,7 +145,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
 		List<T> result = find(sql, parameters, readOnly);
 		if ((result != null) && (result.size() > 0))
 			return result.get(0);
@@ -584,13 +584,13 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public T findOne(String sql, LockOptions lockOptions) {
-		return findOne(sql, lockOptions, false);
+	public T findOneBySql(String sql, LockOptions lockOptions) {
+		return findOneBySql(sql, lockOptions, false);
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters, LockOptions lockOptions) {
-		return findOne(sql, parameters, lockOptions, false);
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions) {
+		return findOneBySql(sql, parameters, lockOptions, false);
 	}
 
 	@Override
@@ -609,13 +609,13 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public T findOne(String sql) {
-		return findOne(sql, LockOptions.NONE);
+	public T findOneBySql(String sql) {
+		return findOneBySql(sql, LockOptions.NONE);
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters) {
-		return findOne(sql, parameters, LockOptions.NONE);
+	public T findOneBySql(String sql, Object parameters) {
+		return findOneBySql(sql, parameters, LockOptions.NONE);
 	}
 
 	@Override
@@ -624,13 +624,13 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public T findOne(String sql, boolean readOnly) {
-		return findOne(sql, LockOptions.NONE, readOnly);
+	public T findOneBySql(String sql, boolean readOnly) {
+		return findOneBySql(sql, LockOptions.NONE, readOnly);
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters, boolean readOnly) {
-		return findOne(sql, parameters, LockOptions.NONE, readOnly);
+	public T findOneBySql(String sql, Object parameters, boolean readOnly) {
+		return findOneBySql(sql, parameters, LockOptions.NONE, readOnly);
 	}
 
 	@Override

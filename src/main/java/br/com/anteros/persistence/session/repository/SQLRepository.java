@@ -36,27 +36,27 @@ public interface SQLRepository<T, ID extends Serializable> {
 
 	T findOne(ID id);
 
-	T findOne(String sql);
+	T findOneBySql(String sql);
 
-	T findOne(String sql, Object parameters);
+	T findOneBySql(String sql, Object parameters);
 
 	T findOne(ID id, boolean readOnly);
 
-	T findOne(String sql, boolean readOnly);
+	T findOneBySql(String sql, boolean readOnly);
 
-	T findOne(String sql, Object parameters, boolean readOnly);
+	T findOneBySql(String sql, Object parameters, boolean readOnly);
 
 	T findOne(ID id, LockOptions lockOptions);
 
-	T findOne(String sql, LockOptions lockOptions);
+	T findOneBySql(String sql, LockOptions lockOptions);
 
-	T findOne(String sql, Object parameters, LockOptions lockOptions);
+	T findOneBySql(String sql, Object parameters, LockOptions lockOptions);
 
 	T findOne(ID id, LockOptions lockOptions, boolean readOnly);
 
-	T findOne(String sql, LockOptions lockOptions, boolean readOnly);
+	T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly);
 
-	T findOne(String sql, Object parameters, LockOptions lockOptions, boolean readOnly);
+	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly);
 
 	boolean exists(ID id);
 

@@ -235,15 +235,15 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public T findOne(String sql) {
+	public T findOneBySql(String sql) {
 		checkRepository();
-		return this.repository.findOne(sql);
+		return this.repository.findOneBySql(sql);
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters) {
+	public T findOneBySql(String sql, Object parameters) {
 		checkRepository();
-		return this.repository.findOne(sql, parameters);
+		return this.repository.findOneBySql(sql, parameters);
 	}
 
 	@Override
@@ -264,15 +264,15 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public T findOne(String sql, boolean readOnly) {
+	public T findOneBySql(String sql, boolean readOnly) {
 		checkRepository();
-		return repository.findOne(sql,readOnly);
+		return repository.findOneBySql(sql,readOnly);
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters, boolean readOnly) {
+	public T findOneBySql(String sql, Object parameters, boolean readOnly) {
 		checkRepository();
-		return repository.findOne(sql,parameters,readOnly);
+		return repository.findOneBySql(sql,parameters,readOnly);
 	}
 
 	@Override
@@ -282,15 +282,15 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public T findOne(String sql, LockOptions lockOptions) {
+	public T findOneBySql(String sql, LockOptions lockOptions) {
 		checkRepository();
-		return repository.findOne(sql,lockOptions);
+		return repository.findOneBySql(sql,lockOptions);
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters, LockOptions lockOptions) {
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions) {
 		checkRepository();
-		return repository.findOne(sql,parameters,lockOptions);
+		return repository.findOneBySql(sql,parameters,lockOptions);
 	}
 
 	@Override
@@ -300,15 +300,15 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public T findOne(String sql, LockOptions lockOptions, boolean readOnly) {
+	public T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly) {
 		checkRepository();
-		return repository.findOne(sql,lockOptions,readOnly);
+		return repository.findOneBySql(sql,lockOptions,readOnly);
 	}
 
 	@Override
-	public T findOne(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
 		checkRepository();
-		return repository.findOne(sql,parameters,lockOptions,readOnly);
+		return repository.findOneBySql(sql,parameters,lockOptions,readOnly);
 	}
 
 	@Override
