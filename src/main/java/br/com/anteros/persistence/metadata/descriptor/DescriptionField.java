@@ -776,18 +776,16 @@ public class DescriptionField {
 	}
 
 	public boolean isContainsColumns(List<String> columNames) {
-		boolean found = false;
+		int count = 0;
 		for (String colum : columNames) {
 			for (DescriptionColumn descriptionColumn : getDescriptionColumns()) {
 				if (descriptionColumn.getColumnName().equalsIgnoreCase(colum)) {
-					found = true;
+					count++;
 					break;
 				}
 			}
-			if (!found)
-				break;
 		}
-		return found;
+		return count == columNames.size();
 	}
 
 	public String getComment() {
