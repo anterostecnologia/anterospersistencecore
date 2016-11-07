@@ -1451,14 +1451,13 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 				: analyzerResult.getParsedSql());
 
 		session.forceFlush(SQLParserUtil.getTableNames(parsedSql, session.getDialect()));
-
-		List result = (List) session.getRunner().query(session.getConnection(), parsedSql, handler, namedParameter,
+		
+		Collection<?> resultRunner = (Collection<?>) session.getRunner().query(session.getConnection(), parsedSql, handler, namedParameter,
 				showSql, formatSql, 0, session.getListeners(), session.clientId());
 
-		if (result == null)
+		if (resultRunner == null)
 			return Collections.EMPTY_LIST;
-
-		return result;
+		return new ArrayList((Collection) resultRunner);
 	}
 
 	protected <T> List<T> getResultListToLazyLoad(String sql, Object[] parameter, Class<?> resultClass,
