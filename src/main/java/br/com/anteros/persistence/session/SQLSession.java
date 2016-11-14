@@ -181,6 +181,8 @@ public interface SQLSession {
 	public Object save(Object object) throws Exception;
 
 	public void save(Object[] object) throws Exception;
+	
+	public void save(Collection<?> object) throws Exception;
 
 	public void save(Class<?> clazz, String[] columns, String[] values) throws Exception;
 	

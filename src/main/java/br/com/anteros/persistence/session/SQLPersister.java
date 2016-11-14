@@ -15,11 +15,15 @@
  *******************************************************************************/
 package br.com.anteros.persistence.session;
 
-
+import java.util.Collection;
 
 public interface SQLPersister {
 
 	public Object save(SQLSession session, Object object) throws Exception;
+	
+	public void save(SQLSession session, Object[] objects) throws Exception;
+	
+	public void save(SQLSession session, Collection<?> objects) throws Exception;
 	
 	public Object save(SQLSession session, Object object, int batchSize) throws Exception;
 

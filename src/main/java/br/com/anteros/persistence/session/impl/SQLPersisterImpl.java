@@ -113,15 +113,16 @@ public class SQLPersisterImpl implements SQLPersister {
 		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(object.getClass());
 
 		if (entityCache == null) {
-			throw new SQLSessionException(
-					"Objeto não pode ser removido pois a classe " + object.getClass().getName() + " não foi localizada no Cache de Entidades.");
+			throw new SQLSessionException("Objeto não pode ser removido pois a classe " + object.getClass().getName()
+					+ " não foi localizada no Cache de Entidades.");
 		}
 
 		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(object);
 		if (entityManaged == null) {
 			if (session.getIdentifier(object).hasIdentifier())
 				throw new SQLSessionException(
-						"Objeto não pode ser removido pois o mesmo não foi recuperado pela Sessão ou não possuí Chave(ID) definida." + object);
+						"Objeto não pode ser removido pois o mesmo não foi recuperado pela Sessão ou não possuí Chave(ID) definida."
+								+ object);
 		}
 		if ((entityManaged != null) && (EntityStatus.DELETED.equals(entityManaged.getStatus())))
 			session.flush();
@@ -143,10 +144,11 @@ public class SQLPersisterImpl implements SQLPersister {
 			objectsInSavingProcess.add(hashCodeObject);
 			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(object.getClass());
 			if (entityCache == null)
-				throw new SQLSessionException(
-						"Objeto não pode ser salvo pois a classe " + object.getClass().getName() + " não foi localizada no cache de Entidades.");
+				throw new SQLSessionException("Objeto não pode ser salvo pois a classe " + object.getClass().getName()
+						+ " não foi localizada no cache de Entidades.");
 
-			// System.out.println("Salvando objeto da classe " + entityCache.getEntityClass().getName());
+			// System.out.println("Salvando objeto da classe " +
+			// entityCache.getEntityClass().getName());
 
 			EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(object);
 
@@ -155,20 +157,23 @@ public class SQLPersisterImpl implements SQLPersister {
 			 */
 			if (entityManaged != null) {
 				/*
-				 * Se o objeto foi selecionado parcialmente não permite alteração
+				 * Se o objeto foi selecionado parcialmente não permite
+				 * alteração
 				 */
 				if (entityManaged.getStatus().equals(EntityStatus.READ_ONLY))
-					throw new SQLSessionException("Objeto " + object.getClass().getSuperclass() + " ID " + session.getIdentifier(object).getDatabaseColumns()
+					throw new SQLSessionException("Objeto " + object.getClass().getSuperclass() + " ID "
+							+ session.getIdentifier(object).getDatabaseColumns()
 							+ " não pode ser salvo pois é somente para leitura.");
 
 				saveUsingStatement(entityCache, SQLStatementType.UPDATE, object, stackCommands);
 			} else {
 				/*
-				 * Se o objeto não estiver sendo gerenciado porém já possuí um ID será preciso verificar se o ID já
-				 * existe no banco de dados
+				 * Se o objeto não estiver sendo gerenciado porém já possuí um
+				 * ID será preciso verificar se o ID já existe no banco de dados
 				 */
 				if (session.getIdentifier(object).hasIdentifier()) {
-					if (!existsRecordInDatabaseTable(entityCache.getTableName(), session.getIdentifier(object).getDatabaseColumns()))
+					if (!existsRecordInDatabaseTable(entityCache.getTableName(),
+							session.getIdentifier(object).getDatabaseColumns()))
 						saveUsingStatement(entityCache, SQLStatementType.INSERT, object, stackCommands);
 					else
 						saveUsingStatement(entityCache, SQLStatementType.UPDATE, object, stackCommands);
@@ -198,7 +203,8 @@ public class SQLPersisterImpl implements SQLPersister {
 			appendOperator = true;
 		}
 
-		ResultSet rs = session.createQuery(select.toStatementString(), params.toArray(new NamedParameter[] {})).executeQuery();
+		ResultSet rs = session.createQuery(select.toStatementString(), params.toArray(new NamedParameter[] {}))
+				.executeQuery();
 		if (rs.next()) {
 			boolean result = rs.getInt("numRows") > 0;
 			rs.close();
@@ -209,7 +215,8 @@ public class SQLPersisterImpl implements SQLPersister {
 		return false;
 	}
 
-	protected void saveUsingStatement(EntityCache entityCache, SQLStatementType statement, Object object, List<CommandSQL> stackCommands) throws Exception {
+	protected void saveUsingStatement(EntityCache entityCache, SQLStatementType statement, Object object,
+			List<CommandSQL> stackCommands) throws Exception {
 		List<CommandSQL> commands = null;
 		if (statement.equals(SQLStatementType.INSERT))
 			commands = getCommandsToInsertObject(object, entityCache);
@@ -222,10 +229,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			List<CommandSQL> commandsToAdd = new ArrayList<CommandSQL>();
 			for (CommandSQL command : commands) {
 				if (command instanceof InsertCommandSQL) {
-					if (((InsertCommandSQL) command).getIdentifierPostInsert() != null)
-						command.execute();
-					else
-						commandsToAdd.add(command);
+					commandsToAdd.add(command);
 				} else {
 					commandsToAdd.add(command);
 					command.setEntityManaged();
@@ -238,43 +242,53 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected List<CommandSQL> getCommandsToInsertObject(Object targetObject, EntityCache entityCache) throws Exception {
+	protected List<CommandSQL> getCommandsToInsertObject(Object targetObject, EntityCache entityCache)
+			throws Exception {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 		try {
-			LinkedHashMap<String, NamedParameter> namedParameters = new LinkedHashMap<String, NamedParameter>();			
+			LinkedHashMap<String, NamedParameter> namedParameters = new LinkedHashMap<String, NamedParameter>();
 			IdentifierResult identifierResult = insertParametersKey(targetObject, entityCache, namedParameters);
 			insertRelationships(targetObject, entityCache, result);
 			insertCommonsParameters(targetObject, entityCache, namedParameters);
-			insertObject(targetObject, entityCache, result, namedParameters, identifierResult.identifierPostInsert, identifierResult.identifyColumn);
-			insertChildrenCollections(targetObject, entityCache, result, identifierResult.identifierPostInsert, identifierResult.identifyColumn,
-					session.getIdentifier(targetObject).getDatabaseColumns());
+			insertObject(targetObject, entityCache, result, namedParameters, identifierResult.identifierPostInsert,
+					identifierResult.identifyColumn);
+			insertChildrenCollections(targetObject, entityCache, result, identifierResult.identifierPostInsert,
+					identifierResult.identifyColumn, session.getIdentifier(targetObject).getDatabaseColumns());
 		} finally {
 			session.getCacheIdentifier().remove(targetObject);
 		}
 		return result;
 	}
 
-	protected void insertObject(Object targetObject, EntityCache entityCache, List<CommandSQL> result, LinkedHashMap<String, NamedParameter> namedParameters,
-			IdentifierPostInsert identifierPostInsert, DescriptionColumn identifyColumn) throws Exception {
+	protected void insertObject(Object targetObject, EntityCache entityCache, List<CommandSQL> result,
+			LinkedHashMap<String, NamedParameter> namedParameters, IdentifierPostInsert identifierPostInsert,
+			DescriptionColumn identifyColumn) throws Exception {
 		/*
 		 * Salva o objeto
 		 */
 		if (entityCache.hasDiscriminatorColumn())
-			namedParameters.put(entityCache.getDiscriminatorColumn().getColumnName(),
-					new NamedParameter(entityCache.getDiscriminatorColumn().getColumnName(), entityCache.getDiscriminatorValue()));
+			namedParameters.put(entityCache.getDiscriminatorColumn().getColumnName(), new NamedParameter(
+					entityCache.getDiscriminatorColumn().getColumnName(), entityCache.getDiscriminatorValue()));
 
 		InsertCommandSQL insertCommandSQL = new InsertCommandSQL(session,
-				generateSql(entityCache.getTableName(), SQLStatementType.INSERT, NamedParameter.convertToList(namedParameters.values())),
-				NamedParameter.convertToList(namedParameters.values()), targetObject, entityCache, entityCache.getTableName(), session.getShowSql(),
-				identifierPostInsert, identifyColumn, entityCache.getDescriptionSqlByType(SQLStatementType.INSERT), executeInBatchMode());
-		result.add(insertCommandSQL);
+				generateSql(entityCache.getTableName(), SQLStatementType.INSERT,
+						NamedParameter.convertToList(namedParameters.values())),
+				NamedParameter.convertToList(namedParameters.values()), targetObject, entityCache,
+				entityCache.getTableName(), session.getShowSql(), identifierPostInsert, identifyColumn,
+				entityCache.getDescriptionSqlByType(SQLStatementType.INSERT), executeInBatchMode());
+
+		if (insertCommandSQL.getIdentifierPostInsert() != null)
+			insertCommandSQL.execute();
+		else
+			result.add(insertCommandSQL);
 	}
 
 	protected boolean executeInBatchMode() {
 		return session.getBatchSize() > 0 || currentBatchSize > 0;
 	}
 
-	protected void insertRelationships(Object targetObject, EntityCache entityCache, List<CommandSQL> result) throws Exception {
+	protected void insertRelationships(Object targetObject, EntityCache entityCache, List<CommandSQL> result)
+			throws Exception {
 		Object fieldValue;
 		/*
 		 * Salva os relacionamentos FK
@@ -291,8 +305,9 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected void insertChildrenCollections(Object targetObject, EntityCache entityCache, List<CommandSQL> result, IdentifierPostInsert identifierPostInsert,
-			DescriptionColumn identifyColumn, Map<String, Object> primaryKeyOwner) throws Exception, IllegalAccessException {
+	protected void insertChildrenCollections(Object targetObject, EntityCache entityCache, List<CommandSQL> result,
+			IdentifierPostInsert identifierPostInsert, DescriptionColumn identifyColumn,
+			Map<String, Object> primaryKeyOwner) throws Exception, IllegalAccessException {
 		Object fieldValue;
 		/*
 		 * Salva as coleções filhas do objeto
@@ -308,29 +323,32 @@ public class SQLPersisterImpl implements SQLPersister {
 						if (fieldValue instanceof Map) {
 							for (Object key : ((Map<?, ?>) fieldValue).keySet()) {
 								Object value = ((Map<?, ?>) fieldValue).get(key);
-								result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT, descriptionField, identifyColumn,
-										identifierPostInsert, primaryKeyOwner));
+								result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT,
+										descriptionField, identifyColumn, identifierPostInsert, primaryKeyOwner));
 							}
 						}
 					} else if (descriptionField.isCollectionTable()) {
 						for (Object value : ((Collection<?>) fieldValue))
-							result.addAll(getSQLCollectionTableCommands(value, SQLStatementType.INSERT, descriptionField, identifyColumn, identifierPostInsert,
-									primaryKeyOwner));
+							result.addAll(getSQLCollectionTableCommands(value, SQLStatementType.INSERT,
+									descriptionField, identifyColumn, identifierPostInsert, primaryKeyOwner));
 					} else if (descriptionField.isJoinTable()) {
 						for (Object value : ((Collection<?>) fieldValue))
-							result.addAll(getSQLJoinTableCommands(value, SQLStatementType.INSERT, descriptionField, identifyColumn, identifierPostInsert,
-									primaryKeyOwner));
+							result.addAll(getSQLJoinTableCommands(value, SQLStatementType.INSERT, descriptionField,
+									identifyColumn, identifierPostInsert, primaryKeyOwner));
 					} else if (descriptionField.isCollectionEntity()) {
 						if (fieldValue instanceof Collection) {
 							for (Object value : ((Collection<?>) fieldValue)) {
 								if (value != null) {
-									if ((descriptionField.getMappedBy() != null) && (!"".equals(descriptionField.getMappedBy()))) {
-										Field mappedByField = descriptionField.getTargetEntity().getDescriptionField(descriptionField.getMappedBy()).getField();
+									if ((descriptionField.getMappedBy() != null)
+											&& (!"".equals(descriptionField.getMappedBy()))) {
+										Field mappedByField = descriptionField.getTargetEntity()
+												.getDescriptionField(descriptionField.getMappedBy()).getField();
 										if (mappedByField.get(value) == null)
 											mappedByField.set(value, targetObject);
 									}
 									if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
-											|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)))
+											|| Arrays.asList(descriptionField.getCascadeTypes())
+													.contains(CascadeType.SAVE)))
 										save(value, result);
 								}
 							}
@@ -341,7 +359,8 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected IdentifierResult insertParametersKey(Object targetObject, EntityCache entityCache, LinkedHashMap<String, NamedParameter> namedParameters) throws Exception {
+	protected IdentifierResult insertParametersKey(Object targetObject, EntityCache entityCache,
+			LinkedHashMap<String, NamedParameter> namedParameters) throws Exception {
 		IdentifierPostInsert identifierPostInsert = null;
 		DescriptionColumn identifyColumn = null;
 		/*
@@ -352,15 +371,19 @@ public class SQLPersisterImpl implements SQLPersister {
 			if (!fieldModified.isAnyCollectionOrMap() && !fieldModified.isVersioned() && !fieldModified.isJoinTable()) {
 				for (DescriptionColumn columnModified : fieldModified.getDescriptionColumns()) {
 					if (columnModified.isPrimaryKey()) {
-						namedParameterField = fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject, columnModified);
+						namedParameterField = fieldModified.getNamedParameterFromDatabaseObjectValue(session,
+								targetObject, columnModified);
 						/*
-						 * Se a coluna possuí um Generator e o valor ainda não foi gerado
+						 * Se a coluna possuí um Generator e o valor ainda não
+						 * foi gerado
 						 */
 						if ((columnModified.hasGenerator()) && (namedParameterField.getValue() == null)) {
-							IdentifierGenerator identifierGenerator = IdentifierGeneratorFactory.createGenerator(session, columnModified);
+							IdentifierGenerator identifierGenerator = IdentifierGeneratorFactory
+									.createGenerator(session, columnModified);
 							/*
-							 * Se o Generator for IDENTIY será gerado após a execução do INSERT pelo getGeneratedKeys
-							 * nativo JDBC
+							 * Se o Generator for IDENTIY será gerado após a
+							 * execução do INSERT pelo getGeneratedKeys nativo
+							 * JDBC
 							 */
 							if (identifierGenerator instanceof IdentifierPostInsert) {
 								identifierPostInsert = (IdentifierPostInsert) identifierGenerator;
@@ -376,13 +399,16 @@ public class SQLPersisterImpl implements SQLPersister {
 								/*
 								 * Seta o valor no objeto
 								 */
-								ReflectionUtils.setObjectValueByFieldName(targetObject, columnModified.getField().getName(), namedParameterField.getValue());
+								ReflectionUtils.setObjectValueByFieldName(targetObject,
+										columnModified.getField().getName(), namedParameterField.getValue());
 							}
 						}
 						if ((namedParameterField.getValue() == null) && (identifierPostInsert == null))
-							throw new SQLSessionException("Coluna chave " + columnModified.getColumnName() + " da tabela " + entityCache.getTableName()
-									+ " deve ter um valor. Verifique se o Campo " + columnModified.getField().getName() + " da classe "
-									+ entityCache.getEntityClass() + " possui anotação para geração do identificador.");
+							throw new SQLSessionException("Coluna chave " + columnModified.getColumnName()
+									+ " da tabela " + entityCache.getTableName()
+									+ " deve ter um valor. Verifique se o Campo " + columnModified.getField().getName()
+									+ " da classe " + entityCache.getEntityClass()
+									+ " possui anotação para geração do identificador.");
 						namedParameters.put(columnModified.getColumnName(), namedParameterField);
 					}
 				}
@@ -391,8 +417,8 @@ public class SQLPersisterImpl implements SQLPersister {
 		return new IdentifierResult(identifyColumn, identifierPostInsert);
 	}
 
-	protected void insertCommonsParameters(Object targetObject, EntityCache entityCache, LinkedHashMap<String, NamedParameter> namedParameters)
-			throws Exception {
+	protected void insertCommonsParameters(Object targetObject, EntityCache entityCache,
+			LinkedHashMap<String, NamedParameter> namedParameters) throws Exception {
 		/*
 		 * Gera os demais campos do insert
 		 */
@@ -403,7 +429,8 @@ public class SQLPersisterImpl implements SQLPersister {
 						if (!columnModified.isPrimaryKey()) {
 							if (!namedParameters.containsKey(columnModified.getColumnName())) {
 								namedParameters.put(columnModified.getColumnName(),
-										fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject, columnModified));
+										fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject,
+												columnModified));
 							}
 						}
 					}
@@ -412,7 +439,8 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected List<CommandSQL> getCommandsToUpdateObject(Object targetObject, EntityCache entityCache) throws Exception {
+	protected List<CommandSQL> getCommandsToUpdateObject(Object targetObject, EntityCache entityCache)
+			throws Exception {
 		List<DescriptionField> fieldsModified = entityCache.getDescriptionFieldsExcludingIds();
 		boolean hasFieldsModified = true;
 		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(targetObject);
@@ -430,8 +458,9 @@ public class SQLPersisterImpl implements SQLPersister {
 
 		updateRelationships(targetObject, entityCache, result);
 
-		if ((hasFieldsModified) || ((entityManaged != null)
-				&& (entityManaged.containsLockMode(LockMode.OPTIMISTIC_FORCE_INCREMENT, LockMode.PESSIMISTIC_FORCE_INCREMENT, LockMode.WRITE)))) {
+		if ((hasFieldsModified)
+				|| ((entityManaged != null) && (entityManaged.containsLockMode(LockMode.OPTIMISTIC_FORCE_INCREMENT,
+						LockMode.PESSIMISTIC_FORCE_INCREMENT, LockMode.WRITE)))) {
 			if (hasFieldsModified)
 				updateCommonsParameters(targetObject, entityCache, fieldsModified, namedParameters);
 
@@ -444,34 +473,40 @@ public class SQLPersisterImpl implements SQLPersister {
 				Map<String, Object> params = identifier.getDatabaseColumnsValues();
 				params.put(entityCache.getVersionColumnName(), entityManaged.getOldVersion());
 				if (!existsRecordInDatabaseTable(entityCache.getTableName(), params)) {
-					throw new OptimisticLockException("Não foi possível alterar a Entidade " + entityCache.getSimpleName()
-							+ " pois foi a mesma não foi encontrada ou possui uma nova versão. Id " + identifier.getDatabaseValues() + " Versão "
-							+ entityManaged.getOldVersion());
+					throw new OptimisticLockException(
+							"Não foi possível alterar a Entidade " + entityCache.getSimpleName()
+									+ " pois foi a mesma não foi encontrada ou possui uma nova versão. Id "
+									+ identifier.getDatabaseValues() + " Versão " + entityManaged.getOldVersion());
 				}
 			}
 		}
 
-		updateRelationshipsOnCollectionFields(targetObject, entityCache, result, entityManaged, session.getIdentifier(targetObject).getDatabaseColumns());
+		updateRelationshipsOnCollectionFields(targetObject, entityCache, result, entityManaged,
+				session.getIdentifier(targetObject).getDatabaseColumns());
 
 		return result;
 	}
 
-	protected void updateRelationshipsOnCollectionFields(Object targetObject, EntityCache entityCache, List<CommandSQL> result, EntityManaged entityManaged,
-			Map<String, Object> primaryKeyOwner) throws IllegalAccessException, Exception {
+	protected void updateRelationshipsOnCollectionFields(Object targetObject, EntityCache entityCache,
+			List<CommandSQL> result, EntityManaged entityManaged, Map<String, Object> primaryKeyOwner)
+			throws IllegalAccessException, Exception {
 		FieldEntityValue[] sourceList = null;
 		FieldEntityValue[] targetList = null;
 		FieldEntityValue lastFieldEntityValue = null;
 		FieldEntityValue newFieldEntityValue = null;
 		Object newColumnValue;
 		/*
-		 * Salva as chaves estrangeiras que foram alteradas e que possuam CascadeType = ALL ou SAVE. Se foi adicionado
-		 * ou removido filhos nas coleções gera DMLObject dos itens para execução posterior Se for um objeto gerenciado
-		 * compara lastValues com newValues e gera insert,update,delete
+		 * Salva as chaves estrangeiras que foram alteradas e que possuam
+		 * CascadeType = ALL ou SAVE. Se foi adicionado ou removido filhos nas
+		 * coleções gera DMLObject dos itens para execução posterior Se for um
+		 * objeto gerenciado compara lastValues com newValues e gera
+		 * insert,update,delete
 		 */
 		if (entityManaged != null) {
 			for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
 				/*
-				 * Se for uma coleção de entidades ou relacionamento joinTable (muitos para muitos)
+				 * Se for uma coleção de entidades ou relacionamento joinTable
+				 * (muitos para muitos)
 				 */
 				if (descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable()) {
 					newColumnValue = descriptionField.getField().get(targetObject);
@@ -479,7 +514,8 @@ public class SQLPersisterImpl implements SQLPersister {
 						continue;
 					}
 
-					lastFieldEntityValue = entityCache.getLastFieldEntityValue(session, targetObject, descriptionField.getName());
+					lastFieldEntityValue = entityCache.getLastFieldEntityValue(session, targetObject,
+							descriptionField.getName());
 					newFieldEntityValue = descriptionField.getFieldEntityValue(session, targetObject);
 					sourceList = null;
 					targetList = null;
@@ -488,26 +524,31 @@ public class SQLPersisterImpl implements SQLPersister {
 					if (newFieldEntityValue != null)
 						targetList = (FieldEntityValue[]) newFieldEntityValue.getValue();
 					/*
-					 * Gera insert ou delete de item na coleção caso o field tenha sido anotado com Cascade = ALL, SAVE
-					 * ou DELETE_ORPHAN
+					 * Gera insert ou delete de item na coleção caso o field
+					 * tenha sido anotado com Cascade = ALL, SAVE ou
+					 * DELETE_ORPHAN
 					 */
 					boolean nullValues = (lastFieldEntityValue == null) && (newFieldEntityValue == null);
 					if (!nullValues) {
 						/*
-						 * Gera update dos itens da coleção caso o field tenha sido anotado com Cascade = ALL ou SAVE
+						 * Gera update dos itens da coleção caso o field tenha
+						 * sido anotado com Cascade = ALL ou SAVE
 						 */
 						updateChangedItems(sourceList, targetList, descriptionField, result);
 
-						if (((sourceList == null) && (targetList != null)) || ((sourceList != null) && (targetList == null))
+						if (((sourceList == null) && (targetList != null))
+								|| ((sourceList != null) && (targetList == null))
 								|| (lastFieldEntityValue.compareTo(newFieldEntityValue) != 0)) {
 							/*
-							 * Se existe em A(old) e não existe em B(new) gera delete e se for entidade delete somente
-							 * se Cascade=DELETE_ORPHAN
+							 * Se existe em A(old) e não existe em B(new) gera
+							 * delete e se for entidade delete somente se
+							 * Cascade=DELETE_ORPHAN
 							 */
 							deleteItensRemoved(result, primaryKeyOwner, sourceList, targetList, descriptionField);
 
 							/*
-							 * Se existe em B(new) e não existe em A(old) gera insert se Cascade=ALL ou SAVE
+							 * Se existe em B(new) e não existe em A(old) gera
+							 * insert se Cascade=ALL ou SAVE
 							 */
 							insertNewItens(result, primaryKeyOwner, sourceList, targetList, descriptionField);
 						}
@@ -516,13 +557,15 @@ public class SQLPersisterImpl implements SQLPersister {
 			}
 		} else {
 			/*
-			 * Se for um objeto não gerenciado deleta as listas (list,map) e insere novamente. Caso seja uma lista de
-			 * entidades insere ou atualiza os itens da lista.
+			 * Se for um objeto não gerenciado deleta as listas (list,map) e
+			 * insere novamente. Caso seja uma lista de entidades insere ou
+			 * atualiza os itens da lista.
 			 */
 			for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
 				/*
-				 * Se for uma coleção de entidades ou relacionamento joinTable (muitos para muitos) deleta os itens
-				 * atuais e insere novamente
+				 * Se for uma coleção de entidades ou relacionamento joinTable
+				 * (muitos para muitos) deleta os itens atuais e insere
+				 * novamente
 				 */
 				if (descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable()) {
 					Object fieldValue = descriptionField.getObjectValue(targetObject);
@@ -531,32 +574,39 @@ public class SQLPersisterImpl implements SQLPersister {
 							/*
 							 * Remove todos os itens da Coleção
 							 */
-							result.addAll(getSQLMapTableCommands(null, null, SQLStatementType.DELETE_ALL, descriptionField, null, null, primaryKeyOwner));
+							result.addAll(getSQLMapTableCommands(null, null, SQLStatementType.DELETE_ALL,
+									descriptionField, null, null, primaryKeyOwner));
 							/*
 							 * Insere novamente
 							 */
 							for (Object key : ((Map<?, ?>) fieldValue).keySet()) {
 								Object value = ((Map<?, ?>) fieldValue).get(key);
-								result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT, descriptionField, null, null, primaryKeyOwner));
+								result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT,
+										descriptionField, null, null, primaryKeyOwner));
 							}
 						} else if (descriptionField.isCollectionTable()) {
 							/*
 							 * Remove todos os itens da coleção
 							 */
-							result.addAll(getSQLCollectionTableCommands(null, SQLStatementType.DELETE_ALL, descriptionField, null, null, primaryKeyOwner));
+							result.addAll(getSQLCollectionTableCommands(null, SQLStatementType.DELETE_ALL,
+									descriptionField, null, null, primaryKeyOwner));
 							/*
 							 * Insere os itens
 							 */
 							for (Object value : (Collection<?>) fieldValue)
-								result.addAll(getSQLCollectionTableCommands(value, SQLStatementType.INSERT, descriptionField, null, null, primaryKeyOwner));
+								result.addAll(getSQLCollectionTableCommands(value, SQLStatementType.INSERT,
+										descriptionField, null, null, primaryKeyOwner));
 						} else if (descriptionField.isCollectionEntity()) {
 							for (Object entity : (Collection<?>) fieldValue) {
-								if ((descriptionField.getMappedBy() != null) && (!"".equals(descriptionField.getMappedBy()))) {
-									Field mappedByField = descriptionField.getTargetEntity().getDescriptionField(descriptionField.getMappedBy()).getField();
+								if ((descriptionField.getMappedBy() != null)
+										&& (!"".equals(descriptionField.getMappedBy()))) {
+									Field mappedByField = descriptionField.getTargetEntity()
+											.getDescriptionField(descriptionField.getMappedBy()).getField();
 									mappedByField.set(entity, targetObject);
 								}
 								if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
-										|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE))) {
+										|| Arrays.asList(descriptionField.getCascadeTypes())
+												.contains(CascadeType.SAVE))) {
 									session.save(entity);
 								}
 							}
@@ -564,12 +614,14 @@ public class SQLPersisterImpl implements SQLPersister {
 							/*
 							 * Remove todos os itens da coleção
 							 */
-							result.addAll(getSQLJoinTableCommands(null, SQLStatementType.DELETE_ALL, descriptionField, null, null, primaryKeyOwner));
+							result.addAll(getSQLJoinTableCommands(null, SQLStatementType.DELETE_ALL, descriptionField,
+									null, null, primaryKeyOwner));
 							/*
 							 * Insere os itens
 							 */
 							for (Object value : (Collection<?>) fieldValue)
-								result.addAll(getSQLJoinTableCommands(value, SQLStatementType.INSERT, descriptionField, null, null, primaryKeyOwner));
+								result.addAll(getSQLJoinTableCommands(value, SQLStatementType.INSERT, descriptionField,
+										null, null, primaryKeyOwner));
 						}
 					}
 				}
@@ -577,20 +629,25 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected void updateChangedItems(FieldEntityValue[] sourceList, FieldEntityValue[] targetList, DescriptionField descriptionField, List<CommandSQL> result)
-			throws Exception {
+	protected void updateChangedItems(FieldEntityValue[] sourceList, FieldEntityValue[] targetList,
+			DescriptionField descriptionField, List<CommandSQL> result) throws Exception {
 		/*
-		 * Gera update dos itens da coleção caso o field tenha sido anotado com Cascade = ALL ou SAVE
+		 * Gera update dos itens da coleção caso o field tenha sido anotado com
+		 * Cascade = ALL ou SAVE
 		 */
 		if (descriptionField.isCollectionEntity() || descriptionField.isJoinTable()) {
 			if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
-					|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)) && (sourceList != null)) {
+					|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE))
+					&& (sourceList != null)) {
 				for (FieldEntityValue sourceValue : sourceList) {
 					if (targetList != null) {
 						for (FieldEntityValue targetValue : targetList) {
-							if (targetValue.getName().equals(sourceValue.getName()) && (targetValue.getSource() != null)) {
-								EntityManaged tempEntityManaged = session.getPersistenceContext().getEntityManaged(targetValue.getSource());
-								if (((tempEntityManaged != null) && (!tempEntityManaged.getStatus().equals(EntityStatus.READ_ONLY)))
+							if (targetValue.getName().equals(sourceValue.getName())
+									&& (targetValue.getSource() != null)) {
+								EntityManaged tempEntityManaged = session.getPersistenceContext()
+										.getEntityManaged(targetValue.getSource());
+								if (((tempEntityManaged != null)
+										&& (!tempEntityManaged.getStatus().equals(EntityStatus.READ_ONLY)))
 										|| (tempEntityManaged == null))
 									save(session, targetValue.getSource(), result);
 							}
@@ -601,10 +658,12 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected void insertNewItens(List<CommandSQL> result, Map<String, Object> primaryKeyOwner, FieldEntityValue[] sourceList, FieldEntityValue[] targetList,
-			DescriptionField descriptionField) throws Exception {
+	protected void insertNewItens(List<CommandSQL> result, Map<String, Object> primaryKeyOwner,
+			FieldEntityValue[] sourceList, FieldEntityValue[] targetList, DescriptionField descriptionField)
+			throws Exception {
 		/*
-		 * Se existe em B(new) e não existe em A(old) gera insert se Cascade=ALL ou SAVE
+		 * Se existe em B(new) e não existe em A(old) gera insert se Cascade=ALL
+		 * ou SAVE
 		 */
 		if (Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 				|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)) {
@@ -626,17 +685,18 @@ public class SQLPersisterImpl implements SQLPersister {
 						if (descriptionField.isMapTable()) {
 							Object key = targetValue.getSource();
 							Object value = ((Map<?, ?>) targetValue.getValue()).get(key);
-							result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT, descriptionField, null, null, primaryKeyOwner));
+							result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT, descriptionField,
+									null, null, primaryKeyOwner));
 						} else if (descriptionField.isCollectionTable())
-							result.addAll(getSQLCollectionTableCommands(targetValue.getSource(), SQLStatementType.INSERT, descriptionField, null, null,
-									primaryKeyOwner));
+							result.addAll(getSQLCollectionTableCommands(targetValue.getSource(),
+									SQLStatementType.INSERT, descriptionField, null, null, primaryKeyOwner));
 						else if (descriptionField.isCollectionEntity())
 							if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 									|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)))
 								save(session, targetValue.getSource(), result);
 							else if (descriptionField.isJoinTable())
-								result.addAll(getSQLJoinTableCommands(targetValue.getSource(), SQLStatementType.INSERT, descriptionField, null, null,
-										primaryKeyOwner));
+								result.addAll(getSQLJoinTableCommands(targetValue.getSource(), SQLStatementType.INSERT,
+										descriptionField, null, null, primaryKeyOwner));
 
 					}
 
@@ -645,11 +705,12 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected void deleteItensRemoved(List<CommandSQL> result, Map<String, Object> primaryKeyOwner, FieldEntityValue[] sourceList,
-			FieldEntityValue[] targetList, DescriptionField descriptionField) throws Exception {
+	protected void deleteItensRemoved(List<CommandSQL> result, Map<String, Object> primaryKeyOwner,
+			FieldEntityValue[] sourceList, FieldEntityValue[] targetList, DescriptionField descriptionField)
+			throws Exception {
 		/*
-		 * Se existe em A(old) e não existe em B(new) gera delete e se for entidade delete somente se
-		 * Cascade=DELETE_ORPHAN
+		 * Se existe em A(old) e não existe em B(new) gera delete e se for
+		 * entidade delete somente se Cascade=DELETE_ORPHAN
 		 */
 		if (sourceList != null) {
 			for (FieldEntityValue sourceValue : sourceList) {
@@ -669,27 +730,29 @@ public class SQLPersisterImpl implements SQLPersister {
 					if (descriptionField.isMapTable()) {
 						Object key = sourceValue.getSource();
 						Object value = ((Map<?, ?>) sourceValue.getValue()).get(key);
-						result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.DELETE, descriptionField, null, null, primaryKeyOwner));
+						result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.DELETE, descriptionField,
+								null, null, primaryKeyOwner));
 					} else if (descriptionField.isCollectionTable())
-						result.addAll(
-								getSQLCollectionTableCommands(sourceValue.getSource(), SQLStatementType.DELETE, descriptionField, null, null, primaryKeyOwner));
+						result.addAll(getSQLCollectionTableCommands(sourceValue.getSource(), SQLStatementType.DELETE,
+								descriptionField, null, null, primaryKeyOwner));
 					else if (descriptionField.isCollectionEntity())
 						if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.DELETE)
-								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.DELETE_ORPHAN))) {
+								|| Arrays.asList(descriptionField.getCascadeTypes())
+										.contains(CascadeType.DELETE_ORPHAN))) {
 							save(session, sourceValue.getSource(), result);
 							remove(session, sourceValue.getSource());
 						} else if (descriptionField.isJoinTable())
-							result.addAll(
-									getSQLJoinTableCommands(sourceValue.getSource(), SQLStatementType.DELETE, descriptionField, null, null, primaryKeyOwner));
+							result.addAll(getSQLJoinTableCommands(sourceValue.getSource(), SQLStatementType.DELETE,
+									descriptionField, null, null, primaryKeyOwner));
 				}
 
 			}
 		}
 	}
 
-	protected void updateObject(Object targetObject, EntityCache entityCache, ArrayList<NamedParameter> namedParameters, List<CommandSQL> result,
-			Object oldVersion) {
+	protected void updateObject(Object targetObject, EntityCache entityCache, ArrayList<NamedParameter> namedParameters,
+			List<CommandSQL> result, Object oldVersion) {
 		/*
 		 * Seta a versão anterior caso o objeto tenha sido anotado com
 		 * 
@@ -701,11 +764,13 @@ public class SQLPersisterImpl implements SQLPersister {
 			}
 		}
 		String sql = generateSql(entityCache.getTableName(), SQLStatementType.UPDATE, namedParameters);
-		result.add(new UpdateCommandSQL(session, sql, namedParameters, targetObject, entityCache, entityCache.getTableName(), session.getShowSql(),
+		result.add(new UpdateCommandSQL(session, sql, namedParameters, targetObject, entityCache,
+				entityCache.getTableName(), session.getShowSql(),
 				entityCache.getDescriptionSqlByType(SQLStatementType.UPDATE), executeInBatchMode()));
 	}
 
-	protected void updateRelationships(Object targetObject, EntityCache entityCache, List<CommandSQL> result) throws Exception {
+	protected void updateRelationships(Object targetObject, EntityCache entityCache, List<CommandSQL> result)
+			throws Exception {
 		/*
 		 * Salva primeiro os relacionamentos(FK) com o objeto
 		 */
@@ -718,7 +783,8 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected void updateParametersKey(Object targetObject, EntityCache entityCache, ArrayList<NamedParameter> namedParameters) throws Exception {
+	protected void updateParametersKey(Object targetObject, EntityCache entityCache,
+			ArrayList<NamedParameter> namedParameters) throws Exception {
 		/*
 		 * Gera as chaves do update.
 		 */
@@ -726,53 +792,66 @@ public class SQLPersisterImpl implements SQLPersister {
 		for (DescriptionColumn column : entityCache.getPrimaryKeyColumns()) {
 			if (session.getPersistenceContext().isExistsEntityManaged(targetObject)) {
 				if (!NamedParameter.contains(namedParameters, column.getColumnName()))
-					namedParameters.add(new NamedParameter(column.getColumnName(), entityCache.getLastValueByColumn(session, targetObject, column), true));
+					namedParameters.add(new NamedParameter(column.getColumnName(),
+							entityCache.getLastValueByColumn(session, targetObject, column), true));
 			} else {
 				if (!NamedParameter.contains(namedParameters, column.getColumnName()))
-					namedParameters.add(new NamedParameter(column.getColumnName(), primaryKey.get(column.getColumnName()), true));
+					namedParameters.add(
+							new NamedParameter(column.getColumnName(), primaryKey.get(column.getColumnName()), true));
 			}
 		}
 	}
 
-	protected Object updateVersion(Object targetObject, EntityCache entityCache, ArrayList<NamedParameter> namedParameters, EntityManaged entityManaged)
+	protected Object updateVersion(Object targetObject, EntityCache entityCache,
+			ArrayList<NamedParameter> namedParameters, EntityManaged entityManaged)
 			throws Exception, IllegalAccessException, InvocationTargetException {
 		Object oldVersion = null;
 		/*
 		 * Incrementa a versão atual caso o objeto tenha sido anotado com
 		 * 
-		 * @Version e a estratégia do lock seja OPTIMIST_FORCE_INCREMENT, PESSIMISTIC_FORCE_INCREMENT ou WRITE
+		 * @Version e a estratégia do lock seja OPTIMIST_FORCE_INCREMENT,
+		 * PESSIMISTIC_FORCE_INCREMENT ou WRITE
 		 */
 		if (entityCache.isVersioned()) {
 			Object newVersion = null;
 			if (entityManaged != null) {
 				oldVersion = entityManaged.getOldVersion();
 				newVersion = entityManaged.getOldVersion();
-				if (entityManaged.containsLockMode(LockMode.OPTIMISTIC_FORCE_INCREMENT, LockMode.PESSIMISTIC_FORCE_INCREMENT, LockMode.WRITE)) {
-					newVersion = Versioning.incrementVersion(entityManaged.getCurrentVersion(), entityCache.getVersionColumn().getField().getType());
+				if (entityManaged.containsLockMode(LockMode.OPTIMISTIC_FORCE_INCREMENT,
+						LockMode.PESSIMISTIC_FORCE_INCREMENT, LockMode.WRITE)) {
+					newVersion = Versioning.incrementVersion(entityManaged.getCurrentVersion(),
+							entityCache.getVersionColumn().getField().getType());
 					entityManaged.setCurrentVersion(newVersion);
-					ReflectionUtils.setObjectValueByField(targetObject, entityCache.getVersionColumn().getField(), newVersion);
+					ReflectionUtils.setObjectValueByField(targetObject, entityCache.getVersionColumn().getField(),
+							newVersion);
 				}
 			} else {
-				oldVersion = ReflectionUtils.getFieldValueByName(targetObject, entityCache.getVersionColumn().getField().getName());
-				newVersion = Versioning.incrementVersion(oldVersion, entityCache.getVersionColumn().getField().getType());
+				oldVersion = ReflectionUtils.getFieldValueByName(targetObject,
+						entityCache.getVersionColumn().getField().getName());
+				newVersion = Versioning.incrementVersion(oldVersion,
+						entityCache.getVersionColumn().getField().getType());
 			}
 			namedParameters.add(new NamedParameter(entityCache.getVersionColumn().getColumnName(), newVersion));
 		}
 		return oldVersion;
 	}
 
-	protected void updateCommonsParameters(Object targetObject, EntityCache entityCache, List<DescriptionField> fieldsModified,
-			ArrayList<NamedParameter> namedParameters) throws SQLSessionException, IllegalAccessException, InvocationTargetException, Exception {
+	protected void updateCommonsParameters(Object targetObject, EntityCache entityCache,
+			List<DescriptionField> fieldsModified, ArrayList<NamedParameter> namedParameters)
+			throws SQLSessionException, IllegalAccessException, InvocationTargetException, Exception {
 		Object newColumnValue;
 		/*
 		 * Gera os campos do update.
 		 */
 		Map<String, Object> foreignKey = null;
 		for (DescriptionField fieldModified : fieldsModified) {
-			if (!fieldModified.isAnyCollectionOrMap() && !fieldModified.isVersioned() && (!fieldModified.isJoinTable())) {
+			if (!fieldModified.isAnyCollectionOrMap() && !fieldModified.isVersioned()
+					&& (!fieldModified.isJoinTable())) {
 				if (fieldModified.isPrimaryKey())
-					throw new SQLSessionException("Não é permitido alterar a chave de um Objeto sendo gerenciado. Verifique o campo " + fieldModified.getName()
-							+ " do objeto da classe " + entityCache.getEntityClass().getName());
+					throw new SQLSessionException(
+							"Não é permitido alterar a chave de um Objeto sendo gerenciado. Verifique o campo "
+									+ fieldModified.getName() + " do objeto da classe "
+									+ entityCache.getEntityClass().getName());
 
 				newColumnValue = ReflectionUtils.getFieldValue(targetObject, fieldModified.getField());
 				if (fieldModified.isInitialized(session, newColumnValue)) {
@@ -798,18 +877,21 @@ public class SQLPersisterImpl implements SQLPersister {
 					for (DescriptionColumn columnModified : fieldModified.getDescriptionColumns()) {
 						if (!columnModified.isDiscriminatorColumn()) {
 							boolean allowChangeField = true;
-							if (session.getPersistenceContext().isExistsEntityManaged(targetObject) && (!entityCache.isExistsDescriptionSQL()))
-								allowChangeField = entityCache.fieldCanbeChanged(session, targetObject, columnModified.getField().getName());
+							if (session.getPersistenceContext().isExistsEntityManaged(targetObject)
+									&& (!entityCache.isExistsDescriptionSQL()))
+								allowChangeField = entityCache.fieldCanbeChanged(session, targetObject,
+										columnModified.getField().getName());
 
 							if (allowChangeField) {
 								if (columnModified.isForeignKey()) {
 									if (!NamedParameter.contains(namedParameters, columnModified.getColumnName())) {
-										namedParameters.add(
-												new NamedParameter(columnModified.getColumnName(), foreignKey.get(columnModified.getReferencedColumnName())));
+										namedParameters.add(new NamedParameter(columnModified.getColumnName(),
+												foreignKey.get(columnModified.getReferencedColumnName())));
 									}
 								} else {
 									if (!NamedParameter.contains(namedParameters, columnModified.getColumnName())) {
-										namedParameters.add(fieldModified.getNamedParameterFromDatabaseObjectValue(session, targetObject, columnModified));
+										namedParameters.add(fieldModified.getNamedParameterFromDatabaseObjectValue(
+												session, targetObject, columnModified));
 									}
 								}
 							}
@@ -820,14 +902,16 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected List<CommandSQL> getCommandsToDeleteObject(Object targetObject, EntityCache entityCache) throws Exception {
+	protected List<CommandSQL> getCommandsToDeleteObject(Object targetObject, EntityCache entityCache)
+			throws Exception {
 		List<NamedParameter> keyParameters = new ArrayList<NamedParameter>();
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 
 		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(targetObject);
 
 		/*
-		 * Gera as chaves do update ou delete. Se for delete remove os itens das coleções antes de remover o objeto.
+		 * Gera as chaves do update ou delete. Se for delete remove os itens das
+		 * coleções antes de remover o objeto.
 		 */
 		Map<String, Object> primaryKeyOwner = session.getIdentifier(targetObject).getDatabaseColumns();
 		for (String key : primaryKeyOwner.keySet())
@@ -848,7 +932,8 @@ public class SQLPersisterImpl implements SQLPersister {
 					if (descriptionField.isCollectionEntity()) {
 						if (!(Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.DELETE)
-								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.DELETE_ORPHAN)))
+								|| Arrays.asList(descriptionField.getCascadeTypes())
+										.contains(CascadeType.DELETE_ORPHAN)))
 							continue;
 
 						if (fieldValue instanceof Collection) {
@@ -857,8 +942,11 @@ public class SQLPersisterImpl implements SQLPersister {
 							}
 						}
 					} else
-						result.add(new DeleteCommandSQL(session, generateSql(tableName, SQLStatementType.DELETE, keyParameters), keyParameters, null, null,
-								tableName, session.getShowSql(), descriptionField.getDescriptionSqlByType(SQLStatementType.DELETE), executeInBatchMode()));
+						result.add(new DeleteCommandSQL(session,
+								generateSql(tableName, SQLStatementType.DELETE, keyParameters), keyParameters, null,
+								null, tableName, session.getShowSql(),
+								descriptionField.getDescriptionSqlByType(SQLStatementType.DELETE),
+								executeInBatchMode()));
 				}
 			}
 		}
@@ -869,21 +957,25 @@ public class SQLPersisterImpl implements SQLPersister {
 		 * @Version
 		 */
 		if (entityCache.isVersioned())
-			keyParameters.add(new NamedParameter(entityCache.getVersionColumnName(), entityManaged.getOldVersion(), true));
+			keyParameters
+					.add(new NamedParameter(entityCache.getVersionColumnName(), entityManaged.getOldVersion(), true));
 
-		result.add(new DeleteCommandSQL(session, generateSql(entityCache.getTableName(), SQLStatementType.DELETE, keyParameters), keyParameters, targetObject,
-				entityCache, entityCache.getTableName(), session.getShowSql(), entityCache.getDescriptionSqlByType(SQLStatementType.DELETE),
-				executeInBatchMode()));
+		result.add(new DeleteCommandSQL(session,
+				generateSql(entityCache.getTableName(), SQLStatementType.DELETE, keyParameters), keyParameters,
+				targetObject, entityCache, entityCache.getTableName(), session.getShowSql(),
+				entityCache.getDescriptionSqlByType(SQLStatementType.DELETE), executeInBatchMode()));
 
 		return result;
 	}
 
-	protected void saveRelationShip(Object fieldValue, DescriptionField field, List<CommandSQL> result) throws Exception {
+	protected void saveRelationShip(Object fieldValue, DescriptionField field, List<CommandSQL> result)
+			throws Exception {
 		/*
-		 * Se for uma entidade de relacionamento ForeignKey e Cascade = ALL ou SAVE e o objeto não for somente leitura
-		 * salva o objeto
+		 * Se for uma entidade de relacionamento ForeignKey e Cascade = ALL ou
+		 * SAVE e o objeto não for somente leitura salva o objeto
 		 */
-		if (Arrays.asList(field.getCascadeTypes()).contains(CascadeType.ALL) || Arrays.asList(field.getCascadeTypes()).contains(CascadeType.SAVE)) {
+		if (Arrays.asList(field.getCascadeTypes()).contains(CascadeType.ALL)
+				|| Arrays.asList(field.getCascadeTypes()).contains(CascadeType.SAVE)) {
 			EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(fieldValue);
 			if (entityManaged != null) {
 				if (!entityManaged.getStatus().equals(EntityStatus.READ_ONLY))
@@ -896,32 +988,38 @@ public class SQLPersisterImpl implements SQLPersister {
 	protected String generateSql(String tableName, SQLStatementType statement, List<NamedParameter> parameters) {
 		if (statement.equals(SQLStatementType.INSERT)) {
 			if (NamedParameter.getNames(parameters).length > 0)
-				return new Insert(session.getDialect()).setTableName(tableName).addColumns(NamedParameter.getNames(parameters)).toStatementString();
+				return new Insert(session.getDialect()).setTableName(tableName)
+						.addColumns(NamedParameter.getNames(parameters)).toStatementString();
 		} else if (statement.equals(SQLStatementType.UPDATE)) {
 			if (NamedParameter.getNames(parameters).length > 0)
-				return new Update(session.getDialect()).setTableName(tableName).addColumns(NamedParameter.getNames(parameters))
+				return new Update(session.getDialect()).setTableName(tableName)
+						.addColumns(NamedParameter.getNames(parameters))
 						.addPrimaryKeyColumns(NamedParameter.getNamesKey(parameters)).toStatementString();
 		} else if (statement.equals(SQLStatementType.DELETE)) {
 			if (NamedParameter.getNamesKey(parameters).length > 0)
-				return new Delete().setTableName(tableName).addPrimaryKeyColumns(NamedParameter.getNamesKey(parameters)).toStatementString();
+				return new Delete().setTableName(tableName).addPrimaryKeyColumns(NamedParameter.getNamesKey(parameters))
+						.toStatementString();
 		}
 
 		return "";
 	}
 
-	protected List<CommandSQL> getSQLMapTableCommands(Object key, Object value, SQLStatementType statement, DescriptionField field,
-			DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert, Map<String, Object> primaryKeyOwner) {
+	protected List<CommandSQL> getSQLMapTableCommands(Object key, Object value, SQLStatementType statement,
+			DescriptionField field, DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert,
+			Map<String, Object> primaryKeyOwner) {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 		if (key != null) {
 			ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 			if (statement.equals(SQLStatementType.INSERT)) {
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
 					if (descriptionColumn.isForeignKey()) {
-						if (descriptionColumn.getColumnName().equals(identifyColumn == null ? null : identifyColumn.getColumnName()))
-							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), identifierPostInsert));
+						if (descriptionColumn.getColumnName()
+								.equals(identifyColumn == null ? null : identifyColumn.getColumnName()))
+							namedParameters
+									.add(new NamedParameter(descriptionColumn.getColumnName(), identifierPostInsert));
 						else
-							namedParameters.add(
-									new NamedParameter(descriptionColumn.getColumnName(), primaryKeyOwner.get(descriptionColumn.getReferencedColumnName())));
+							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+									primaryKeyOwner.get(descriptionColumn.getReferencedColumnName())));
 					} else {
 						Object parameterValue = null;
 						if (descriptionColumn.isMapKeyColumn())
@@ -930,18 +1028,21 @@ public class SQLPersisterImpl implements SQLPersister {
 							parameterValue = value;
 
 						if (field.isEnumerated())
-							namedParameters
-									.add(new NamedParameter(descriptionColumn.getColumnName(), descriptionColumn.getValueEnum(parameterValue.toString())));
+							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+									descriptionColumn.getValueEnum(parameterValue.toString())));
 						else if (field.isTemporalDate())
-							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue, TemporalType.DATE));
+							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue,
+									TemporalType.DATE));
 						else if (field.isTemporalDateTime())
-							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue, TemporalType.DATE_TIME));
+							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue,
+									TemporalType.DATE_TIME));
 						else
 							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue));
 					}
 				}
-				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), null, null, field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(), null, null,
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE)) {
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
 					if (descriptionColumn.isPrimaryKey()) {
@@ -956,42 +1057,50 @@ public class SQLPersisterImpl implements SQLPersister {
 								parameterValue = value;
 
 							if (field.isEnumerated())
-								namedParameters
-										.add(new NamedParameter(descriptionColumn.getColumnName(), descriptionColumn.getValueEnum(parameterValue.toString())));
+								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+										descriptionColumn.getValueEnum(parameterValue.toString())));
 							else if (field.isTemporalDate())
-								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue, TemporalType.DATE));
+								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+										parameterValue, TemporalType.DATE));
 							else if (field.isTemporalDateTime())
-								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue, TemporalType.DATE_TIME));
+								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+										parameterValue, TemporalType.DATE_TIME));
 							else
-								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue));
+								namedParameters
+										.add(new NamedParameter(descriptionColumn.getColumnName(), parameterValue));
 
 						}
 					}
 				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(),
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isPrimaryKey()) {
 						if (column.isForeignKey()) {
-							namedParameters.add(new NamedParameter(column.getColumnName(), primaryKeyOwner.get(column.getReferencedColumnName()), true));
+							namedParameters.add(new NamedParameter(column.getColumnName(),
+									primaryKeyOwner.get(column.getReferencedColumnName()), true));
 						}
 					}
 				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(),
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
 		}
 		return result;
 	}
 
-	protected List<CommandSQL> getSQLJoinTableCommands(Object value, SQLStatementType statement, DescriptionField field, DescriptionColumn identifyColumn,
-			IdentifierPostInsert identifierPostInsert, Map<String, Object> primaryKeyOwner) throws Exception {
+	protected List<CommandSQL> getSQLJoinTableCommands(Object value, SQLStatementType statement, DescriptionField field,
+			DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert,
+			Map<String, Object> primaryKeyOwner) throws Exception {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 		if (value != null) {
 			ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 			if (statement.equals(SQLStatementType.INSERT)) {
-				if (Arrays.asList(field.getCascadeTypes()).contains(CascadeType.ALL) || Arrays.asList(field.getCascadeTypes()).contains(CascadeType.SAVE)) {
+				if (Arrays.asList(field.getCascadeTypes()).contains(CascadeType.ALL)
+						|| Arrays.asList(field.getCascadeTypes()).contains(CascadeType.SAVE)) {
 					EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(value);
 					if (entityManaged != null) {
 						if (!entityManaged.getStatus().equals(EntityStatus.READ_ONLY))
@@ -1000,35 +1109,38 @@ public class SQLPersisterImpl implements SQLPersister {
 						save(session, value, result);
 				} else {
 					if (!session.getIdentifier(value).hasIdentifier())
-						throw new SQLSessionException(
-								"Objeto " + value.getClass() + " não possuí anotação para salvar em cascata e também não possuí identificador. ");
+						throw new SQLSessionException("Objeto " + value.getClass()
+								+ " não possuí anotação para salvar em cascata e também não possuí identificador. ");
 				}
 				Map<String, Object> foreignKeyRight = session.getIdentifier(value).getDatabaseColumns();
 
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
 					if (descriptionColumn.isForeignKey()) {
-						if (descriptionColumn.getColumnName().equals(identifyColumn == null ? null : identifyColumn.getColumnName()))
-							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), identifierPostInsert));
+						if (descriptionColumn.getColumnName()
+								.equals(identifyColumn == null ? null : identifyColumn.getColumnName()))
+							namedParameters
+									.add(new NamedParameter(descriptionColumn.getColumnName(), identifierPostInsert));
 						else {
 							if (foreignKeyRight.containsKey(descriptionColumn.getColumnName()))
-								namedParameters
-										.add(new NamedParameter(descriptionColumn.getColumnName(), foreignKeyRight.get(descriptionColumn.getColumnName())));
+								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+										foreignKeyRight.get(descriptionColumn.getColumnName())));
 							else
 								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
 										primaryKeyOwner.get(descriptionColumn.getReferencedColumnName())));
 						}
 					}
 				}
-				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), null, null, field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(), null, null,
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE)) {
 				Map<String, Object> foreignKeyRight = session.getIdentifier(value).getColumns();
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
 					if (descriptionColumn.isPrimaryKey()) {
 						if (descriptionColumn.isForeignKey()) {
 							if (foreignKeyRight.containsKey(descriptionColumn.getColumnName()))
-								namedParameters.add(
-										new NamedParameter(descriptionColumn.getColumnName(), foreignKeyRight.get(descriptionColumn.getColumnName()), true));
+								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+										foreignKeyRight.get(descriptionColumn.getColumnName()), true));
 							else
 								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
 										primaryKeyOwner.get(descriptionColumn.getReferencedColumnName()), true));
@@ -1036,77 +1148,90 @@ public class SQLPersisterImpl implements SQLPersister {
 							namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(), value, true));
 					}
 				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(),
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
 				Map<String, Object> foreignKeyRight = session.getIdentifier(value).getColumns();
 				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
 					if (descriptionColumn.isPrimaryKey()) {
 						if (descriptionColumn.isForeignKey()) {
 							if (foreignKeyRight.containsKey(descriptionColumn.getColumnName()))
-								namedParameters.add(
-										new NamedParameter(descriptionColumn.getColumnName(), foreignKeyRight.get(descriptionColumn.getColumnName()), true));
+								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+										foreignKeyRight.get(descriptionColumn.getColumnName()), true));
 							else
 								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
 										primaryKeyOwner.get(descriptionColumn.getReferencedColumnName()), true));
 						}
 					}
 				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(),
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
 		}
 		return result;
 	}
 
-	protected List<CommandSQL> getSQLCollectionEntityCommand(Object value, SQLStatementType statement) throws Exception {
+	protected List<CommandSQL> getSQLCollectionEntityCommand(Object value, SQLStatementType statement)
+			throws Exception {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 		if (value != null) {
 			if (statement.equals(SQLStatementType.INSERT))
-				result.addAll(getCommandsToInsertObject(value, session.getEntityCacheManager().getEntityCache(value.getClass())));
+				result.addAll(getCommandsToInsertObject(value,
+						session.getEntityCacheManager().getEntityCache(value.getClass())));
 			else if (statement.equals(SQLStatementType.DELETE))
-				result.addAll(getCommandsToDeleteObject(value, session.getEntityCacheManager().getEntityCache(value.getClass())));
+				result.addAll(getCommandsToDeleteObject(value,
+						session.getEntityCacheManager().getEntityCache(value.getClass())));
 		}
 		return result;
 	}
 
-	protected List<CommandSQL> getSQLCollectionTableCommands(Object value, SQLStatementType statement, DescriptionField field, DescriptionColumn identifyColumn,
-			IdentifierPostInsert identifierPostInsert, Map<String, Object> primaryKeyOwner) {
+	protected List<CommandSQL> getSQLCollectionTableCommands(Object value, SQLStatementType statement,
+			DescriptionField field, DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert,
+			Map<String, Object> primaryKeyOwner) {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 		if (value != null) {
 			ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 			if (statement.equals(SQLStatementType.INSERT)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isForeignKey()) {
-						if (column.getColumnName().equals(identifyColumn == null ? null : identifyColumn.getColumnName())) {
+						if (column.getColumnName()
+								.equals(identifyColumn == null ? null : identifyColumn.getColumnName())) {
 							namedParameters.add(new NamedParameter(column.getColumnName(), identifierPostInsert));
 						} else
-							namedParameters.add(new NamedParameter(column.getColumnName(), primaryKeyOwner.get(column.getReferencedColumnName())));
+							namedParameters.add(new NamedParameter(column.getColumnName(),
+									primaryKeyOwner.get(column.getReferencedColumnName())));
 					} else
 						namedParameters.add(new NamedParameter(column.getColumnName(), value));
 				}
-				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), null, null, field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new InsertCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(), null, null,
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isPrimaryKey()) {
 						if (column.isForeignKey())
-							namedParameters.add(new NamedParameter(column.getColumnName(), primaryKeyOwner.get(column.getReferencedColumnName()), true));
+							namedParameters.add(new NamedParameter(column.getColumnName(),
+									primaryKeyOwner.get(column.getReferencedColumnName()), true));
 						else
 							namedParameters.add(new NamedParameter(column.getColumnName(), value, true));
 					}
 				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(),
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isPrimaryKey()) {
 						if (column.isForeignKey())
-							namedParameters.add(new NamedParameter(column.getColumnName(), primaryKeyOwner.get(column.getReferencedColumnName()), true));
+							namedParameters.add(new NamedParameter(column.getColumnName(),
+									primaryKeyOwner.get(column.getReferencedColumnName()), true));
 					}
 				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters), namedParameters, null, null,
-						field.getTableName(), session.getShowSql(), field.getDescriptionSqlByType(statement), executeInBatchMode()));
+				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+						namedParameters, null, null, field.getTableName(), session.getShowSql(),
+						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
 		}
 		return result;
@@ -1144,18 +1269,31 @@ public class SQLPersisterImpl implements SQLPersister {
 	public void save(SQLSession session, Class<?> clazz, String[] columns, String[] values) throws Exception {
 		throw new SQLSessionException("Método não suportado.");
 	}
-	
+
 	private class IdentifierResult {
 		public DescriptionColumn identifyColumn = null;
-		public IdentifierPostInsert identifierPostInsert=null;
-		
+		public IdentifierPostInsert identifierPostInsert = null;
+
 		public IdentifierResult(DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert) {
 			super();
 			this.identifyColumn = identifyColumn;
 			this.identifierPostInsert = identifierPostInsert;
 		}
-		
-		
+
+	}
+
+	@Override
+	public void save(SQLSession session, Object[] objects) throws Exception {
+		for (Object obj : objects ) {
+			save(session, obj);
+		}		
+	}
+
+	@Override
+	public void save(SQLSession session, Collection<?> objects) throws Exception {
+		for (Object obj : objects ) {
+			save(session, obj);
+		}		
 	}
 
 }
