@@ -247,8 +247,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		 * cria um novo
 		 */
 		if (objectToRefresh != null) {
-			mainObject = objectToRefresh;
-			result.add(mainObject);
+			mainObject = objectToRefresh;			
 			objectToRefresh = null;
 		} else {
 			/*
@@ -260,13 +259,6 @@ public class EntityHandler implements ScrollableResultSetHandler {
 				 * Se não encontrou no cache cria uma nova instância
 				 */
 				mainObject = targetClass.newInstance();
-				result.add(mainObject);
-			} else {
-				/*
-				 * Se o objeto já foi criado e foi configurado para criar
-				 * objetos duplicados adiciona na lista.
-				 */
-				result.add(mainObject);
 			}
 		}
 
@@ -282,6 +274,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		for (ExpressionFieldMapper expression : expressionsFieldMapper) {
 			expression.execute(session, resultSet, entityManaged, mainObject, transactionCache);
 		}
+		
+		result.add(mainObject);
 		/*
 		 * Adiciona o objeto no Cache da sessão ou da transação para evitar
 		 * buscar o objeto novamente no mesmo processamento
