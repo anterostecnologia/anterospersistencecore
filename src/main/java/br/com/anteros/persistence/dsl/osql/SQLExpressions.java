@@ -171,6 +171,16 @@ public final class SQLExpressions {
 	public static <D extends Comparable> DateExpression<D> dateTrunc(DateExpression<D> date) {
 		return DateOperation.create((Class) date.getType(), Ops.DateTimeOps.DATE, date);
 	}
+	
+	/**
+	 * Truncate the given date expression
+	 *
+	 * @param date
+	 * @return
+	 */
+	public static <D extends Comparable> DateExpression<D> dateTrunc(DateTimeExpression<D> date) {
+		return DateOperation.create((Class) date.getType(), Ops.DateTimeOps.DATE, date);
+	}
 
 	/**
 	 * Truncate the given date expression
