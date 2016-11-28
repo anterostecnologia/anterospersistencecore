@@ -71,11 +71,17 @@ public class SQLPersisterImpl implements SQLPersister {
 
 	private int currentBatchSize = 0;
 
+	private boolean beanValidationPresent;
+	
+	public SQLPersisterImpl() {
+		this.beanValidationPresent = AnterosBeanValidationHelper.isBeanValidationPresent();
+	}
+
 	private Set<Long> objectsInSavingProcess = new HashSet<Long>();
 
 	@Override
 	public SQLSessionValidatior getValidator() {
-		if (AnterosBeanValidationHelper.isBeanValidationPresent()) {
+		if (beanValidationPresent) {
 			if (validator == null)
 				validator = new SQLSessionValidatorImpl();
 		}
