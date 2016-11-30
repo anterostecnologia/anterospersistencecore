@@ -124,7 +124,7 @@ public abstract class CommandSQL {
 			 * Adiciona o objeto na lista de entidades gerenciadas
 			 */
 			EntityManaged entityManaged = session.getPersistenceContext().addEntityManaged(targetObject, false,
-					isNewEntity());
+					isNewEntity(),true);
 			/*
 			 * Atualiza a lista de "últimos Valores" (lastValues)
 			 */

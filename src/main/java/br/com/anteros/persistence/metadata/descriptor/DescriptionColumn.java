@@ -332,7 +332,7 @@ public class DescriptionColumn {
 
 	public FieldEntityValue getFieldEntityValue(Object object) throws Exception {
 		Map<String, Object> result = new HashMap<String, Object>();
-		result.put(this.getColumnName(), ObjectUtils.cloneObject(ReflectionUtils.getFieldValueByName(object, this.getField().getName())));
+		result.put(this.getColumnName(), ObjectUtils.cloneObject(descriptionField.getObjectValue(object)));
 		return new FieldEntityValue(this.getField().getName(), result, object);
 	}
 

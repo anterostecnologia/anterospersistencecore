@@ -29,7 +29,9 @@ public class ColumnConfiguration {
 	private String datePattern = "";
 	private String dateTimePattern = "";
 	private String timePattern = "";
+	private String tableName = "";
 
+	
 	public ColumnConfiguration() {
 	}
 
@@ -37,7 +39,7 @@ public class ColumnConfiguration {
 		this.name(column.name()).defaultValue(column.defaultValue()).inversedColumn(column.inversedColumn()).length(column.length())
 				.precision(column.precision()).scale(column.scale()).required(column.required()).columnDefinition(column.columnDefinition())
 				.insertable(column.insertable()).updatable(column.updatable()).datePattern(column.datePattern()).dateTimePattern(column.dateTimePattern())
-				.timePattern(column.timePattern());
+				.timePattern(column.timePattern()).tableName(column.table());
 	}
 
 	public ColumnConfiguration(ColumnConfiguration column) {
@@ -55,6 +57,7 @@ public class ColumnConfiguration {
 		this.datePattern = column.datePattern;
 		this.dateTimePattern = column.dateTimePattern;
 		this.timePattern = column.timePattern;
+		this.tableName = column.tableName;
 	}
 
 	public ColumnConfiguration(String name, int length, int precision, int scale, boolean required, String inversedColumn, boolean exportColumn,
@@ -244,5 +247,15 @@ public class ColumnConfiguration {
 		this.timePattern = timePattern;
 		return this;
 	}
+	
+	public String getTableName() {
+		return tableName;
+	}
+
+	public ColumnConfiguration tableName(String tableName) {
+		this.tableName = tableName;
+		return this;
+	}
+
 
 }

@@ -21,7 +21,7 @@ import br.com.anteros.persistence.metadata.EntityManaged;
 
 public interface SQLPersistenceContext {
 
-	public EntityManaged addEntityManaged(Object key, boolean readOnly, boolean newEntity) throws Exception;
+	public EntityManaged addEntityManaged(Object key, boolean readOnly, boolean newEntity, boolean checkIfExists) throws Exception;
 	
 	public EntityManaged getEntityManaged(Object key);
 	

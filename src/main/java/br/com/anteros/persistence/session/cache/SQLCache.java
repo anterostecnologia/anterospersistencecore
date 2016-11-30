@@ -15,14 +15,14 @@
  *******************************************************************************/
 package br.com.anteros.persistence.session.cache;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class SQLCache implements Cache {
 	protected Map<Object, Object> cache;
 
 	public SQLCache() {
-		cache = new ConcurrentHashMap<Object, Object>();
+		cache = new HashMap<Object, Object>();
 	}
 
 	public void put(Object key, Object value) {

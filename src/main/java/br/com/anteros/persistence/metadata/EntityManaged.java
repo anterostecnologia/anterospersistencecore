@@ -16,7 +16,7 @@
 package br.com.anteros.persistence.metadata;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
@@ -27,9 +27,9 @@ import br.com.anteros.persistence.session.lock.LockMode;
 public class EntityManaged {
 	private EntityCache entityCache;
 	private EntityStatus status;
-	private Set<String> fieldsForUpdate = new LinkedHashSet<String>();
-	private Set<FieldEntityValue> originalValues = new LinkedHashSet<FieldEntityValue>();
-	private Set<FieldEntityValue> lastValues = new LinkedHashSet<FieldEntityValue>();
+	private Set<String> fieldsForUpdate = new HashSet<String>();
+	private Set<FieldEntityValue> originalValues = new HashSet<FieldEntityValue>();
+	private Set<FieldEntityValue> lastValues = new HashSet<FieldEntityValue>();
 	private Object originalVersion;
 	private Object oldVersion;
 	private Object currentVersion;

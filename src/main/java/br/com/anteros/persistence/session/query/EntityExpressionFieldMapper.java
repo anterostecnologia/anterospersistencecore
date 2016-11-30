@@ -64,6 +64,7 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 			/*
 			 * Se for um campo abstrato
 			 */
+			boolean createdNewObject = false;
 			if (isAbstract) {
 				try {
 					/*
@@ -101,6 +102,7 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 					 */
 					if (newObject == null) {
 						newObject = concreteEntityCache.getEntityClass().newInstance();
+						createdNewObject = true;
 						/*
 						 * Adiciona o objeto instanciado no cache com sua chave única para ser usado quando houver
 						 * necessidade em outro ponto da árvore do objeto principal evitando assim criar objetos
@@ -130,6 +132,7 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 				newObject = getObjectFromCache(session, targetEntityCache, uniqueId, transactionCache);
 				if (newObject == null) {
 					newObject = targetEntityCache.getEntityClass().newInstance();
+					createdNewObject = true;
 					/*
 					 * Adiciona o objeto instanciado no cache com sua chave única para ser usado quando houver
 					 * necessidade em outro ponto da árvore do objeto principal evitando assim criar objetos repetidos
@@ -141,7 +144,7 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 			/*
 			 * Adiciona o objeto na lista de entidades gerenciadas pelo contexto da sessão porém como somente leitura
 			 */
-			newEntityManaged = session.getPersistenceContext().addEntityManaged(newObject, true, false);
+			newEntityManaged = session.getPersistenceContext().addEntityManaged(newObject, true, false,!createdNewObject);
 		} else {
 			/*
 			 * Caso já tenha sido criado pega o objeto do field

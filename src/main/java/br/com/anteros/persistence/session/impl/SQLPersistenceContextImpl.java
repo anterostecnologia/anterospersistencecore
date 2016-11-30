@@ -48,10 +48,16 @@ public class SQLPersistenceContextImpl implements SQLPersistenceContext {
 		this.cache = new SQLCache();
 	}
 
-	public EntityManaged addEntityManaged(Object value, boolean readOnly, boolean newEntity) throws Exception {
+	public EntityManaged addEntityManaged(Object value, boolean readOnly, boolean newEntity, boolean checkIfExists)
+			throws Exception {
 		LOG.debug("Add entity managed ");
-		EntityManaged entityManaged = getEntityManaged(value);
-		if (entityManaged == null) {
+		
+
+		EntityManaged entityManaged = null;
+		if (checkIfExists)
+			entityManaged = getEntityManaged(value);
+		
+		if (entityManaged == null || !checkIfExists) {
 			LOG.debug("Create new entity managed");
 			EntityCache entityCache = entityCacheManager.getEntityCache(value.getClass());
 			entityManaged = new EntityManaged(entityCache);

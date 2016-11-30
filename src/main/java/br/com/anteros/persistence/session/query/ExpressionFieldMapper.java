@@ -34,8 +34,9 @@ import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.cache.Cache;
 
 /**
- * Classe que representa uma expressão a ser processada para criação de um campo no objeto. Usado pela classe EntityHandler
- * para processar o ResultSet e criar os objetos correspondentes a classe de resultado.
+ * Classe que representa uma expressão a ser processada para criação de um campo
+ * no objeto. Usado pela classe EntityHandler para processar o ResultSet e criar
+ * os objetos correspondentes a classe de resultado.
  * 
  * @author edson
  * @see EntityHandler
@@ -47,25 +48,32 @@ public abstract class ExpressionFieldMapper {
 	protected String aliasColumnName;
 	protected List<ExpressionFieldMapper> children = new ArrayList<ExpressionFieldMapper>();
 
-	public ExpressionFieldMapper(EntityCache targetEntityCache,
-			DescriptionField descriptionField, String aliasColumnName) {
+	public ExpressionFieldMapper(EntityCache targetEntityCache, DescriptionField descriptionField,
+			String aliasColumnName) {
 		this.targetEntityCache = targetEntityCache;
 		this.descriptionField = descriptionField;
 		this.aliasColumnName = aliasColumnName;
 	}
 
 	/**
-	 * Método responsável pela execução da criação do objeto e atribuição ao campo do objeto alvo.
-	 * @param session Sessão
-	 * @param resultSet ResultSet contendo os dados do SQL
-	 * @param entityManaged Entidade sendo gerenciada
-	 * @param targetObject Objeto alvo
-	 * @param transactionCache Cache de objetos na transação(execução do SQL).
-	 * @throws Exception Exceção gerada
+	 * Método responsável pela execução da criação do objeto e atribuição ao
+	 * campo do objeto alvo.
+	 * 
+	 * @param session
+	 *            Sessão
+	 * @param resultSet
+	 *            ResultSet contendo os dados do SQL
+	 * @param entityManaged
+	 *            Entidade sendo gerenciada
+	 * @param targetObject
+	 *            Objeto alvo
+	 * @param transactionCache
+	 *            Cache de objetos na transação(execução do SQL).
+	 * @throws Exception
+	 *             Exceção gerada
 	 */
-	public abstract void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged, Object targetObject, Cache transactionCache) throws Exception;
-
-
+	public abstract void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged,
+			Object targetObject, Cache transactionCache) throws Exception;
 
 	public EntityCache getTargetEntityCache() {
 		return targetEntityCache;
@@ -91,41 +99,46 @@ public abstract class ExpressionFieldMapper {
 		this.aliasColumnName = aliasColumnName;
 	}
 
-
 	public List<ExpressionFieldMapper> getChildren() {
 		return Collections.unmodifiableList(children);
 	}
-	
-	public ExpressionFieldMapper addChild(ExpressionFieldMapper child){
+
+	public ExpressionFieldMapper addChild(ExpressionFieldMapper child) {
 		children.add(child);
 		return this;
 	}
 
 	/**
-	 * Retorna o objeto ExpressionFieldMapper filho correspondente ao nome do campo informado.
-	 * @param name Nome do campo
-	 * @return Objeto ExpressionFieldMapper correspondente ao campo ou nulo caso não exista.
+	 * Retorna o objeto ExpressionFieldMapper filho correspondente ao nome do
+	 * campo informado.
+	 * 
+	 * @param name
+	 *            Nome do campo
+	 * @return Objeto ExpressionFieldMapper correspondente ao campo ou nulo caso
+	 *         não exista.
 	 */
 	public ExpressionFieldMapper getExpressionFieldByName(String name) {
-		for (ExpressionFieldMapper child : children){
-			if (child.getDescriptionField().getField().getName().equalsIgnoreCase(name)){
+		for (ExpressionFieldMapper child : children) {
+			if (child.getDescriptionField().getField().getName().equalsIgnoreCase(name)) {
 				return child;
 			}
 		}
 		return null;
 	}
 
-	public String toString(int level){
-		StringBuilder sb = new StringBuilder(StringUtils.repeat(" ", level*4) + descriptionField.getField().getName()+" -> "+targetEntityCache.getEntityClass().getSimpleName()+" : "+aliasColumnName);
+	public String toString(int level) {
+		StringBuilder sb = new StringBuilder(StringUtils.repeat(" ", level * 4) + descriptionField.getField().getName()
+				+ " -> " + targetEntityCache.getEntityClass().getSimpleName() + " : " + aliasColumnName);
 		level = level + 1;
-		for (ExpressionFieldMapper expressionFieldMapper : children){
+		for (ExpressionFieldMapper expressionFieldMapper : children) {
 			sb.append("\n").append(expressionFieldMapper.toString(level));
 		}
 		return sb.toString();
 	}
-	
+
 	/**
-	 * Com base nos atributos da expressão retorna o valor correspondente a coluna no ResultSet.
+	 * Com base nos atributos da expressão retorna o valor correspondente a
+	 * coluna no ResultSet.
 	 * 
 	 * @param resultSet
 	 * @return
@@ -142,33 +155,41 @@ public abstract class ExpressionFieldMapper {
 			return value;
 		} catch (SQLException ex) {
 			throw new EntityHandlerException("Erro processando campo " + descriptionField.getField().getName()
-					+ " na classe " + targetEntityCache.getEntityClass().getName() + " coluna " + aliasColumnName
-					+ ". " + ex.getMessage());
+					+ " na classe " + targetEntityCache.getEntityClass().getName() + " coluna " + aliasColumnName + ". "
+					+ ex.getMessage());
 		}
 	}
 
 	/**
 	 * Busca um objeto no cache usando a Entidade e a chave para localização.
-	 * @param session Sessão
-	 * @param targetEntityCache Entidade
-	 * @param uniqueId Chave primária do objeto
-	 * @param transactionCache Cache da transação
-	 * @return Objeto correspondente a entidade e chave informada ou nulo caso não exista no cache.
+	 * 
+	 * @param session
+	 *            Sessão
+	 * @param targetEntityCache
+	 *            Entidade
+	 * @param uniqueId
+	 *            Chave primária do objeto
+	 * @param transactionCache
+	 *            Cache da transação
+	 * @return Objeto correspondente a entidade e chave informada ou nulo caso
+	 *         não exista no cache.
 	 */
-	protected Object getObjectFromCache(SQLSession session, EntityCache targetEntityCache, String uniqueId, Cache transactionCache) {
+	protected Object getObjectFromCache(SQLSession session, EntityCache targetEntityCache, String uniqueId,
+			Cache transactionCache) {
 		Object result = null;
 		/*
 		 * Se a classe for abstrata pega todas as implementações não abstratas e
 		 * verifica se existe um objeto da classe + ID no entityCache
 		 */
-		if (ReflectionUtils.isAbstractClass(targetEntityCache.getEntityClass())) {
+		if (targetEntityCache.isAbstractClass()) {
 			EntityCache[] entitiesCache = session.getEntityCacheManager().getEntitiesBySuperClass(targetEntityCache);
 			for (EntityCache entityCache : entitiesCache) {
-				result = transactionCache.get(entityCache.getEntityClass().getName() + "_" + uniqueId);
+				StringBuilder sb = new StringBuilder();
+				sb.append(entityCache.getEntityClass().getName()).append("_").append(uniqueId);
+				result = transactionCache.get(sb.toString());
 				if (result != null)
 					break;
-				result = session.getPersistenceContext().getObjectFromCache(
-						entityCache.getEntityClass().getName() + "_" + uniqueId);
+				result = session.getPersistenceContext().getObjectFromCache(sb.toString());
 				if (result != null)
 					break;
 			}
@@ -176,41 +197,51 @@ public abstract class ExpressionFieldMapper {
 			/*
 			 * Caso não seja abstrata localiza classe+ID no entityCache
 			 */
-			result = transactionCache.get(targetEntityCache.getEntityClass().getName() + "_" + uniqueId);
+			StringBuilder sb = new StringBuilder();
+			sb.append(targetEntityCache.getEntityClass().getName()).append("_").append(uniqueId);
+			result = transactionCache.get(sb.toString());
 
 			if (result == null)
-				result = session.getPersistenceContext().getObjectFromCache(
-						targetEntityCache.getEntityClass().getName() + "_" + uniqueId);
+				result = session.getPersistenceContext().getObjectFromCache(sb.toString());
 		}
 		return result;
 	}
-	
 
 	/**
 	 * Adiciona o objeto criado no cache da transação ou do contexto.
-	 * @param session Sessão
-	 * @param entityCache Entidade
-	 * @param targetObject Objeto a ser adicionado no cache
-	 * @param uniqueId Chave do objeto
-	 * @param transactionCache Cache de transação
+	 * 
+	 * @param session
+	 *            Sessão
+	 * @param entityCache
+	 *            Entidade
+	 * @param targetObject
+	 *            Objeto a ser adicionado no cache
+	 * @param uniqueId
+	 *            Chave do objeto
+	 * @param transactionCache
+	 *            Cache de transação
 	 */
-	protected void addObjectToCache(SQLSession session, EntityCache entityCache, Object targetObject, String uniqueId, Cache transactionCache) {
+	protected void addObjectToCache(SQLSession session, EntityCache entityCache, Object targetObject, String uniqueId,
+			Cache transactionCache) {
 		/*
 		 * Adiciona o objeto no Cache da sessão ou da transação para evitar
 		 * buscar o objeto novamente no mesmo processamento
 		 */
+		StringBuilder sb = new StringBuilder();
+		sb.append(entityCache.getEntityClass().getName()).append("_").append(uniqueId);
 		if ((entityCache.getCacheScope().equals(ScopeType.TRANSACTION)) && (transactionCache != null)) {
-			transactionCache.put(entityCache.getEntityClass().getName() + "_" + uniqueId, targetObject,
+			transactionCache.put(sb.toString(), targetObject,
 					entityCache.getMaxTimeCache());
 		} else {
-			session.getPersistenceContext().addObjectToCache(entityCache.getEntityClass().getName() + "_" + uniqueId,
+			session.getPersistenceContext().addObjectToCache(sb.toString(),
 					targetObject, entityCache.getMaxTimeCache());
 		}
 	}
-	
+
 	@Override
 	public String toString() {
-		return (targetEntityCache==null?"":targetEntityCache.getEntityClass())+":"+descriptionField.getField().getName()+":"+aliasColumnName;
+		return (targetEntityCache == null ? "" : targetEntityCache.getEntityClass()) + ":"
+				+ descriptionField.getField().getName() + ":" + aliasColumnName;
 	}
-	
+
 }

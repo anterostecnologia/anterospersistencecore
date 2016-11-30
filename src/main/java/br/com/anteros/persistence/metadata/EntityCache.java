@@ -39,6 +39,7 @@ import br.com.anteros.persistence.metadata.descriptor.DescriptionIndex;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionUniqueConstraint;
+import br.com.anteros.persistence.metadata.descriptor.DescritionSecondaryTable;
 import br.com.anteros.persistence.metadata.descriptor.ParamDescription;
 import br.com.anteros.persistence.metadata.descriptor.type.ColumnType;
 import br.com.anteros.persistence.metadata.descriptor.type.ConnectivityType;
@@ -76,6 +77,12 @@ public class EntityCache {
 	private List<DescriptionConvert> converts = new ArrayList<DescriptionConvert>();
 	private Map<GeneratedType, DescriptionGenerator> generators = new HashMap<GeneratedType, DescriptionGenerator>();
 	private int maxRecordBlockExport;
+	private List<DescritionSecondaryTable> secondaryTables = new LinkedList<DescritionSecondaryTable>();
+	private Set<String> fieldNames = new LinkedHashSet<String>();			
+
+	public List<DescritionSecondaryTable> getSecondaryTables() {
+		return secondaryTables;
+	}
 
 	public String generateAndGetAliasTableName() {
 		generateAliasTableName();
@@ -140,8 +147,9 @@ public class EntityCache {
 		this.fields = fields;
 	}
 
-	public void addDescriptionFields(DescriptionField descriptonField) {
-		this.fields.add(descriptonField);
+	public void addDescriptionFields(DescriptionField descriptionField) {
+		this.fields.add(descriptionField);
+		this.fieldNames.add(descriptionField.getField().getName());
 	}
 
 	public Class<?> getEntityClass() {
@@ -259,6 +267,9 @@ public class EntityCache {
 
 	public void addAllDescriptionField(List<DescriptionField> descriptionFields) {
 		this.fields.addAll(descriptionFields);
+		for (DescriptionField descriptionField : descriptionFields){
+			this.fieldNames.add(descriptionField.getField().getName());
+		}
 
 	}
 
@@ -606,10 +617,7 @@ public class EntityCache {
 	}
 
 	public Set<String> getAllFieldNames() {
-		Set<String> result = new HashSet<String>();
-		for (DescriptionField field : fields)
-			result.add(field.getField().getName());
-		return result;
+		return fieldNames;
 	}
 
 	public boolean hasDescriptionField() {
@@ -633,6 +641,10 @@ public class EntityCache {
 
 	public boolean hasNamedQueries() {
 		return this.namedQueries.size() > 0;
+	}
+	
+	public void addSecondaryTable(DescritionSecondaryTable secondaryTable){
+		this.secondaryTables.add(secondaryTable);
 	}
 
 	public void addDescriptionIndex(DescriptionIndex index) {

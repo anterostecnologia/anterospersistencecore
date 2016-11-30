@@ -237,6 +237,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		EntityCache entityCache = entityCacheManager.getEntityCache(targetClass);
 
 		Object mainObject = null;
+		boolean createdNewObject = false;
 
 		/*
 		 * Busca chave do objeto no resultSet
@@ -259,13 +260,14 @@ public class EntityHandler implements ScrollableResultSetHandler {
 				 * Se não encontrou no cache cria uma nova instância
 				 */
 				mainObject = targetClass.newInstance();
+				createdNewObject = true;
 			}
 		}
 
 		/*
 		 * Adiciona o objeto como sendo uma entidade gerenciada no contexto
 		 */
-		entityManaged = session.getPersistenceContext().addEntityManaged(mainObject, readOnly, false);
+		entityManaged = session.getPersistenceContext().addEntityManaged(mainObject, readOnly, false, !createdNewObject);
 		entityManaged.setLockMode(lockOptions.getLockMode());
 
 		/*
@@ -303,7 +305,9 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	 * @return Alias da coluna
 	 */
 	private String getAliasColumnName(EntityCache sourceEntityCache, String columnName) {
-		String result = aliasesCache.get(sourceEntityCache.getEntityClass().getName() + ":" + columnName);
+		StringBuilder sb = new StringBuilder();
+		sb.append(sourceEntityCache.getEntityClass().getName()).append(":").append(columnName);
+		String result = aliasesCache.get(sb.toString());
 		if (result != null)
 			return result;
 		for (SQLQueryAnalyserAlias queryAnalyserAlias : columnAliases.keySet()) {
@@ -318,7 +322,10 @@ public class EntityHandler implements ScrollableResultSetHandler {
 					}
 				}
 				result = (alias == null || alias.length == 0 ? columnName : alias[alias.length - 1]);
-				aliasesCache.put(sourceEntityCache.getEntityClass().getName() + ":" + columnName, result);
+				
+				sb = new StringBuilder();
+				sb.append(sourceEntityCache.getEntityClass().getName()).append(":").append(columnName);
+				aliasesCache.put(sb.toString(), result);
 				return result;
 			}
 		}
@@ -335,7 +342,9 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	 * @return Alias da coluna
 	 */
 	private String getAliasColumnName(String sourceAlias, String columnName) {
-		String result = aliasesCache.get(sourceAlias + ":" + columnName);
+		StringBuilder sb = new StringBuilder();
+		sb.append(sourceAlias).append(":").append(columnName);
+		String result = aliasesCache.get(sb.toString());
 		if (result != null)
 			return result;
 		for (SQLQueryAnalyserAlias queryAnalyserAlias : columnAliases.keySet()) {
@@ -348,7 +357,9 @@ public class EntityHandler implements ScrollableResultSetHandler {
 					}
 				}
 				result = (alias == null || alias.length <= 1 ? columnName : alias[1]);
-				aliasesCache.put(sourceAlias + ":" + columnName, result);
+				sb = new StringBuilder();
+				sb.append(sourceAlias).append(":").append(columnName);
+				aliasesCache.put(sb.toString(), result);
 				return result;
 			}
 		}
@@ -370,11 +381,13 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		 * Adiciona o objeto no cache da sessão ou da transação para evitar
 		 * buscar o objeto novamente no mesmo processamento
 		 */
+		StringBuilder sb = new StringBuilder();
+		sb.append(entityCache.getEntityClass().getName()).append("_").append(uniqueId);
 		if ((entityCache.getCacheScope().equals(ScopeType.TRANSACTION)) && (transactionCache != null)) {
-			transactionCache.put(entityCache.getEntityClass().getName() + "_" + uniqueId, targetObject,
+			transactionCache.put(sb.toString(), targetObject,
 					entityCache.getMaxTimeCache());
 		} else {
-			session.getPersistenceContext().addObjectToCache(entityCache.getEntityClass().getName() + "_" + uniqueId,
+			session.getPersistenceContext().addObjectToCache(sb.toString(),
 					targetObject, entityCache.getMaxTimeCache());
 		}
 	}
@@ -458,15 +471,17 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		 * Se a classe for abstrata pega todas as implementações não abstratas e
 		 * verifica se existe um objeto da classe + ID no Cache
 		 */
-		if (ReflectionUtils.isAbstractClass(targetEntityCache.getEntityClass())) {
+		if (targetEntityCache.isAbstractClass()) {
 			EntityCache[] entitiesCache = session.getEntityCacheManager().getEntitiesBySuperClass(targetEntityCache);
 			for (EntityCache entityCache : entitiesCache) {
-				result = transactionCache.get(entityCache.getEntityClass().getName() + "_" + uniqueId);
+				StringBuilder sb = new StringBuilder();
+				sb.append(entityCache.getEntityClass().getName()).append("_").append(uniqueId);
+				result = transactionCache.get(sb.toString());
 				if (result != null) {
 					break;
 				}
 				result = session.getPersistenceContext()
-						.getObjectFromCache(entityCache.getEntityClass().getName() + "_" + uniqueId);
+						.getObjectFromCache(sb.toString());
 				if (result != null)
 					break;
 			}
@@ -474,10 +489,12 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			/*
 			 * Caso não seja abstrata localiza classe+ID no Cache
 			 */
-			result = transactionCache.get(targetEntityCache.getEntityClass().getName() + "_" + uniqueId);
+			StringBuilder sb = new StringBuilder();
+			sb.append(targetEntityCache.getEntityClass().getName()).append("_").append(uniqueId);
+			result = transactionCache.get(sb.toString());
 			if (result == null)
 				result = session.getPersistenceContext()
-						.getObjectFromCache(targetEntityCache.getEntityClass().getName() + "_" + uniqueId);
+						.getObjectFromCache(sb.toString());
 
 		}
 		return result;
@@ -850,7 +867,9 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	 *         entidade
 	 */
 	private boolean existsExpressionForProcessing(EntityCache entityCache, String fieldName) {
-		String result = aliasesCache.get(entityCache.getEntityClass().getName() + ":" + fieldName);
+        StringBuilder sb = new StringBuilder();
+        sb.append(entityCache.getEntityClass().getName()).append(":").append(fieldName);
+		String result = aliasesCache.get(sb.toString());
 		if (result != null)
 			return true;
 
@@ -859,7 +878,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 				/*
 				 * Armazena no cache para acelerar a próxima busca
 				 */
-				aliasesCache.put(entityCache.getEntityClass().getName() + ":" + fieldName, "S");
+				aliasesCache.put(sb.toString(), "S");
 				return true;
 			}
 		}

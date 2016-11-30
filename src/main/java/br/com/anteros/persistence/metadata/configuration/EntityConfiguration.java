@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -46,6 +47,8 @@ import br.com.anteros.persistence.metadata.annotation.SQLDelete;
 import br.com.anteros.persistence.metadata.annotation.SQLDeleteAll;
 import br.com.anteros.persistence.metadata.annotation.SQLInsert;
 import br.com.anteros.persistence.metadata.annotation.SQLUpdate;
+import br.com.anteros.persistence.metadata.annotation.SecondaryTable;
+import br.com.anteros.persistence.metadata.annotation.SecondaryTables;
 import br.com.anteros.persistence.metadata.annotation.SequenceGenerator;
 import br.com.anteros.persistence.metadata.annotation.Table;
 import br.com.anteros.persistence.metadata.annotation.TableGenerator;
@@ -87,6 +90,7 @@ public class EntityConfiguration {
 	private TableGeneratorConfiguration tableGenerator;
 	private SequenceGeneratorConfiguration sequenceGenerator;
 	private UUIDGeneratorConfiguration uuidGenerator;
+	private List<SecondaryTableConfiguration> secondaryTables = new LinkedList<SecondaryTableConfiguration>();
 
 	public EntityConfiguration(Class<? extends Serializable> sourceClazz, PersistenceModelConfiguration model) {
 		this.sourceClazz = sourceClazz;
@@ -101,17 +105,28 @@ public class EntityConfiguration {
 	public FieldConfiguration addField(String fieldName) throws Exception {
 		for (FieldConfiguration field : fields) {
 			if (field.getName().equals(fieldName))
-				throw new ConfigurationException("Campo " + fieldName + " já adicionado na Entidade "
-						+ sourceClazz.getName());
+				throw new ConfigurationException(
+						"Campo " + fieldName + " já adicionado na Entidade " + sourceClazz.getName());
 		}
 
 		if (ReflectionUtils.getFieldByName(sourceClazz, fieldName) == null)
-			throw new ConfigurationException("Campo " + fieldName + " não encontrado na Classe "
-					+ sourceClazz.getName());
+			throw new ConfigurationException(
+					"Campo " + fieldName + " não encontrado na Classe " + sourceClazz.getName());
 
 		FieldConfiguration field = new FieldConfiguration(this, fieldName);
 		fields.add(field);
 		return field;
+	}
+
+	public EntityConfiguration addSecondaryTable(SecondaryTableConfiguration configuration) {
+		secondaryTables.add(configuration);
+		return this;
+	}
+
+	public EntityConfiguration addSecondaryTable(String catalog, String schema, String tableName,
+			PrimaryKeyJoinColumnConfiguration... pkJoinColumns) {
+		secondaryTables.add(new SecondaryTableConfiguration(catalog, schema, tableName, pkJoinColumns));
+		return this;
 	}
 
 	public EntityConfiguration table(String tableName) {
@@ -274,6 +289,35 @@ public class EntityConfiguration {
 								constraints[i].columnNames());
 				}
 				uniqueConstraints(uniqueConstraintsDef);
+			} else if ((annotation instanceof SecondaryTable) || (annotation instanceof SecondaryTables)) {
+				SecondaryTable[] secondaryTables = null;
+				if (annotation instanceof SecondaryTables)
+					secondaryTables = ((SecondaryTables) annotation).value();
+				else if (annotation instanceof SecondaryTable)
+					secondaryTables = new SecondaryTable[] { (SecondaryTable) annotation };
+				else if (annotation instanceof SecondaryTable.List)
+					secondaryTables = ((SecondaryTable.List) annotation).value();
+
+				SecondaryTableConfiguration[] secondaryConf = null;
+				if (secondaryTables != null) {
+					secondaryConf = new SecondaryTableConfiguration[secondaryTables.length];
+					for (int i = 0; i < secondaryTables.length; i++) {
+						secondaryConf[i] = new SecondaryTableConfiguration(secondaryTables[i].catalog(),
+								secondaryTables[i].schema());
+						for (int j = 0; j < secondaryTables[i].pkJoinColumns().length; j++) {
+							secondaryConf[i].add(new PrimaryKeyJoinColumnConfiguration(
+									secondaryTables[i].pkJoinColumns()[j].columnDefinition(),
+									secondaryTables[i].pkJoinColumns()[j].name(),
+									secondaryTables[i].pkJoinColumns()[j].referencedColumnName()));
+						}
+
+					}
+				}
+				if ((annotation instanceof SecondaryTables) || (annotation instanceof SecondaryTable.List))
+					secondaryTables(secondaryConf);
+				else
+					secondaryTable(secondaryConf);
+
 			} else if ((annotation instanceof Indexes) || (annotation instanceof Index)
 					|| (annotation instanceof Index.List)) {
 				Index[] indexes = null;
@@ -476,6 +520,18 @@ public class EntityConfiguration {
 		return this;
 	}
 
+	public EntityConfiguration secondaryTables(SecondaryTableConfiguration[] secondaryTables) {
+		this.annotations.add(SecondaryTables.class);
+		this.secondaryTables.addAll(Arrays.asList(secondaryTables));
+		return this;
+	}
+
+	public EntityConfiguration secondaryTable(SecondaryTableConfiguration[] secondaryTables) {
+		this.annotations.add(SecondaryTable.class);
+		this.secondaryTables.addAll(Arrays.asList(secondaryTables));
+		return this;
+	}
+
 	public EntityConfiguration index(IndexConfiguration index) {
 		this.annotations.add(Index.class);
 		this.indexes = new IndexConfiguration[] { index };
@@ -511,12 +567,13 @@ public class EntityConfiguration {
 	}
 
 	public EntityConfiguration remote(String displayLabel, String mobileActionExport, String mobileActionImport,
-			RemoteParamConfiguration[] importParams, RemoteParamConfiguration[] exportParams,
-			int exportOrderToSendData, String[] exportFields, ConnectivityType importConnectivityType,
-			ConnectivityType exportConnectivityType, int maxRecordBlockExport) {
+			RemoteParamConfiguration[] importParams, RemoteParamConfiguration[] exportParams, int exportOrderToSendData,
+			String[] exportFields, ConnectivityType importConnectivityType, ConnectivityType exportConnectivityType,
+			int maxRecordBlockExport) {
 		annotations.add(Remote.class);
 		this.remote = new RemoteConfiguration(displayLabel, mobileActionExport, mobileActionImport, importParams,
-				exportParams, exportOrderToSendData, exportFields, importConnectivityType, exportConnectivityType, maxRecordBlockExport);
+				exportParams, exportOrderToSendData, exportFields, importConnectivityType, exportConnectivityType,
+				maxRecordBlockExport);
 		return this;
 	}
 
@@ -530,7 +587,6 @@ public class EntityConfiguration {
 		return remote;
 	}
 
-
 	public DiscriminatorType getDiscriminatorColumnType() {
 		return discriminatorColumnType;
 	}
@@ -542,7 +598,6 @@ public class EntityConfiguration {
 	public EntityConfiguration getEntityConfigurationBySourceClass(Class<?> sourceClazz) {
 		return model.getEntityConfigurationBySourceClass(sourceClazz);
 	}
-	
 
 	public ConvertConfiguration[] getConverts() {
 		return converts;
@@ -565,19 +620,21 @@ public class EntityConfiguration {
 		this.annotations.add(Convert.class);
 		return this;
 	}
-	
+
 	public EntityConfiguration tableGenerator(TableGeneratorConfiguration tableGeneratorConfiguration) {
 		annotations.add(TableGenerator.class);
 		this.tableGenerator = tableGeneratorConfiguration;
 		return this;
 	}
-	
-	public EntityConfiguration sequenceGenerator(String sequenceName, String catalog, int initialValue, int startsWith, String schema) {
+
+	public EntityConfiguration sequenceGenerator(String sequenceName, String catalog, int initialValue, int startsWith,
+			String schema) {
 		annotations.add(SequenceGenerator.class);
-		this.sequenceGenerator = new SequenceGeneratorConfiguration(sequenceName, catalog, initialValue, startsWith, schema);
+		this.sequenceGenerator = new SequenceGeneratorConfiguration(sequenceName, catalog, initialValue, startsWith,
+				schema);
 		return this;
 	}
-	
+
 	public EntityConfiguration uuidGenerator(UUIDGenerator uuidGenerator) {
 		annotations.add(UUIDGenerator.class);
 		this.uuidGenerator = new UUIDGeneratorConfiguration(uuidGenerator);
@@ -589,7 +646,7 @@ public class EntityConfiguration {
 		this.sequenceGenerator = sequenceGeneratorConfiguration;
 		return this;
 	}
-	
+
 	public EntityConfiguration uuidGenerator(UUIDGeneratorConfiguration uuidGeneratorConfiguration) {
 		annotations.add(UUIDGenerator.class);
 		this.uuidGenerator = uuidGeneratorConfiguration;
@@ -599,13 +656,17 @@ public class EntityConfiguration {
 	public TableGeneratorConfiguration getTableGenerator() {
 		return tableGenerator;
 	}
-	
+
 	public SequenceGeneratorConfiguration getSequenceGenerator() {
 		return sequenceGenerator;
 	}
 
 	public UUIDGeneratorConfiguration getUuidGenerator() {
 		return uuidGenerator;
+	}
+
+	public List<SecondaryTableConfiguration> getSecondaryTables() {
+		return secondaryTables;
 	}
 
 }

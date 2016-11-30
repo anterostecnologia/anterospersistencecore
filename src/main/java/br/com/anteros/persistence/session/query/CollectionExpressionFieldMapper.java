@@ -169,11 +169,13 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 				 * Busca o objeto no cache da transação SQL.
 				 */
 				newObject = getObjectFromCache(session, targetEntityCache, uniqueId, transactionCache);
+				boolean createdNewObject = false;
 				if (newObject == null) {
 					/*
 					 * Se não encontrou instancia um novo objeto
 					 */
 					newObject = targetEntityCache.getEntityClass().newInstance();
+					createdNewObject = true;
 
 					/*
 					 * Atribui o objeto pai da lista ao filho da lista se encontrar o field mapeado.
@@ -194,7 +196,7 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 					if (targetObject instanceof Collection)
 						((Collection) targetObject).add(newObject);
 				}
-				session.getPersistenceContext().addEntityManaged(newObject, true, false);
+				session.getPersistenceContext().addEntityManaged(newObject, true, false,!createdNewObject);
 			} else {
 				newObject = descriptionField.getTargetClass().newInstance();
 				/*

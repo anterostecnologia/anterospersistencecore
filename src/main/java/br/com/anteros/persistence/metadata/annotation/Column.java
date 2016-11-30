@@ -56,6 +56,8 @@ public @interface Column {
 	String timePattern() default "";
 
 	String label() default "";
+	
+	String table() default "";
 
 	/**
 	 * Defines several {@code @Column} annotations on the same element.
