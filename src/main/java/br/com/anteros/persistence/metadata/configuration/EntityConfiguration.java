@@ -44,6 +44,8 @@ import br.com.anteros.persistence.metadata.annotation.Inheritance;
 import br.com.anteros.persistence.metadata.annotation.MappedSuperclass;
 import br.com.anteros.persistence.metadata.annotation.NamedQueries;
 import br.com.anteros.persistence.metadata.annotation.NamedQuery;
+import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumn;
+import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumns;
 import br.com.anteros.persistence.metadata.annotation.ReadOnly;
 import br.com.anteros.persistence.metadata.annotation.SQLDelete;
 import br.com.anteros.persistence.metadata.annotation.SQLDeleteAll;
@@ -93,6 +95,8 @@ public class EntityConfiguration {
 	private SequenceGeneratorConfiguration sequenceGenerator;
 	private UUIDGeneratorConfiguration uuidGenerator;
 	private List<SecondaryTableConfiguration> secondaryTables = new LinkedList<SecondaryTableConfiguration>();
+	private List<PrimaryKeyJoinColumnConfiguration> primaryKeys = new LinkedList<PrimaryKeyJoinColumnConfiguration>();
+	private String foreignKeyName;
 
 	public EntityConfiguration(Class<? extends Serializable> sourceClazz, PersistenceModelConfiguration model) {
 		this.sourceClazz = sourceClazz;
@@ -301,14 +305,13 @@ public class EntityConfiguration {
 									secondaryTables[i].pkJoinColumns()[j].name(),
 									secondaryTables[i].pkJoinColumns()[j].referencedColumnName()));
 						}
-
 					}
 				}
 				if ((annotation instanceof SecondaryTables) || (annotation instanceof SecondaryTable.List))
 					secondaryTables(secondaryConf);
 				else
 					secondaryTable(secondaryConf);
-
+				
 			} else if ((annotation instanceof Indexes) || (annotation instanceof Index)
 					|| (annotation instanceof Index.List)) {
 				Index[] indexes = null;
@@ -331,6 +334,26 @@ public class EntityConfiguration {
 				else
 					index(indexesConf);
 
+			} else if ((annotation instanceof PrimaryKeyJoinColumns) || (annotation instanceof PrimaryKeyJoinColumn)) {
+				PrimaryKeyJoinColumn[] primaryKeys = null;
+				if (annotation instanceof PrimaryKeyJoinColumns)
+					primaryKeys = ((PrimaryKeyJoinColumns) annotation).value();
+				else if (annotation instanceof PrimaryKeyJoinColumn)
+					primaryKeys = new PrimaryKeyJoinColumn[] {(PrimaryKeyJoinColumn) annotation};
+				
+				PrimaryKeyJoinColumnConfiguration[] pkJoinColumsConf = null;
+				if (primaryKeys != null) {
+					pkJoinColumsConf = new PrimaryKeyJoinColumnConfiguration[primaryKeys.length];
+					for (int i = 0; i < primaryKeys.length; i++) {
+						pkJoinColumsConf[i] = new PrimaryKeyJoinColumnConfiguration(primaryKeys[i].columnDefinition(), primaryKeys[i].name(), primaryKeys[i].referencedColumnName());
+					}
+				}
+				
+				if (annotation instanceof PrimaryKeyJoinColumns)
+					primaryKeyJoinColumns(pkJoinColumsConf);
+				else if (annotation instanceof PrimaryKeyJoinColumn)
+					primaryKeyJoinColumn(pkJoinColumsConf);
+				
 			} else if (annotation instanceof DiscriminatorColumn) {
 				discriminatorColumn(((DiscriminatorColumn) annotation).name(),
 						((DiscriminatorColumn) annotation).length(),
@@ -416,7 +439,6 @@ public class EntityConfiguration {
 				this.fields.add(fieldConfiguration);
 			}
 		}
-
 	}
 
 	public NamedQueryConfiguration[] getNamedQueries() {
@@ -497,6 +519,18 @@ public class EntityConfiguration {
 
 	public void comment(String comment) {
 		this.comment = comment;
+	}
+	
+	public EntityConfiguration primaryKeyJoinColumns(PrimaryKeyJoinColumnConfiguration[] pkJoinColumns) {
+		this.annotations.add(PrimaryKeyJoinColumns.class);
+		this.primaryKeys.addAll(Arrays.asList(pkJoinColumns));
+		return this;
+	}
+	
+	public EntityConfiguration primaryKeyJoinColumn(PrimaryKeyJoinColumnConfiguration[] pkJoinColumn) {
+		this.annotations.add(PrimaryKeyJoinColumn.class);
+		this.primaryKeys.addAll(Arrays.asList(pkJoinColumn));
+		return this;
 	}
 
 	public EntityConfiguration indexes(IndexConfiguration[] indexes) {
@@ -715,4 +749,28 @@ public class EntityConfiguration {
 		return false;
 	}
 
+	public List<PrimaryKeyJoinColumnConfiguration> getPrimaryKeys() {
+		return primaryKeys;
+	}
+
+	public String getForeignKeyName() {
+		return foreignKeyName;
+	}
+
+	public EntityConfiguration foreignKeyName(String foreignKeyName) {
+		this.foreignKeyName = foreignKeyName;
+		return this;
+	}
+	
+	public EntityConfiguration addPrimaryKeyJoinColumn(String columnDefinition, String name, String referencedColumnName) {
+		this.annotations.add(PrimaryKeyJoinColumns.class);
+		primaryKeys.add(new PrimaryKeyJoinColumnConfiguration(columnDefinition, name, referencedColumnName));
+		return this;
+	}
+	
+	public EntityConfiguration addPrimaryKeyJoinColumn(PrimaryKeyJoinColumnConfiguration pkJoinColumnConfiguration) {
+		this.annotations.add(PrimaryKeyJoinColumns.class);
+		primaryKeys.add(pkJoinColumnConfiguration);
+		return this;
+	}
 }

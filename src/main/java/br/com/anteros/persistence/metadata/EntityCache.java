@@ -30,6 +30,7 @@ import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
+import br.com.anteros.persistence.metadata.annotation.type.InheritanceType;
 import br.com.anteros.persistence.metadata.annotation.type.ScopeType;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionConvert;
@@ -37,6 +38,7 @@ import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionGenerator;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionIndex;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionPkJoinColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionUniqueConstraint;
 import br.com.anteros.persistence.metadata.descriptor.DescritionSecondaryTable;
@@ -78,7 +80,11 @@ public class EntityCache {
 	private Map<GeneratedType, DescriptionGenerator> generators = new HashMap<GeneratedType, DescriptionGenerator>();
 	private int maxRecordBlockExport;
 	private List<DescritionSecondaryTable> secondaryTables = new LinkedList<DescritionSecondaryTable>();
-	private Set<String> fieldNames = new LinkedHashSet<String>();			
+	private Set<String> fieldNames = new LinkedHashSet<String>();
+	private List<DescriptionPkJoinColumn> primaryKeyJoinColumns = new LinkedList<DescriptionPkJoinColumn>();
+	private String foreignKeyName = "";
+	private InheritanceType inheritanceType;
+	
 
 	public List<DescritionSecondaryTable> getSecondaryTables() {
 		return secondaryTables;
@@ -1007,4 +1013,25 @@ public class EntityCache {
 		}
 		return false;
 	}
+
+	public List<DescriptionPkJoinColumn> getPrimaryKeyJoinColumns() {
+		return primaryKeyJoinColumns;
+	}
+
+	public String getForeignKeyName() {
+		return foreignKeyName;
+	}
+
+	public void setForeignKeyName(String foreignKeyName) {
+		this.foreignKeyName = foreignKeyName;
+	}
+
+	public InheritanceType getInheritanceType() {
+		return inheritanceType;
+	}
+
+	public void setInheritanceType(InheritanceType inheritanceType) {
+		this.inheritanceType = inheritanceType;
+	}
+	
 }

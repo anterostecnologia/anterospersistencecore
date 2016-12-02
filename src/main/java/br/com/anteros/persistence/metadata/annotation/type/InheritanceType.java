@@ -16,5 +16,5 @@
 package br.com.anteros.persistence.metadata.annotation.type;
 
 public enum InheritanceType {
-	SINGLE_TABLE, TABLE_PER_CLASS
+	SINGLE_TABLE, TABLE_PER_CLASS, JOINED
 }

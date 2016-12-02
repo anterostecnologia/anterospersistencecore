@@ -65,6 +65,8 @@ import br.com.anteros.persistence.metadata.annotation.MapKeyTemporal;
 import br.com.anteros.persistence.metadata.annotation.NamedQueries;
 import br.com.anteros.persistence.metadata.annotation.NamedQuery;
 import br.com.anteros.persistence.metadata.annotation.OrderBy;
+import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumn;
+import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumns;
 import br.com.anteros.persistence.metadata.annotation.SQLDelete;
 import br.com.anteros.persistence.metadata.annotation.SQLDeleteAll;
 import br.com.anteros.persistence.metadata.annotation.SQLInsert;
@@ -619,6 +621,9 @@ public class EntityCacheManager {
 		 * Possui a configuração Inheritance
 		 */
 		if (entityConfiguration.isAnnotationPresent(Inheritance.class)) {
+			
+			entityCache.setInheritanceType(entityConfiguration.getInheritanceStrategy());
+			
 			/*
 			 * Estratégia de herança SINGLE_TABLE
 			 */
@@ -744,6 +749,21 @@ public class EntityCacheManager {
 
 					entityCache.getSecondaryTables().add(descritionSecondaryTable);
 				}
+			}
+		}
+		
+		/*
+		 * Adiciona as primaryKeyJoinColumns
+		 */
+		if (entityConfiguration.isAnnotationPresent(PrimaryKeyJoinColumns.class)
+				|| entityConfiguration.isAnnotationPresent(PrimaryKeyJoinColumn.class)) {
+			
+			List<PrimaryKeyJoinColumnConfiguration> primaryKeys = entityConfiguration.getPrimaryKeys();
+			entityCache.setForeignKeyName(entityConfiguration.getForeignKeyName());
+			if (primaryKeys != null) {
+				for (PrimaryKeyJoinColumnConfiguration pKJoinColumnConfiguration : primaryKeys) {
+					entityCache.getPrimaryKeyJoinColumns().add(new DescriptionPkJoinColumn(pKJoinColumnConfiguration.getName(), pKJoinColumnConfiguration.getReferencedColumnName()));
+				}	
 			}
 		}
 

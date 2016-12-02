@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.joda.time.chrono.AssembledChronology.Fields;
+
 import br.com.anteros.core.utils.CompactHashSet;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
@@ -39,6 +41,8 @@ import br.com.anteros.persistence.metadata.annotation.Inheritance;
 import br.com.anteros.persistence.metadata.annotation.JoinTable;
 import br.com.anteros.persistence.metadata.annotation.Lob;
 import br.com.anteros.persistence.metadata.annotation.MapKeyColumn;
+import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumn;
+import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumns;
 import br.com.anteros.persistence.metadata.annotation.SecondaryTable;
 import br.com.anteros.persistence.metadata.annotation.SecondaryTables;
 import br.com.anteros.persistence.metadata.annotation.Table;
@@ -158,11 +162,36 @@ public class PersistenceModelConfiguration {
 			/*
 			 * Se é uma classe herdada e não foi definido o @DiscriminatorValue
 			 */
-			if (!entityConfiguration.isAnnotationPresent(DiscriminatorValue.class)
+			if (entityConfiguration.getInheritanceStrategy() == InheritanceType.SINGLE_TABLE
+					&& !entityConfiguration.isAnnotationPresent(DiscriminatorValue.class) 
 					&& (entityConfigurationBySuperClass != null)) {
 				entityConfiguration.discriminatorValue(sourceClazz.getSimpleName());
 			}
-
+			
+			/*
+			 * Se não possuir @Table adiciona com o nome da superclasse mais o nome da classe;
+			 * Se não possuir primaryKeyJoinColumn define o padrão
+			 */
+			if (entityConfigurationBySuperClass != null 
+					&& entityConfigurationBySuperClass.isAnnotationPresent(Inheritance.class) 
+					&& entityConfigurationBySuperClass.getInheritanceStrategy() == InheritanceType.JOINED) {
+				
+				if (!entityConfiguration.isAnnotationPresent(Table.class)) {
+					entityConfiguration.table(entityConfigurationBySuperClass.getCatalog(), entityConfigurationBySuperClass.getSchema(),
+							entityConfigurationBySuperClass.getTableName() + "_" + entityConfiguration.getSourceClazz().getSimpleName());
+				}
+				
+				if (!entityConfiguration.isAnnotationPresent(new Class[] {PrimaryKeyJoinColumns.class, PrimaryKeyJoinColumn.class})) {
+					for(FieldConfiguration fieldConfiguration : entityConfigurationBySuperClass.getAllFields()) {
+						if (fieldConfiguration.isId() || fieldConfiguration.isCompositeId()) {
+							for (String columnName : fieldConfiguration.getColumnNames()) {
+								entityConfiguration.addPrimaryKeyJoinColumn("", columnName, columnName);
+							}
+						}
+					}
+				}
+			}
+			
 			/*
 			 * Se não possuí @SecondaryTable/SecondaryTables e possuí colunas
 			 * com o atributo table preenchido
