@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -28,6 +29,7 @@ import java.util.Set;
 
 import br.com.anteros.core.converter.Converter;
 import br.com.anteros.core.utils.ReflectionUtils;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.annotation.Comment;
 import br.com.anteros.persistence.metadata.annotation.Convert;
 import br.com.anteros.persistence.metadata.annotation.Converts;
@@ -116,17 +118,6 @@ public class EntityConfiguration {
 		FieldConfiguration field = new FieldConfiguration(this, fieldName);
 		fields.add(field);
 		return field;
-	}
-
-	public EntityConfiguration addSecondaryTable(SecondaryTableConfiguration configuration) {
-		secondaryTables.add(configuration);
-		return this;
-	}
-
-	public EntityConfiguration addSecondaryTable(String catalog, String schema, String tableName,
-			PrimaryKeyJoinColumnConfiguration... pkJoinColumns) {
-		secondaryTables.add(new SecondaryTableConfiguration(catalog, schema, tableName, pkJoinColumns));
-		return this;
 	}
 
 	public EntityConfiguration table(String tableName) {
@@ -303,7 +294,7 @@ public class EntityConfiguration {
 					secondaryConf = new SecondaryTableConfiguration[secondaryTables.length];
 					for (int i = 0; i < secondaryTables.length; i++) {
 						secondaryConf[i] = new SecondaryTableConfiguration(secondaryTables[i].catalog(),
-								secondaryTables[i].schema());
+								secondaryTables[i].schema(), secondaryTables[i].name());
 						for (int j = 0; j < secondaryTables[i].pkJoinColumns().length; j++) {
 							secondaryConf[i].add(new PrimaryKeyJoinColumnConfiguration(
 									secondaryTables[i].pkJoinColumns()[j].columnDefinition(),
@@ -667,6 +658,61 @@ public class EntityConfiguration {
 
 	public List<SecondaryTableConfiguration> getSecondaryTables() {
 		return secondaryTables;
+	}
+
+	public boolean hasFieldWithSecondaryTable() {
+		for (FieldConfiguration field : fields) {
+			for (ColumnConfiguration column : field.getColumns()) {
+				if (StringUtils.isNotEmpty(column.getTableName()) && !column.getTableName().equalsIgnoreCase(tableName))
+					return true;
+			}
+		}
+		return false;
+	}
+
+	public Set<String> getSecondaryTablesNamesInFields() {
+		Set<String> result = new HashSet<String>();
+
+		for (FieldConfiguration field : fields) {
+			for (ColumnConfiguration column : field.getColumns()) {
+				if (StringUtils.isNotEmpty(column.getTableName()) && !column.getTableName().equalsIgnoreCase(tableName))
+					result.add(column.getTableName());
+			}
+		}
+		return result;
+	}
+
+	public List<String> getPrimaryKeyColumnNames() {
+		List<String> result = new ArrayList<String>();
+		for (FieldConfiguration field : fields) {
+			if (field.isId() || field.isCompositeId()) {
+				for (ColumnConfiguration column : field.getColumns()) {
+					result.add(column.getName());
+				}
+			}
+		}
+		return result;
+
+	}
+
+	public SecondaryTableConfiguration getSecondaryTableByName(String tableName) {
+		for (SecondaryTableConfiguration configuration : secondaryTables) {
+			if (configuration.getTableName().equalsIgnoreCase(tableName))
+				return configuration;
+		}
+		return null;
+	}
+
+	public boolean hasFieldWithTableName(String tableName) {
+		for (FieldConfiguration field : fields) {
+			if (!field.isId() && !field.isCompositeId()) {
+				for (ColumnConfiguration column : field.getColumns()) {
+					if (column.getTableName().equalsIgnoreCase(tableName))
+						return true;
+				}
+			}
+		}
+		return false;
 	}
 
 }

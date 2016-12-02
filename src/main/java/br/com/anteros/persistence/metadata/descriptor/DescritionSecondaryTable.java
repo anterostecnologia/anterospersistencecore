@@ -8,7 +8,8 @@ public class DescritionSecondaryTable {
 	private String tableName;
 	private String catalog;
 	private String schema;
-	private List<DescriptionPkJoinColumnConfiguration> pkJoinColumns = new LinkedList<DescriptionPkJoinColumnConfiguration>();
+	private List<DescriptionPkJoinColumn> pkJoinColumns = new LinkedList<DescriptionPkJoinColumn>();
+	private String foreignKeyName;
 
 	public DescritionSecondaryTable(String catalog, String schema, String tableName) {
 		this.catalog = catalog;
@@ -41,10 +42,30 @@ public class DescritionSecondaryTable {
 	}
 	
 	
-	public void addPrimaryKey(DescriptionPkJoinColumnConfiguration configuration){
+	public void addPrimaryKey(DescriptionPkJoinColumn configuration){
 		this.pkJoinColumns.add(configuration);
 	}
-	
-	
+
+	public List<DescriptionPkJoinColumn> getPkJoinColumns() {
+		return pkJoinColumns;
+	}
+
+	public void setPkJoinColumns(List<DescriptionPkJoinColumn> pkJoinColumns) {
+		this.pkJoinColumns = pkJoinColumns;
+	}
+
+	public String getForeignKeyName() {
+		return foreignKeyName;
+	}
+
+	public void setForeignKeyName(String foreignKeyName) {
+		this.foreignKeyName = foreignKeyName;
+	}
+
+	@Override
+	public String toString() {
+		return "DescritionSecondaryTable [tableName=" + tableName + ", catalog=" + catalog + ", schema=" + schema
+				+ ", pkJoinColumns=" + pkJoinColumns + ", foreignKeyName=" + foreignKeyName + "]";
+	}
 
 }

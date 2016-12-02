@@ -39,6 +39,12 @@ public class PrimaryKeyJoinColumnConfiguration {
 		this.referencedColumnName = referencedColumnName;
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "PrimaryKeyJoinColumnConfiguration [columnDefinition=" + columnDefinition + ", name=" + name
+				+ ", referencedColumnName=" + referencedColumnName + "]";
+	}
 	
 	
 

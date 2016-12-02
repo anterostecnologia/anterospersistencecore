@@ -71,7 +71,6 @@ public class DescriptionColumn {
 	private ReturnType booleanReturnType;
 	private EnumType enumType;
 	private Map<String, String> enumValues;
-	private String tableName;
 	private String defaultValue;
 	private Class<?> elementCollectionType;
 	private String columnDefinition;
@@ -84,10 +83,11 @@ public class DescriptionColumn {
 	private String datePattern = "";
 	private String timePattern = "";
 	private DiscriminatorType discriminatorType;
+	private String secondaryTableName;
+	private String tableName;
 
 	public DescriptionColumn(EntityCache entityCache, Field field) {
 		setField(field);
-		this.tableName = entityCache.getTableName();
 		this.entityCache = entityCache;
 	}
 
@@ -335,6 +335,12 @@ public class DescriptionColumn {
 		result.put(this.getColumnName(), ObjectUtils.cloneObject(descriptionField.getObjectValue(object)));
 		return new FieldEntityValue(this.getField().getName(), result, object);
 	}
+	
+	public FieldEntityValue getFieldEntityValue(Object object, Object value) throws Exception {
+		Map<String, Object> result = new HashMap<String, Object>();
+		result.put(this.getColumnName(), ObjectUtils.cloneObject(value));
+		return new FieldEntityValue(this.getField().getName(), result, object);
+	}
 
 	public void setRequired(boolean required) {
 		this.required = required;
@@ -442,7 +448,10 @@ public class DescriptionColumn {
 	}
 
 	public String getTableName() {
-		return this.entityCache.getTableName();
+		if (StringUtils.isEmpty(tableName)){
+			return entityCache.getTableName();
+		}
+		return tableName;
 	}
 
 	public void setJoinColumn(boolean joinColumn) {
@@ -707,5 +716,17 @@ public class DescriptionColumn {
 
 	public void add(GeneratedType type, DescriptionGenerator descriptionGenerator) {
 		generators.put(type, descriptionGenerator);		
+	}
+
+	public String getSecondaryTableName() {
+		return secondaryTableName;
+	}
+
+	public void setSecondaryTableName(String secondaryTableName) {
+		this.secondaryTableName = secondaryTableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
 	}
 }

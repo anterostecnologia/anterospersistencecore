@@ -23,6 +23,7 @@ public class SQLQueryAnalyserAlias {
 	private EntityCache entity;
 	private SQLQueryAnalyserOwner owner;
 	private boolean usedOnSelect;
+	private String secondaryTableName;
 
 	public boolean isUsedOnSelect() {
 		return usedOnSelect;
@@ -100,6 +101,14 @@ public class SQLQueryAnalyserAlias {
 		} else if (!alias.equals(other.alias))
 			return false;
 		return true;
+	}
+
+	public String getSecondaryTableName() {
+		return secondaryTableName;
+	}
+
+	public void setSecondaryTableName(String secondaryTableName) {
+		this.secondaryTableName = secondaryTableName;
 	}
 
 }

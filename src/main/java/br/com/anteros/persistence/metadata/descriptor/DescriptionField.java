@@ -25,6 +25,7 @@ import java.util.Map;
 
 import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityCacheException;
 import br.com.anteros.persistence.metadata.EntityManaged;
@@ -82,6 +83,7 @@ public class DescriptionField {
 	private ConnectivityType exportConnectivityType = ConnectivityType.ALL_CONNECTION;
 	private String[] exportColumns;
 	private PropertyAccessor propertyAccessor = null;
+	private DescriptionColumn simpleColumn;
 
 	public DescriptionField(EntityCache entityCache, Field field) {
 		setField(field);
@@ -177,9 +179,10 @@ public class DescriptionField {
 	}
 
 	public boolean isLob() {
-		if (getSimpleColumn() == null)
+		if (simpleColumn == null)
 			return false;
-		return getSimpleColumn().isLob();
+
+		return simpleColumn.isLob();
 	}
 
 	public boolean isString() {
@@ -187,39 +190,21 @@ public class DescriptionField {
 	}
 
 	public boolean isTemporalDate() {
-		if (this.fieldType == FieldType.SIMPLE) {
-			for (DescriptionColumn c : columns) {
-				if (c.isTemporalType()) {
-					if (c.getTemporalType() == TemporalType.DATE)
-						return true;
-				}
-			}
-		}
-		return false;
+		if (simpleColumn == null)
+			return false;
+		return simpleColumn.getTemporalType() == TemporalType.DATE;
 	}
 
 	public boolean isTemporalDateTime() {
-		if (this.fieldType == FieldType.SIMPLE) {
-			for (DescriptionColumn c : columns) {
-				if (c.isTemporalType()) {
-					if (c.getTemporalType() == TemporalType.DATE_TIME)
-						return true;
-				}
-			}
-		}
-		return false;
+		if (simpleColumn == null)
+			return false;
+		return simpleColumn.getTemporalType() == TemporalType.DATE_TIME;
 	}
 
 	public boolean isTemporalTime() {
-		if (this.fieldType == FieldType.SIMPLE) {
-			for (DescriptionColumn c : columns) {
-				if (c.isTemporalType()) {
-					if (c.getTemporalType() == TemporalType.TIME)
-						return true;
-				}
-			}
-		}
-		return false;
+		if (simpleColumn == null)
+			return false;
+		return simpleColumn.getTemporalType() == TemporalType.TIME;
 	}
 
 	public boolean hasOrderByClause() {
@@ -255,45 +240,45 @@ public class DescriptionField {
 		}
 	}
 
-	public void setObjectValue(Object object, Object value) throws Exception {
+	public Object setObjectValue(Object object, Object value) throws Exception {
 		Field field = this.getField();
 		try {
 			if ("".equals(value) && isEnumerated()) {
-				setValue(object, null);
+				value = null;
 			} else if (isEnumerated()) {
 				value = convertObjectToEnum(value);
-				setValue(object, value);
 			} else if (isBoolean()) {
 				value = convertObjectToBoolean(value);
-				setValue(object, value);
 			} else if (isRelationShip() || isCollectionEntity()) {
-				setValue(object, value);
+				//
 			} else if ((value == null) || (value.getClass() == field.getType())) {
-				setValue(object, value);
+				//
 			} else if ("".equals(value) && (ReflectionUtils.isExtendsClass(Number.class, field.getType())
 					|| (field.getType() == SQLiteDate.class) || (field.getType() == java.sql.Date.class)
 					|| (field.getType() == Date.class))) {
-				setValue(object, null);
+				value = null;
 			} else if ((field.getType() == Date.class) && (value instanceof String)) {
-				setStringValueToDate(object, String.valueOf(value));
+				value = convertStringValueToDate(String.valueOf(value));
 			} else if ((field.getType() == java.sql.Date.class) && (value instanceof String)) {
-				setStringValueToDateSQL(object, String.valueOf(value));
+				value = convertStringValueToDateSQL(String.valueOf(value));
 			} else if (value instanceof byte[]) {
 				if (isLob()) {
-					setBytesValueToLob(object, (byte[]) value);
+					value = convertBytesValueToLob((byte[]) value);
 				} else if (field.getType() == String.class) {
-					setValue(object, new String((byte[]) value));
+					value = new String((byte[]) value);
 				} else
-					setValue(object, ObjectUtils.convert(value, field.getType()));
+					value = ObjectUtils.convert(value, field.getType());
 			} else if ((value instanceof String) && (isLob())) {
-				setStringValueToLob(object, (String) value);
+				value = convertStringValueToLob(String.valueOf(value));
 			} else {
-				setValue(object, ObjectUtils.convert(value, field.getType()));
+				value = ObjectUtils.convert(value, field.getType());
 			}
+			setValue(object,value);
 		} catch (Exception ex) {
 			throw new EntityCacheException("Erro convertendo o valor do campo " + this.getName() + " valor=" + value
 					+ " para " + field.getType() + " na classe " + entityCache.getEntityClass().getName(), ex);
 		}
+		return value;
 	}
 
 	private void setValue(Object source, Object value) throws Exception {
@@ -304,58 +289,62 @@ public class DescriptionField {
 		}
 	}
 
-	public void setStringValueToDateSQL(Object targetObject, String value) throws Exception {
+	public Object convertStringValueToDateSQL(String value) throws Exception {
 		TemporalType temporalType = this.getSimpleColumn().getTemporalType();
 		if (temporalType == TemporalType.DATE) {
 			String datePattern = this.getSimpleColumn().getDatePattern() != "" ? this.getSimpleColumn().getDatePattern()
 					: DatabaseDialect.DATE_PATTERN;
 			Date date = new SimpleDateFormat(datePattern).parse(value);
 			if (date != null)
-				setValue(targetObject, new java.sql.Date(date.getTime()));
+				return new java.sql.Date(date.getTime());
 		} else if (temporalType == TemporalType.DATE_TIME) {
 			String dateTimePattern = !(this.getSimpleColumn().getDateTimePattern()).equals("")
 					? this.getSimpleColumn().getDateTimePattern() : DatabaseDialect.DATETIME_PATTERN;
 			Date date = new SimpleDateFormat(dateTimePattern).parse(value);
 			if (date != null)
-				setValue(targetObject, new java.sql.Date(date.getTime()));
+				return new java.sql.Date(date.getTime());
 		}
+		return null;
 	}
 
-	public void setStringValueToDate(Object targetObject, String value) throws Exception {
+	public Object convertStringValueToDate(String value) throws Exception {
 		if (value instanceof String) {
 			TemporalType temporalType = this.getSimpleColumn().getTemporalType();
 			if (temporalType == TemporalType.DATE) {
 				String datePattern = !(this.getSimpleColumn().getDatePattern()).equals("")
 						? this.getSimpleColumn().getDatePattern() : DatabaseDialect.DATE_PATTERN;
-				setValue(targetObject, new SimpleDateFormat(datePattern).parse(value));
+				return new SimpleDateFormat(datePattern).parse(value);
 			} else if (temporalType == TemporalType.DATE_TIME) {
 				String dateTimePattern = !("".equals(this.getSimpleColumn().getDateTimePattern()))
 						? this.getSimpleColumn().getDateTimePattern() : DatabaseDialect.DATETIME_PATTERN;
-				setValue(targetObject, new SimpleDateFormat(dateTimePattern).parse(value));
+				return new SimpleDateFormat(dateTimePattern).parse(value);
 			}
 		}
+		return null;
 	}
 
-	public void setStringValueToLob(Object object, String value) throws Exception {
+	public Object convertStringValueToLob(String value) throws Exception {
 		if (field.getType() == byte[].class)
-			setValue(object, ((String) value).getBytes());
+			return ((String) value).getBytes();
 		else if (field.getType() == Byte[].class)
-			setValue(object, ObjectUtils.toByteArray(((String) value).getBytes()));
+			return ObjectUtils.toByteArray(((String) value).getBytes());
 		else if (field.getType() == char[].class)
-			setValue(object, ObjectUtils.toPrimitiveCharacterArray(((String) value).getBytes()));
+			return ObjectUtils.toPrimitiveCharacterArray(((String) value).getBytes());
 		else if (field.getType() == Character[].class)
-			setValue(object, ObjectUtils.toCharacterArray(((String) value).getBytes()));
+			return ObjectUtils.toCharacterArray(((String) value).getBytes());
+		return null;
 	}
 
-	public void setBytesValueToLob(Object targetObject, byte[] value) throws Exception {
+	public Object convertBytesValueToLob(byte[] value) throws Exception {
 		if (field.getType() == byte[].class)
-			setValue(targetObject, value);
+			return value;
 		else if (field.getType() == Byte[].class)
-			setValue(targetObject, ObjectUtils.toByteArray(value));
+			return ObjectUtils.toByteArray(value);
 		else if (field.getType() == char[].class)
-			setValue(targetObject, ObjectUtils.toPrimitiveCharacterArray(value));
+			return ObjectUtils.toPrimitiveCharacterArray(value);
 		else if (field.getType() == Character[].class)
-			setValue(targetObject, ObjectUtils.toCharacterArray(value));
+			return ObjectUtils.toCharacterArray(value);
+		return null;
 	}
 
 	public Object convertObjectToBoolean(Object value) {
@@ -429,6 +418,7 @@ public class DescriptionField {
 			c.setDescriptionField(this);
 			this.columns.add(c);
 		}
+		this.simpleColumn = this.columns.get(0);
 	}
 
 	public List<DescriptionColumn> getDescriptionColumns() {
@@ -453,6 +443,7 @@ public class DescriptionField {
 		if (descriptionColumn.isElementColumn())
 			this.elementColumn = descriptionColumn;
 		this.columns.add(descriptionColumn);
+		this.simpleColumn = this.columns.get(0);
 	}
 
 	public DescriptionColumn getElementColumn() {
@@ -532,6 +523,9 @@ public class DescriptionField {
 	}
 
 	public String getTableName() {
+		if (StringUtils.isEmpty(tableName)){
+			return entityCache.getTableName();
+		}
 		return tableName;
 	}
 
@@ -678,9 +672,11 @@ public class DescriptionField {
 	}
 
 	public DescriptionColumn getSimpleColumn() {
-		if (columns.size() > 0)
-			return columns.get(0);
-		return null;
+		if (simpleColumn == null) {
+			if (columns.size() > 0)
+				simpleColumn = columns.get(0);
+		}
+		return simpleColumn;
 	}
 
 	public String getEnumValue(String value) {
@@ -689,7 +685,7 @@ public class DescriptionField {
 
 	public Object getBooleanValue(Boolean value) {
 		if (value)
-			return getSimpleColumn().getTrueValue();
+			return getSimpleColumn().getTrueValue();	
 		else
 			return getSimpleColumn().getFalseValue();
 	}
@@ -699,15 +695,15 @@ public class DescriptionField {
 	}
 
 	public boolean isEnumerated() {
-		if (getSimpleColumn() == null)
+		if (simpleColumn == null)
 			return false;
-		return getSimpleColumn().isEnumerated();
+		return simpleColumn.isEnumerated();
 	}
 
 	public boolean isBoolean() {
-		if (getSimpleColumn() == null)
+		if (simpleColumn == null)
 			return false;
-		return getSimpleColumn().isBoolean();
+		return simpleColumn.isBoolean();
 	}
 
 	public boolean isNumber() {

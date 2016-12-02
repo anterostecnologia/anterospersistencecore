@@ -998,4 +998,13 @@ public class EntityCache {
 	public void setMaxRecordBlockExport(int maxRecordBlockExport) {
 		this.maxRecordBlockExport = maxRecordBlockExport;
 	}
+	
+	public boolean containsSecondaryTable(String tableName){
+		for (DescritionSecondaryTable secondaryTable : getSecondaryTables()){
+			if (secondaryTable.getTableName().equalsIgnoreCase(tableName)){
+				return true;
+			}
+		}
+		return false;
+	}
 }

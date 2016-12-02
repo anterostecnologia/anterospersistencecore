@@ -51,12 +51,12 @@ public class SimpleExpressionFieldMapper extends ExpressionFieldMapper {
 		/*
 		 * Atribui o valor no field do objeto alvo.
 		 */
-		descriptionField.setObjectValue(targetObject, value);
+		Object convertedValue = descriptionField.setObjectValue(targetObject, value);
 		if (entityManaged.getStatus() != EntityStatus.READ_ONLY) {
 			/*
 			 * Guarda o valor na lista de valores anteriores
 			 */
-			FieldEntityValue fieldEntityValue = descriptionField.getSimpleColumn().getFieldEntityValue(targetObject);
+			FieldEntityValue fieldEntityValue = descriptionField.getSimpleColumn().getFieldEntityValue(targetObject,convertedValue);
 			entityManaged.addOriginalValue(fieldEntityValue);
 			entityManaged.addLastValue(fieldEntityValue);
 

@@ -109,7 +109,7 @@ import br.com.anteros.persistence.metadata.descriptor.DescriptionGenerator;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionIndex;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionMappedBy;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
-import br.com.anteros.persistence.metadata.descriptor.DescriptionPkJoinColumnConfiguration;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionPkJoinColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionUniqueConstraint;
 import br.com.anteros.persistence.metadata.descriptor.DescritionSecondaryTable;
@@ -162,7 +162,6 @@ public class EntityCacheManager {
 		this.propertyAccessorFactory = propertyAccessorFactory;
 		if (!isLoaded()) {
 			Collections.sort(clazzes, new DependencyComparator());
-
 			PersistenceModelConfiguration modelConfiguration = new PersistenceModelConfiguration();
 			for (Class<? extends Serializable> sourceClazz : clazzes) {
 				modelConfiguration.loadAnnotationsByClass(sourceClazz);
@@ -716,26 +715,37 @@ public class EntityCacheManager {
 				}
 			}
 		}
-		
+
 		/*
 		 * Adiciona as tabelas secundárias
 		 */
 		if (entityConfiguration.isAnnotationPresent(SecondaryTables.class)
 				|| entityConfiguration.isAnnotationPresent(SecondaryTable.class)) {
+
 			List<SecondaryTableConfiguration> secondaryTables = entityConfiguration.getSecondaryTables();
 			if (secondaryTables != null) {
 				for (SecondaryTableConfiguration secondaryTable : secondaryTables) {
-					DescritionSecondaryTable descritionSecondaryTable = new DescritionSecondaryTable(secondaryTable.getCatalog(),secondaryTable.getSchema(), secondaryTable.getTableName());
-					for (PrimaryKeyJoinColumnConfiguration pkConfiguration : secondaryTable.getPkJoinColumns()){
-						descritionSecondaryTable.addPrimaryKey(new DescriptionPkJoinColumnConfiguration(pkConfiguration.getColumnDefinition(), pkConfiguration.getName(), pkConfiguration.getReferencedColumnName()));
+
+					if (!entityConfiguration.hasFieldWithTableName(secondaryTable.getTableName())) {
+						throw new EntityCacheManagerException(
+								"Foi encontrado a anotação @SecondaryTable com o nome da tabela "
+										+ secondaryTable.getTableName()
+										+ ", porém a mesma não foi relacionada com nenhum campo na entidade "
+										+ entityCache.getEntityClass().getName());
 					}
-					
-					entityCache.getSecondaryTables()
-							.add(descritionSecondaryTable);
+
+					DescritionSecondaryTable descritionSecondaryTable = new DescritionSecondaryTable(
+							secondaryTable.getCatalog(), secondaryTable.getSchema(), secondaryTable.getTableName());
+					descritionSecondaryTable.setForeignKeyName(secondaryTable.getForeignKeyName());
+					for (PrimaryKeyJoinColumnConfiguration pkConfiguration : secondaryTable.getPkJoinColumns()) {
+						descritionSecondaryTable.addPrimaryKey(
+								new DescriptionPkJoinColumn(pkConfiguration.getName(), pkConfiguration.getReferencedColumnName()));
+					}
+
+					entityCache.getSecondaryTables().add(descritionSecondaryTable);
 				}
 			}
 		}
-		
 
 		/*
 		 * Adicionas os conversores de campos entidade x banco de dados
@@ -1165,6 +1175,18 @@ public class EntityCacheManager {
 				}
 			}
 
+			if (fieldConfiguration.isAnnotationPresent(Columns.class)) {
+				Set<String> tableNames = new HashSet<String>();
+				for (ColumnConfiguration column : fieldConfiguration.getColumns()) {
+					tableNames.add(column.getTableName());
+				}
+				if (tableNames.size() > 1) {
+					throw new EntityCacheException("O campo " + fieldConfiguration
+							+ " possuí colunas com nomes de tabelas diferentes. Entidade "
+							+ sourceClazz.getSimpleName());
+				}
+			}
+
 			/*
 			 * Se possuir Cascade e o field não for uma Collection ou
 			 * ForeignKey, e não possuir Fetch
@@ -1541,6 +1563,7 @@ public class EntityCacheManager {
 		descriptionColumn.setLength(fieldConfiguration.getSimpleColumn().getLength());
 		descriptionColumn.setPrecision(fieldConfiguration.getSimpleColumn().getPrecision());
 		descriptionColumn.setRequired(fieldConfiguration.getSimpleColumn().isRequired());
+		descriptionColumn.setTableName(fieldConfiguration.getSimpleColumn().getTableName());
 
 		if (fieldConfiguration.isAnnotationPresent(MapKeyColumn.class)) {
 			Class<?> clazz = ReflectionUtils.getGenericMapTypes(descriptionField.getField()).get(1);
@@ -1760,7 +1783,7 @@ public class EntityCacheManager {
 			descriptionColumn.setPrecision(columnConfiguration.getPrecision());
 			descriptionColumn.setScale(columnConfiguration.getScale());
 			descriptionColumn.setColumnDefinition(columnConfiguration.getColumnDefinition());
-
+			
 			if (fieldConfiguration.isAnnotationPresent(CompositeId.class)) {
 				descriptionColumn.setColumnType(ColumnType.PRIMARY_KEY);
 				descriptionColumn.setRequired(true);
@@ -1871,6 +1894,10 @@ public class EntityCacheManager {
 
 		DescriptionColumn descriptionColumn = new DescriptionColumn(entityCache, fieldConfiguration.getField());
 		descriptionColumn.setExternalFile(fieldConfiguration.isExternalFile());
+		if (fieldConfiguration.getSimpleColumn()!=null){
+			descriptionColumn.setTableName(fieldConfiguration.getSimpleColumn().getTableName());
+		}
+		
 
 		if (fieldConfiguration.isAnnotationPresent(Column.class)) {
 			ColumnConfiguration column = fieldConfiguration.getSimpleColumn();

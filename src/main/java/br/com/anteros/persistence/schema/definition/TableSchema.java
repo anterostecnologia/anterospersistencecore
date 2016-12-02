@@ -34,6 +34,13 @@ public class TableSchema extends ObjectSchema {
 
 	protected String comment;
 
+	public TableSchema() {
+	}
+	
+	public TableSchema(String tableName) {
+		this.name = tableName;
+	}
+
 	public Schema getSchema() {
 		return schema;
 	}

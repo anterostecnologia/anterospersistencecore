@@ -10,6 +10,8 @@ public class SecondaryTableConfiguration {
 	private String schema;
 	private String tableName;
 	private List<PrimaryKeyJoinColumnConfiguration> pkJoinColumns = new LinkedList<PrimaryKeyJoinColumnConfiguration>();
+	private String foreignKeyName;
+	private String foreignKeyDefinition;
 
 	public SecondaryTableConfiguration(){
 		
@@ -24,10 +26,11 @@ public class SecondaryTableConfiguration {
 		this.pkJoinColumns.addAll(Arrays.asList(pkJoinColumns));
 	}
 	
-	public SecondaryTableConfiguration(String catalog, String schema) {
+	public SecondaryTableConfiguration(String catalog, String schema, String tableName) {
 		super();
 		this.catalog = catalog;
 		this.schema = schema;
+		this.tableName = tableName;
 	}
 
 	public String getCatalog() {
@@ -71,16 +74,38 @@ public class SecondaryTableConfiguration {
 		return this;
 	}
 
-	public void setCatalog(String catalog) {
-		this.catalog = catalog;
-	}
-
-	public void setSchema(String schema) {
-		this.schema = schema;
-	}
-
 	public void setPkJoinColumns(List<PrimaryKeyJoinColumnConfiguration> pkJoinColumns) {
 		this.pkJoinColumns = pkJoinColumns;
 	}
+
+	public String getForeignKeyName() {
+		return foreignKeyName;
+	}
+
+	public SecondaryTableConfiguration foreignKeyName(String foreignKeyName) {
+		this.foreignKeyName = foreignKeyName;
+		return this;
+	}
+
+	public String getForeignKeyDefinition() {
+		return foreignKeyDefinition;
+	}
+
+	public SecondaryTableConfiguration foreignKeyDefinition(String foreignKeyDefinition) {
+		this.foreignKeyDefinition = foreignKeyDefinition;
+		return this;
+	}
+
+	public boolean hasPrimaryKeyConfiguration() {
+		return !pkJoinColumns.isEmpty();
+	}
+
+	@Override
+	public String toString() {
+		return "SecondaryTableConfiguration [catalog=" + catalog + ", schema=" + schema + ", tableName=" + tableName
+				+ ", pkJoinColumns=" + pkJoinColumns + ", foreignKeyName=" + foreignKeyName + ", foreignKeyDefinition="
+				+ foreignKeyDefinition + "]";
+	}
+
 
 }

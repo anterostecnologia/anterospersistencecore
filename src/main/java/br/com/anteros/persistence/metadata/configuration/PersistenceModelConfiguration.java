@@ -22,6 +22,7 @@ import java.util.Set;
 
 import br.com.anteros.core.utils.CompactHashSet;
 import br.com.anteros.core.utils.ReflectionUtils;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.annotation.BooleanValue;
 import br.com.anteros.persistence.metadata.annotation.CollectionTable;
 import br.com.anteros.persistence.metadata.annotation.Column;
@@ -38,6 +39,8 @@ import br.com.anteros.persistence.metadata.annotation.Inheritance;
 import br.com.anteros.persistence.metadata.annotation.JoinTable;
 import br.com.anteros.persistence.metadata.annotation.Lob;
 import br.com.anteros.persistence.metadata.annotation.MapKeyColumn;
+import br.com.anteros.persistence.metadata.annotation.SecondaryTable;
+import br.com.anteros.persistence.metadata.annotation.SecondaryTables;
 import br.com.anteros.persistence.metadata.annotation.Table;
 import br.com.anteros.persistence.metadata.annotation.Temporal;
 import br.com.anteros.persistence.metadata.annotation.Transient;
@@ -71,7 +74,8 @@ public class PersistenceModelConfiguration {
 		return enumConfiguration;
 	}
 
-	public ConverterConfiguration addConverter(Class<? extends Serializable> sourceClazz) throws InstantiationException, IllegalAccessException {
+	public ConverterConfiguration addConverter(Class<? extends Serializable> sourceClazz)
+			throws InstantiationException, IllegalAccessException {
 		ConverterConfiguration converter = new ConverterConfiguration(sourceClazz);
 		converter.loadAnnotations();
 		converters.add(converter);
@@ -82,9 +86,12 @@ public class PersistenceModelConfiguration {
 		return entities;
 	}
 
-	public void loadAnnotationsByClass(Class<? extends Serializable> sourceClazz) throws InstantiationException, IllegalAccessException {
-		if ((sourceClazz.isAnnotationPresent(Converter.class)) && (!ReflectionUtils.isImplementsInterface(sourceClazz, AttributeConverter.class))) {
-			throw new EntityCacheManagerException("A classe " + sourceClazz + " configurada como um Converter não implementa a interface AttributeConverter.");
+	public void loadAnnotationsByClass(Class<? extends Serializable> sourceClazz)
+			throws InstantiationException, IllegalAccessException {
+		if ((sourceClazz.isAnnotationPresent(Converter.class))
+				&& (!ReflectionUtils.isImplementsInterface(sourceClazz, AttributeConverter.class))) {
+			throw new EntityCacheManagerException("A classe " + sourceClazz
+					+ " configurada como um Converter não implementa a interface AttributeConverter.");
 		}
 
 		if (ReflectionUtils.isImplementsInterface(sourceClazz, AttributeConverter.class)) {
@@ -120,74 +127,118 @@ public class PersistenceModelConfiguration {
 		for (Class<?> sourceClazz : getEntities().keySet()) {
 			EntityConfiguration entityConfiguration = getEntities().get(sourceClazz);
 
-			EntityConfiguration entityConfigurationBySuperClass = getEntityConfigurationBySourceClass(sourceClazz.getSuperclass());
+			EntityConfiguration entityConfigurationBySuperClass = getEntityConfigurationBySourceClass(
+					sourceClazz.getSuperclass());
 			/*
 			 * Se não foi definido @Table e não é uma herança, define o padrão
 			 */
-			if (!entityConfiguration.isAnnotationPresent(new Class[] { Table.class }) && (entityConfigurationBySuperClass == null)) {
+			if (!entityConfiguration.isAnnotationPresent(new Class[] { Table.class })
+					&& (entityConfigurationBySuperClass == null)) {
 				entityConfiguration.table(entityConfiguration.getSourceClazz().getSimpleName());
 			}
 
 			/*
-			 * Se é uma classe abstrata e não foi definido @DiscriminatorColumn define o padrão
+			 * Se é uma classe abstrata e não foi definido @DiscriminatorColumn
+			 * define o padrão
 			 */
-			if (ReflectionUtils.isAbstractClass(entityConfiguration.getSourceClazz()) && !entityConfiguration.isAnnotationPresent(DiscriminatorColumn.class)) {
+			if (ReflectionUtils.isAbstractClass(entityConfiguration.getSourceClazz())
+					&& !entityConfiguration.isAnnotationPresent(DiscriminatorColumn.class)) {
 				entityConfiguration.discriminatorColumn("DTYPE", 31, DiscriminatorType.STRING);
 			}
 
 			/*
-			 * Se é uma classe abstrata e não foi definido @Inheritance define o padrão
+			 * Se é uma classe abstrata e não foi definido @Inheritance define o
+			 * padrão
 			 */
-			if (ReflectionUtils.isAbstractClass(entityConfiguration.getSourceClazz()) && !entityConfiguration.isAnnotationPresent(Inheritance.class)) {
+			if (ReflectionUtils.isAbstractClass(entityConfiguration.getSourceClazz())
+					&& !entityConfiguration.isAnnotationPresent(Inheritance.class)) {
 				entityConfiguration.inheritance(InheritanceType.SINGLE_TABLE);
 			}
 
 			/*
 			 * Se é uma classe herdada e não foi definido o @DiscriminatorValue
 			 */
-			if (!entityConfiguration.isAnnotationPresent(DiscriminatorValue.class) && (entityConfigurationBySuperClass != null)) {
+			if (!entityConfiguration.isAnnotationPresent(DiscriminatorValue.class)
+					&& (entityConfigurationBySuperClass != null)) {
 				entityConfiguration.discriminatorValue(sourceClazz.getSimpleName());
 			}
+
+			/*
+			 * Se não possuí @SecondaryTable/SecondaryTables e possuí colunas
+			 * com o atributo table preenchido
+			 */
+			Set<String> tablesNames = entityConfiguration.getSecondaryTablesNamesInFields();
+			for (String tableName : tablesNames) {
+				SecondaryTableConfiguration configuration = entityConfiguration.getSecondaryTableByName(tableName);
+				if (configuration == null) {
+					configuration = new SecondaryTableConfiguration();
+					configuration.catalog(entityConfiguration.getCatalog());
+					configuration.schema(entityConfiguration.getSchema());
+					configuration.tableName(tableName);
+					entityConfiguration.secondaryTables(new SecondaryTableConfiguration[]{configuration});
+				}
+
+				List<String> primaryKeyColumnNames = entityConfiguration.getPrimaryKeyColumnNames();
+				if (!configuration.hasPrimaryKeyConfiguration()) {
+					for (String pk : primaryKeyColumnNames) {
+						configuration.add(new PrimaryKeyJoinColumnConfiguration("", pk, pk));
+					}
+				} else {
+					for (PrimaryKeyJoinColumnConfiguration pkJoinColumnConfiguration : configuration.getPkJoinColumns()){
+						if (StringUtils.isEmpty(pkJoinColumnConfiguration.getReferencedColumnName())){
+							pkJoinColumnConfiguration.referencedColumnName(pkJoinColumnConfiguration.getName());
+						}
+					}
+				}
+			}
+			
 
 			for (FieldConfiguration fieldConfiguration : entityConfiguration.getFields()) {
 
 				/*
-				 * Se não for um campo simples ou coleção/map pode ser uma chave estrangeira (MANY_TO_ONE, ONE_TO_ONE)
+				 * Se não for um campo simples ou coleção/map pode ser uma chave
+				 * estrangeira (MANY_TO_ONE, ONE_TO_ONE)
 				 */
 				checkForeignKeyIsConfigured(fieldConfiguration);
 
 				/*
-				 * Se for uma coleção e não foi definido @Fetch Verifica se é um relacionamento ONE_TO_MANY,
-				 * MANY_TO_MANY ou ELEMENT_COLLECTION
+				 * Se for uma coleção e não foi definido @Fetch Verifica se é um
+				 * relacionamento ONE_TO_MANY, MANY_TO_MANY ou
+				 * ELEMENT_COLLECTION
 				 */
 				checkCollectionIsConfigured(entityConfiguration, fieldConfiguration);
 
 				/*
-				 * Se for um map e não foi definido @Fetch Verifica se é um relacionamento ELEMENT_COLLECTION
+				 * Se for um map e não foi definido @Fetch Verifica se é um
+				 * relacionamento ELEMENT_COLLECTION
 				 */
 				checkMapIsConfigured(entityConfiguration, fieldConfiguration);
 
 				/*
-				 * Verifica se possuí um Convert configurado nos campos simples. Caso não tenha e não seja um campo
-				 * simples, coleção , map ou FK configura um Convert se possível
+				 * Verifica se possuí um Convert configurado nos campos simples.
+				 * Caso não tenha e não seja um campo simples, coleção , map ou
+				 * FK configura um Convert se possível
 				 */
 				checkConvertSimpleFieldIsConfigured(entityConfiguration, fieldConfiguration);
 			}
 		}
 	}
 
-	protected void checkConvertSimpleFieldIsConfigured(EntityConfiguration entityConfiguration, FieldConfiguration fieldConfiguration) {
+	protected void checkConvertSimpleFieldIsConfigured(EntityConfiguration entityConfiguration,
+			FieldConfiguration fieldConfiguration) {
 		/*
-		 * Verifica se possuí um Convert configurado. Caso não tenha e não seja um campo simples, coleção, map ou FK
-		 * configura um Convert se possível
+		 * Verifica se possuí um Convert configurado. Caso não tenha e não seja
+		 * um campo simples, coleção, map ou FK configura um Convert se possível
 		 */
 		if ((!fieldConfiguration.isAnnotationPresent(new Class[] { Convert.class, Converts.class, Convert.List.class }))
-				&& !fieldConfiguration.isCollectionOrMap() && (!fieldConfiguration.isForeignKey()) && (!fieldConfiguration.isSimpleField())) {
+				&& !fieldConfiguration.isCollectionOrMap() && (!fieldConfiguration.isForeignKey())
+				&& (!fieldConfiguration.isSimpleField())) {
 			fieldConfiguration.convert(findConvertToField(entityConfiguration, fieldConfiguration));
 		}
 	}
 
-	protected ConvertConfiguration[] findConvertToField(EntityConfiguration entityConfiguration, FieldConfiguration fieldConfiguration) {
+	protected ConvertConfiguration[] findConvertToField(EntityConfiguration entityConfiguration,
+			FieldConfiguration fieldConfiguration) {
 		/*
 		 * Procura por um @Convert na Entidade
 		 */
@@ -206,10 +257,12 @@ public class PersistenceModelConfiguration {
 			if (types.size() < 2)
 				return null;
 			for (ConverterConfiguration converter : converters) {
-				if ((converter.getEntityAttributeType().equals(types.get(0))) && (!ReflectionUtils.isSimple(types.get(0)))) {
+				if ((converter.getEntityAttributeType().equals(types.get(0)))
+						&& (!ReflectionUtils.isSimple(types.get(0)))) {
 					result.add(new ConvertConfiguration(converter.getConverter(), "key"));
 				}
-				if ((converter.getEntityAttributeType().equals(types.get(1))) && (!ReflectionUtils.isSimple(types.get(1)))) {
+				if ((converter.getEntityAttributeType().equals(types.get(1)))
+						&& (!ReflectionUtils.isSimple(types.get(1)))) {
 					result.add(new ConvertConfiguration(converter.getConverter(), "value"));
 				}
 			}
@@ -230,15 +283,16 @@ public class PersistenceModelConfiguration {
 	}
 
 	protected void checkForeignKeyHasColumns(FieldConfiguration fieldConfiguration) {
-		if (fieldConfiguration.isAnnotationPresent(ForeignKey.class)
-				&& ((!fieldConfiguration.isAnnotationPresent(new Class[] { Column.class, Columns.class, Column.List.class })))) {
+		if (fieldConfiguration.isAnnotationPresent(ForeignKey.class) && ((!fieldConfiguration
+				.isAnnotationPresent(new Class[] { Column.class, Columns.class, Column.List.class })))) {
 			Class<?> fkClass = fieldConfiguration.getField().getType();
 			EntityConfiguration sourceConfiguration = getEntityConfigurationBySourceClass(fkClass);
 			if (sourceConfiguration != null) {
 				FieldConfiguration[] fieldConfigurations = sourceConfiguration.getAllFields();
 				for (FieldConfiguration fld : fieldConfigurations) {
 					/*
-					 * Se for chave primária usa colunas para a foreignkey omitida
+					 * Se for chave primária usa colunas para a foreignkey
+					 * omitida
 					 */
 					if (fld.isId() || (fld.isCompositeId())) {
 						for (ColumnConfiguration column : fld.getColumns()) {
@@ -252,7 +306,8 @@ public class PersistenceModelConfiguration {
 		}
 	}
 
-	protected void checkMapIsConfigured(EntityConfiguration entityConfiguration, FieldConfiguration fieldConfiguration) {
+	protected void checkMapIsConfigured(EntityConfiguration entityConfiguration,
+			FieldConfiguration fieldConfiguration) {
 		if (fieldConfiguration.isMap() && !fieldConfiguration.isTransient()) {
 			if (!fieldConfiguration.isAnnotationPresent(Fetch.class)) {
 				fieldConfiguration.fetch(FetchType.LAZY, FetchMode.ELEMENT_COLLECTION, "", null, "");
@@ -264,7 +319,8 @@ public class PersistenceModelConfiguration {
 
 			if (!fieldConfiguration.isAnnotationPresent(CollectionTable.class)) {
 				List<JoinColumnConfiguration> joinColumns = getJoinColumns(entityConfiguration);
-				fieldConfiguration.collectionTable(entityConfiguration.getTableName() + "_" + fieldConfiguration.getField().getName(),
+				fieldConfiguration.collectionTable(
+						entityConfiguration.getTableName() + "_" + fieldConfiguration.getField().getName(),
 						joinColumns.toArray(new JoinColumnConfiguration[] {}));
 			}
 
@@ -281,7 +337,8 @@ public class PersistenceModelConfiguration {
 		}
 	}
 
-	protected void checkCollectionIsConfigured(EntityConfiguration entityConfiguration, FieldConfiguration fieldConfiguration) {
+	protected void checkCollectionIsConfigured(EntityConfiguration entityConfiguration,
+			FieldConfiguration fieldConfiguration) {
 		if (fieldConfiguration.isCollection() && !fieldConfiguration.isTransient()) {
 			Class<?> genericType = ReflectionUtils.getGenericType(fieldConfiguration.getField());
 			/*
@@ -298,7 +355,8 @@ public class PersistenceModelConfiguration {
 
 				if (!fieldConfiguration.isAnnotationPresent(new Class[] { CollectionTable.class })) {
 					List<JoinColumnConfiguration> joinColumns = getJoinColumns(entityConfiguration);
-					fieldConfiguration.collectionTable(entityConfiguration.getTableName() + "_" + fieldConfiguration.getField().getName(),
+					fieldConfiguration.collectionTable(
+							entityConfiguration.getTableName() + "_" + fieldConfiguration.getField().getName(),
 							joinColumns.toArray(new JoinColumnConfiguration[] {}));
 				}
 			} else {
@@ -307,14 +365,16 @@ public class PersistenceModelConfiguration {
 				 */
 				EntityConfiguration sourceConfiguration = getEntityConfigurationBySourceClass(genericType);
 				if (sourceConfiguration != null) {
-					FieldConfiguration fieldFound = findFieldCandidate(fieldConfiguration, genericType, sourceConfiguration);
+					FieldConfiguration fieldFound = findFieldCandidate(fieldConfiguration, genericType,
+							sourceConfiguration);
 
 					/*
 					 * Se encontrou o campo é um ONE_TO_MANY
 					 */
 					if (fieldFound != null) {
 						if (!fieldConfiguration.isAnnotationPresent(Fetch.class)) {
-							fieldConfiguration.fetch(FetchType.LAZY, FetchMode.ONE_TO_MANY, fieldFound.getField().getName(), genericType, "");
+							fieldConfiguration.fetch(FetchType.LAZY, FetchMode.ONE_TO_MANY,
+									fieldFound.getField().getName(), genericType, "");
 						}
 					} else {
 						/*
@@ -330,15 +390,18 @@ public class PersistenceModelConfiguration {
 								List<JoinColumnConfiguration> sourceJoinColumns = getJoinColumns(sourceConfiguration);
 								entityJoinColumns.addAll(sourceJoinColumns);
 
-								fieldConfiguration.joinTable(entityConfiguration.getSourceClazz().getSimpleName() + "_"
-										+ sourceConfiguration.getSourceClazz().getSimpleName(), entityJoinColumns.toArray(new JoinColumnConfiguration[] {}),
+								fieldConfiguration.joinTable(
+										entityConfiguration.getSourceClazz().getSimpleName() + "_"
+												+ sourceConfiguration.getSourceClazz().getSimpleName(),
+										entityJoinColumns.toArray(new JoinColumnConfiguration[] {}),
 										entityJoinColumns.toArray(new JoinColumnConfiguration[] {}));
 							}
 						}
 					}
 				} else {
 					/*
-					 * Como não encontrou uma entidade como FK do tipo da collection pode ser um tipo a ser convertido
+					 * Como não encontrou uma entidade como FK do tipo da
+					 * collection pode ser um tipo a ser convertido
 					 */
 					fieldConfiguration.convert(findConvertToField(entityConfiguration, fieldConfiguration));
 				}
@@ -351,10 +414,12 @@ public class PersistenceModelConfiguration {
 		for (FieldConfiguration fc : entityConfiguration.getAllFields()) {
 			if (fc.isId()) {
 				String name = fc.getSimpleColumn().getName();
-				joinColumns.add(new JoinColumnConfiguration(entityConfiguration.getSourceClazz().getSimpleName() + "_ID", name));
+				joinColumns.add(new JoinColumnConfiguration(
+						entityConfiguration.getSourceClazz().getSimpleName() + "_ID", name));
 			} else if (fc.isCompositeId()) {
 				for (ColumnConfiguration cl : fc.getColumns()) {
-					joinColumns.add(new JoinColumnConfiguration(entityConfiguration.getSourceClazz().getSimpleName() + "_" + cl.getName(), cl.getName()));
+					joinColumns.add(new JoinColumnConfiguration(
+							entityConfiguration.getSourceClazz().getSimpleName() + "_" + cl.getName(), cl.getName()));
 				}
 			}
 		}
@@ -362,8 +427,8 @@ public class PersistenceModelConfiguration {
 	}
 
 	protected boolean isForeignKey(FieldConfiguration fieldConfiguration) {
-		if (!fieldConfiguration.isSimpleField() && !fieldConfiguration.isCollectionOrMap() && !fieldConfiguration.isForeignKey()
-				&& !fieldConfiguration.isTransient()) {
+		if (!fieldConfiguration.isSimpleField() && !fieldConfiguration.isCollectionOrMap()
+				&& !fieldConfiguration.isForeignKey() && !fieldConfiguration.isTransient()) {
 			Class<?> fkClass = fieldConfiguration.getField().getType();
 			EntityConfiguration sourceConfiguration = getEntityConfigurationBySourceClass(fkClass);
 			/*
@@ -384,7 +449,8 @@ public class PersistenceModelConfiguration {
 		/*
 		 * Se a anotação @ForeignKey estiver presente e foi omitido
 		 * 
-		 * @Column ou @Columns assume como default a(s) coluna(s) da classe estrangeira
+		 * @Column ou @Columns assume como default a(s) coluna(s) da classe
+		 * estrangeira
 		 */
 		checkForeignKeyHasColumns(fieldConfiguration);
 	}
@@ -394,16 +460,19 @@ public class PersistenceModelConfiguration {
 			return;
 
 		/*
-		 * Se não foi definido nome da coluna ou definido campo como transient e não é uma coleção.
+		 * Se não foi definido nome da coluna ou definido campo como transient e
+		 * não é uma coleção.
 		 */
-		if (!fieldConfiguration.isAnnotationPresent(new Class[] { Column.class, Columns.class }) && (fieldConfiguration.isSimpleField())) {
+		if (!fieldConfiguration.isAnnotationPresent(new Class[] { Column.class, Columns.class })
+				&& (fieldConfiguration.isSimpleField())) {
 			fieldConfiguration.column(fieldConfiguration.getField().getName());
 		}
 
 		/*
 		 * Se o campo é boolean e não foi definido @BooleanValue
 		 */
-		if (((fieldConfiguration.getField().getType() == Boolean.class || fieldConfiguration.getField().getType() == boolean.class))
+		if (((fieldConfiguration.getField().getType() == Boolean.class
+				|| fieldConfiguration.getField().getType() == boolean.class))
 				&& (!fieldConfiguration.isAnnotationPresent(BooleanValue.class))) {
 			fieldConfiguration.booleanValue("S", "N", BooleanType.STRING);
 		}
@@ -411,29 +480,36 @@ public class PersistenceModelConfiguration {
 		/*
 		 * Se o campo é um Enum e não foi definido @Enumerated
 		 */
-		if (Enum.class.isAssignableFrom(fieldConfiguration.getType()) && (!fieldConfiguration.isAnnotationPresent(Enumerated.class))) {
+		if (Enum.class.isAssignableFrom(fieldConfiguration.getType())
+				&& (!fieldConfiguration.isAnnotationPresent(Enumerated.class))) {
 			fieldConfiguration.enumerated(EnumType.STRING);
 		}
 
 		/*
 		 * Se o campo é um Lob e não foi definido @Lob
 		 */
-		if (ReflectionUtils.isLobField(fieldConfiguration.getField()) && !fieldConfiguration.isAnnotationPresent(Lob.class)) {
+		if (ReflectionUtils.isLobField(fieldConfiguration.getField())
+				&& !fieldConfiguration.isAnnotationPresent(Lob.class)) {
 			fieldConfiguration.lob(FetchType.LAZY);
 		}
 
 		/*
 		 * Se o cmapo é uma Data e não foi definido @Temporal
 		 */
-		if (ReflectionUtils.isDateTimeField(fieldConfiguration.getField()) && !fieldConfiguration.isAnnotationPresent(Temporal.class)) {
+		if (ReflectionUtils.isDateTimeField(fieldConfiguration.getField())
+				&& !fieldConfiguration.isAnnotationPresent(Temporal.class)) {
 			fieldConfiguration.temporal(TemporalType.DATE);
 		}
+		
+		
 	}
 
-	protected FieldConfiguration findFieldCandidate(FieldConfiguration fieldConfiguration, Class<?> genericType, EntityConfiguration sourceConfiguration) {
+	protected FieldConfiguration findFieldCandidate(FieldConfiguration fieldConfiguration, Class<?> genericType,
+			EntityConfiguration sourceConfiguration) {
 		/*
-		 * Verifica se existe um campo na classe da coleção que seja do MESMO TIPO da classe sendo analisada e que possa
-		 * ter o nome do atributo igual ao nome da classe
+		 * Verifica se existe um campo na classe da coleção que seja do MESMO
+		 * TIPO da classe sendo analisada e que possa ter o nome do atributo
+		 * igual ao nome da classe
 		 */
 		FieldConfiguration fieldFound = null;
 		for (FieldConfiguration fc : sourceConfiguration.getAllFields()) {
@@ -447,8 +523,9 @@ public class PersistenceModelConfiguration {
 
 		if (fieldFound == null) {
 			/*
-			 * Verifica se existe um campo na classe da coleção que seja HERANÇA do tipo da classe sendo analisada e que
-			 * possa ter o nome do atributo igual ao nome da classe
+			 * Verifica se existe um campo na classe da coleção que seja HERANÇA
+			 * do tipo da classe sendo analisada e que possa ter o nome do
+			 * atributo igual ao nome da classe
 			 */
 			for (FieldConfiguration fc : sourceConfiguration.getAllFields()) {
 				if (ReflectionUtils.isExtendsClass(genericType, sourceConfiguration.getSourceClazz())) {
@@ -461,8 +538,8 @@ public class PersistenceModelConfiguration {
 
 			if (fieldFound == null) {
 				/*
-				 * Verifica se existe um campo na classe da coleção que seja MESMO TIPO ou HERANÇA da classe sendo
-				 * analisada
+				 * Verifica se existe um campo na classe da coleção que seja
+				 * MESMO TIPO ou HERANÇA da classe sendo analisada
 				 */
 				for (FieldConfiguration fc : sourceConfiguration.getAllFields()) {
 					if ((sourceConfiguration.getSourceClazz() == genericType)

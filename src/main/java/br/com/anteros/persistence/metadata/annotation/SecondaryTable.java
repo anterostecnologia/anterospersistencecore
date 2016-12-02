@@ -13,6 +13,8 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface SecondaryTable {
+	
+	String name();
 
 	String catalog() default "";
 
@@ -20,6 +22,9 @@ public @interface SecondaryTable {
 
 	PrimaryKeyJoinColumn[] pkJoinColumns();
 	
+	String foreignKeyName() default "";
+	
+	String foreignKeyDefinition() default "";	
 
 	@Target({ FIELD, TYPE })
 	@Retention(RUNTIME)
