@@ -72,7 +72,7 @@ public class SQLPersisterImpl implements SQLPersister {
 	private int currentBatchSize = 0;
 
 	private boolean beanValidationPresent;
-	
+
 	public SQLPersisterImpl() {
 		this.beanValidationPresent = AnterosBeanValidationHelper.isBeanValidationPresent();
 	}
@@ -696,13 +696,13 @@ public class SQLPersisterImpl implements SQLPersister {
 						} else if (descriptionField.isCollectionTable())
 							result.addAll(getSQLCollectionTableCommands(targetValue.getSource(),
 									SQLStatementType.INSERT, descriptionField, null, null, primaryKeyOwner));
-						else if (descriptionField.isCollectionEntity())
+						else if (descriptionField.isCollectionEntity()) {
 							if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 									|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)))
 								save(session, targetValue.getSource(), result);
-							else if (descriptionField.isJoinTable())
-								result.addAll(getSQLJoinTableCommands(targetValue.getSource(), SQLStatementType.INSERT,
-										descriptionField, null, null, primaryKeyOwner));
+						} else if (descriptionField.isJoinTable())
+							result.addAll(getSQLJoinTableCommands(targetValue.getSource(), SQLStatementType.INSERT,
+									descriptionField, null, null, primaryKeyOwner));
 
 					}
 
@@ -1290,16 +1290,16 @@ public class SQLPersisterImpl implements SQLPersister {
 
 	@Override
 	public void save(SQLSession session, Object[] objects) throws Exception {
-		for (Object obj : objects ) {
+		for (Object obj : objects) {
 			save(session, obj);
-		}		
+		}
 	}
 
 	@Override
 	public void save(SQLSession session, Collection<?> objects) throws Exception {
-		for (Object obj : objects ) {
+		for (Object obj : objects) {
 			save(session, obj);
-		}		
+		}
 	}
 
 }
