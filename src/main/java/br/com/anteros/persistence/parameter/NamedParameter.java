@@ -28,10 +28,10 @@ import br.com.anteros.persistence.sql.binder.DateTimeParameterBinding;
  */
 public class NamedParameter {
 
-	private String name;
-	private Object value;
-	private boolean key;
-	private TemporalType temporalType;
+	protected String name;
+	protected Object value;
+	protected boolean key;
+	protected TemporalType temporalType;
 
 	public NamedParameter(String name) {
 		this.name = name;

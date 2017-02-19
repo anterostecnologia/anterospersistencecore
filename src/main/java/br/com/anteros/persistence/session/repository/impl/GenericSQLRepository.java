@@ -28,8 +28,11 @@ import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
 import br.com.anteros.persistence.metadata.EntityCache;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
 import br.com.anteros.persistence.metadata.identifier.Identifier;
+import br.com.anteros.persistence.parameter.InClauseSubstitutedParameter;
+import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionFactory;
 import br.com.anteros.persistence.session.lock.LockOptions;
@@ -125,8 +128,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	public T findOne(ID id, LockOptions lockOptions, boolean readOnly) {
 		Assert.notNull(id, "O id não pode ser nulo.");
 
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		try {
@@ -165,12 +167,12 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	@Override
 	public List<T> findAll(LockOptions lockOptions, boolean readOnly) {
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		try {
-			TypedSQLQuery<?> query = getSession().createQuery("select * from " + getEntityCache().getTableName(), persistentClass);
+			TypedSQLQuery<?> query = getSession().createQuery("select * from " + getEntityCache().getTableName(),
+					persistentClass);
 			query.setLockOptions(lockOptions);
 			query.setReadOnly(readOnly);
 			return (List<T>) query.getResultList();
@@ -180,8 +182,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	protected EntityCache getEntityCache() {
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		return getSession().getEntityCacheManager().getEntityCache(persistentClass);
@@ -204,7 +205,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			query.setLockOptions(lockOptions);
 
 			Long total = count();
-			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList());
+			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
+					: Collections.<T>emptyList());
 
 			return new PageImpl<T>(content, pageable, total);
 		} catch (Exception e) {
@@ -239,7 +241,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			query.setLockOptions(lockOptions);
 
 			Long total = doCount(getCountQueryString("(" + sql + ")"));
-			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList());
+			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
+					: Collections.<T>emptyList());
 
 			return new PageImpl<T>(content, pageable, total);
 		} catch (Exception e) {
@@ -269,12 +272,13 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		try {
 			query = getSession().createQuery(sql, persistentClass);
 			query.setFirstResult(pageable.getOffset());
-			query.setMaxResults(pageable.getPageSize()); 
+			query.setMaxResults(pageable.getPageSize());
 			query.setParameters(parameters);
 			query.setReadOnly(readOnly);
 			query.setLockOptions(lockOptions);
 			Long total = doCount(getCountQueryString("(" + sql + ")"), parameters);
-			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList());
+			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
+					: Collections.<T>emptyList());
 
 			return new PageImpl<T>(content, pageable, total);
 		} catch (Exception e) {
@@ -285,8 +289,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public List<T> findByNamedQuery(String queryName, boolean readOnly) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
@@ -299,8 +302,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public Page<T> findByNamedQuery(String queryName, Pageable pageable, boolean readOnly) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
@@ -314,8 +316,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public List<T> findByNamedQuery(String queryName, Object parameters, boolean readOnly) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
@@ -328,8 +329,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
@@ -346,8 +346,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	private EntityPath<T> getEntityPath() {
-		Assert.notNull(
-				persistentClass,
+		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		if (path == null)
@@ -382,7 +381,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		query.offset(pageable.getOffset());
 		query.limit(pageable.getPageSize());
 
-		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
+		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T>emptyList();
 
 		return new PageImpl<T>(content, pageable, total);
 	}
@@ -397,7 +396,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		query.limit(pageable.getPageSize());
 		query.orderBy(orders);
 
-		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T> emptyList();
+		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T>emptyList();
 
 		return new PageImpl<T>(content, pageable, total);
 	}
@@ -413,7 +412,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 				throw new SQLRepositoryException(e);
 			}
 		}
-		throw new SQLRepositoryException("Não foi configurado nenhuma SQLSession ou SQLSessionFactory para o repositório.");
+		throw new SQLRepositoryException(
+				"Não foi configurado nenhuma SQLSession ou SQLSessionFactory para o repositório.");
 	}
 
 	@Override
@@ -463,13 +463,13 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	public void remove(ID id) {
 		try {
 			Assert.notNull(id, "O id não pode ser nulo.");
-			Assert.notNull(
-					persistentClass,
+			Assert.notNull(persistentClass,
 					"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 			T entity = findOne(id);
 			if (entity == null) {
-				throw new SQLRepositoryException(String.format("Não foi encontrada nenhuma entidade %s com o id %s.", persistentClass, id));
+				throw new SQLRepositoryException(
+						String.format("Não foi encontrada nenhuma entidade %s com o id %s.", persistentClass, id));
 			}
 			remove(entity);
 		} catch (Exception e) {
@@ -549,7 +549,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public SQLSession openSession() throws Exception {
 		if (sessionFactory == null)
-			throw new SQLRepositoryException("Nenhuma fábrica de sessões foi atribuída ao repositório não é possível criar uma nova sessão SQL.");
+			throw new SQLRepositoryException(
+					"Nenhuma fábrica de sessões foi atribuída ao repositório não é possível criar uma nova sessão SQL.");
 		return sessionFactory.openSession();
 	}
 
@@ -722,5 +723,64 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	public OSQLQuery createObjectQuery() {
 		return new OSQLQuery(session);
 	}
+
+	@Override
+	public boolean exists(List<ID> ids) {
+		return (findAll(ids) != Collections.EMPTY_LIST);
+	}
+
+	@Override
+	public List<T> findAll(List<ID> ids) {
+		return findAll(ids,LockOptions.NONE,false);
+	}
+	
+	@Override
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions) {
+		return findAll(ids,lockOptions,false);
+	}
+
+	@Override
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly) {
+		Assert.notNull(persistentClass,
+				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
+
+		if (getEntityCache().hasCompositeKey()) {
+			throw new SQLRepositoryException(
+					"Não é possível usar o método findAll(List<ID> ids) com objetos que tenham chave composta. Neste caso será necessário fazer um método específico para isto.");
+		}
+
+		try {
+			DescriptionColumn idDescriptionColumn = getEntityCache().getPrimaryKeyColumns().iterator().next();
+			TypedSQLQuery<?> query = getSession().createQuery("select * from " + getEntityCache().getTableName()
+					+ " where " + idDescriptionColumn.getColumnName() + " in (:pids) ", persistentClass);
+			query.setLockOptions(lockOptions);
+			query.setReadOnly(readOnly);
+			query.setParameters(new NamedParameter[] { new InClauseSubstitutedParameter("pids", ids) });
+			return (List<T>) query.getResultList();
+		} catch (Exception e) {
+			throw new SQLRepositoryException(e);
+		}
+	}
+
+	@Override
+	public Boolean removeAll(List<ID> ids) throws Exception {
+		Assert.notNull(persistentClass,
+				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
+
+		if (getEntityCache().hasCompositeKey()) {
+			throw new SQLRepositoryException(
+					"Não é possível usar o método removeAll(List<ID> ids) com objetos que tenham chave composta. Neste caso será necessário fazer um método específico para isto.");
+		}
+
+		try {
+			DescriptionColumn idDescriptionColumn = getEntityCache().getPrimaryKeyColumns().iterator().next();
+			return (getSession().update("delete from " + getEntityCache().getTableName()
+					+ " where " + idDescriptionColumn.getColumnName() + " in (:pids) ", new NamedParameter[] { new InClauseSubstitutedParameter("pids", ids) })>0);
+		} catch (Exception e) {
+			throw new SQLRepositoryException(e);
+		}
+	}
+
+	
 
 }

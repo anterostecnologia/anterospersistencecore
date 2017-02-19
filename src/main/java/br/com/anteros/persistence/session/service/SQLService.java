@@ -61,6 +61,8 @@ public interface SQLService<T, ID extends Serializable> {
 	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly);
 
 	boolean exists(ID id);
+	
+	boolean exists(List<ID> ids);
 
 	List<T> findAll();
 
@@ -129,13 +131,21 @@ public interface SQLService<T, ID extends Serializable> {
 	T findOne(Predicate predicate);
 
 	List<T> findAll(Predicate predicate);
+	
+	List<T> findAll(List<ID> ids);
+	
+	List<T> findAll(List<ID> ids, LockOptions lockOptions);
+	
+	List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly);
 
 	Iterable<T> findAll(Predicate predicate, OrderSpecifier<?>... orders);
 
 	Page<T> findAll(Predicate predicate, Pageable pageable);
 
 	Page<T> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... orders);
-
+	
+	
+	
 	SQLSession getSession();
 
 	void setSession(SQLSession session);
@@ -159,6 +169,8 @@ public interface SQLService<T, ID extends Serializable> {
 	void remove(Iterable<? extends T> entities);
 
 	void removeAll();
+	
+	Boolean removeAll(List<ID> ids) throws Exception;
 
 	Transaction getTransaction() throws Exception;
 
@@ -167,4 +179,5 @@ public interface SQLService<T, ID extends Serializable> {
 	Identifier<T> getIdentifier(T owner) throws Exception;
 
 	OSQLQuery createObjectQuery();
+		
 }

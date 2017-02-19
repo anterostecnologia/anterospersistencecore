@@ -59,6 +59,8 @@ public interface SQLRepository<T, ID extends Serializable> {
 	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly);
 
 	boolean exists(ID id);
+	
+	boolean exists(List<ID> ids);
 
 	List<T> findAll();
 
@@ -127,6 +129,12 @@ public interface SQLRepository<T, ID extends Serializable> {
 	T findOne(Predicate predicate);
 
 	List<T> findAll(Predicate predicate);
+	
+	List<T> findAll(List<ID> ids);
+	
+	List<T> findAll(List<ID> ids, LockOptions lockOptions);
+	
+	List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly);
 
 	Iterable<T> findAll(Predicate predicate, OrderSpecifier<?>... orders);
 
@@ -157,6 +165,8 @@ public interface SQLRepository<T, ID extends Serializable> {
 	void remove(Iterable<? extends T> entities);
 
 	void removeAll();
+	
+	Boolean removeAll(List<ID> ids) throws Exception;
 
 	Transaction getTransaction() throws Exception;
 

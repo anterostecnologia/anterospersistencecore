@@ -194,7 +194,12 @@ public class EntityCache {
 	}
 
 	public boolean hasCompositeKey() {
-		return this.primaryKey.size() > 1;
+		for (DescriptionField descriptionField : fields){
+			if (descriptionField.isCompositeId()){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public List<DescriptionColumn> getCompositeKeys() {

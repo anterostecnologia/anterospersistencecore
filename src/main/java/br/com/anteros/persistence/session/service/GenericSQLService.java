@@ -484,4 +484,31 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	public OSQLQuery createObjectQuery() {
 		return new OSQLQuery(repository.getSession());
 	}
+
+	@Override
+	public boolean exists(List<ID> ids) {
+		return repository.exists(ids);
+	}
+
+	@Override
+	public List<T> findAll(List<ID> ids) {
+		return repository.findAll(ids);
+	}
+	
+	@Override
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions) {
+		return repository.findAll(ids,lockOptions);
+	}
+
+	@Override
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly) {
+		return findAll(ids,lockOptions,readOnly);
+	}
+
+	@Override
+	public Boolean removeAll(List<ID> ids) throws Exception {
+		return removeAll(ids);
+	}
+
+	
 }
