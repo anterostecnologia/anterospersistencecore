@@ -71,7 +71,6 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	private boolean isIncompleteKey;
 	private List<ExpressionFieldMapper> expressionsFieldMapper;
 	private LockOptions lockOptions;
-	private int contador = 0;
 
 	public EntityHandler(LazyLoadFactory proxyFactory, Class<?> targetClass, EntityCacheManager entityCacheManager,
 			List<ExpressionFieldMapper> expressionsFieldMapper,
@@ -447,7 +446,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		/*
 		 * Retorna o chave única. Se for uma string "null" retorna como nula
 		 */
-		return (uniqueIdTemp.toString().equals("null") ? null : uniqueIdTemp.toString());
+		return (uniqueIdTemp.toString().contains("null") ? null : uniqueIdTemp.toString());
 	}
 
 	/**

@@ -424,6 +424,14 @@ public class DescriptionField {
 	public List<DescriptionColumn> getDescriptionColumns() {
 		return Collections.unmodifiableList(columns);
 	}
+	
+	public List<String> getDescriptionColumnsStr() {
+		List<String> result = new ArrayList<String>();
+		for (DescriptionColumn column : columns){
+			result.add(column.getColumnName());
+		}
+		return result;
+	}
 
 	public void setMappedBy(DescriptionMappedBy mappedBy) {
 		this.mappedBy = mappedBy;

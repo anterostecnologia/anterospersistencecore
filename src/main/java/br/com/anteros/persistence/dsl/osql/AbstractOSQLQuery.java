@@ -687,7 +687,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 		if (limit == 0)
 			return new QueryModifiers();
 
-		return new QueryModifiers(limit, (offset == 0 ? 1 : offset));
+		return new QueryModifiers(limit, offset);
 	}
 
 }

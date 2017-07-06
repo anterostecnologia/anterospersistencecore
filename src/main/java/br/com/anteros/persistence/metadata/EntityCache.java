@@ -16,7 +16,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -753,6 +752,15 @@ public class EntityCache {
 				boolean isInheritance = ReflectionUtils.isExtendsClass(sourceClass, descriptionField.getFieldClass());
 				if ((descriptionField.getFieldClass() == sourceClass) || (isInheritance))
 					return descriptionField;
+			}
+		}
+		return null;
+	}
+	
+	public DescriptionField getDescriptionFieldUsesColumns(List<String> columNames) {
+		for (DescriptionField descriptionField : getDescriptionFields()) {
+			if (descriptionField.isContainsColumns(columNames)){
+				return descriptionField;
 			}
 		}
 		return null;
