@@ -755,7 +755,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 					+ " where " + idDescriptionColumn.getColumnName() + " in (:pids) ", persistentClass);
 			query.setLockOptions(lockOptions);
 			query.setReadOnly(readOnly);
-			query.setParameters(new NamedParameter[] { new InClauseSubstitutedParameter("pids", ids) });
+			query.setParameters(new NamedParameter[] { new InClauseSubstitutedParameter("pids", ids.toArray()) });
 			return (List<T>) query.getResultList();
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
@@ -775,7 +775,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		try {
 			DescriptionColumn idDescriptionColumn = getEntityCache().getPrimaryKeyColumns().iterator().next();
 			return (getSession().update("delete from " + getEntityCache().getTableName()
-					+ " where " + idDescriptionColumn.getColumnName() + " in (:pids) ", new NamedParameter[] { new InClauseSubstitutedParameter("pids", ids) })>0);
+					+ " where " + idDescriptionColumn.getColumnName() + " in (:pids) ", new NamedParameter[] { new InClauseSubstitutedParameter("pids",ids.toArray()) })>0);
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}
