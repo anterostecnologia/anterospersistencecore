@@ -33,7 +33,7 @@ public class AnterosFilterDsl {
 	}
 
 
-	public Map<String, Object> getParams() {
+	public static Map<String, Object> getParams() {
 		return builder.getParams();
 	}
 
