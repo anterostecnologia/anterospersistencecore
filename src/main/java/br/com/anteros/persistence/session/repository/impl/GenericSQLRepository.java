@@ -781,6 +781,11 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		}
 	}
 
+	@Override
+	public String getTableName() throws Exception {
+		return getEntityCache().getTableName();
+	}
+
 	
 
 }

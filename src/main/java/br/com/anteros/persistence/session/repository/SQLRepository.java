@@ -175,5 +175,7 @@ public interface SQLRepository<T, ID extends Serializable> {
 	Identifier<T> getIdentifier(T owner) throws Exception;
 
 	OSQLQuery createObjectQuery();
+	
+	String getTableName() throws Exception;
 
 }

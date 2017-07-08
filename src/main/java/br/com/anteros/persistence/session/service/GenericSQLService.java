@@ -510,5 +510,10 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 		return removeAll(ids);
 	}
 
+	@Override
+	public String getTableName() throws Exception {
+		return repository.getTableName();
+	}
+
 	
 }
