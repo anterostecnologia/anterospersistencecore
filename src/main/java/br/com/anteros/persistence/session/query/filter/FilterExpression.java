@@ -50,6 +50,15 @@ public abstract class FilterExpression extends JacksonBase implements Visitable 
   public FilterExpression LEQ(final Object value) throws FilterException {
     return applyOperation(Operator.LEQ, value);
   }
+  
+
+  public FilterExpression GT(final Object value) throws FilterException {
+    return applyOperation(Operator.GT, value);
+  }
+
+  public FilterExpression LT(final Object value) throws FilterException {
+    return applyOperation(Operator.LT, value);
+  }
 
   public FilterExpression LIKE(final String value) throws FilterException {
     return applyOperation(Operator.LIKE, value);
