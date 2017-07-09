@@ -48,7 +48,7 @@ import br.com.anteros.persistence.transaction.Transaction;
 public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepository<T, ID> {
 
 	private static final EntityPathResolver DEFAULT_ENTITY_PATH_RESOLVER = SimpleEntityPathResolver.INSTANCE;
-	public static final String COUNT_QUERY_STRING = "select count(*) from %s x";
+	public static final String COUNT_QUERY_STRING = "select count(*) as qt from %s x";
 	public static final String DELETE_ALL_QUERY_STRING = "delete from %s x";
 
 	protected SQLSession session;
@@ -784,6 +784,15 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public String getTableName() throws Exception {
 		return getEntityCache().getTableName();
+	}
+
+	@Override
+	public DescriptionNamedQuery getNamedQuery(String queryName) throws Exception {
+		EntityCache cache = getSession().getEntityCacheManager().getEntityCache(persistentClass);
+		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
+		if (namedQuery == null)
+			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
+		return namedQuery;
 	}
 
 	

@@ -18,6 +18,7 @@ import java.util.List;
 import br.com.anteros.persistence.dsl.osql.OSQLQuery;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
 import br.com.anteros.persistence.metadata.identifier.Identifier;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionFactory;
@@ -177,5 +178,7 @@ public interface SQLRepository<T, ID extends Serializable> {
 	OSQLQuery createObjectQuery();
 	
 	String getTableName() throws Exception;
+	
+	DescriptionNamedQuery getNamedQuery(String queryName) throws Exception;
 
 }

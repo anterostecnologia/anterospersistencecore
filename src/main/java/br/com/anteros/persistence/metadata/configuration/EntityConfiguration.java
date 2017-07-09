@@ -446,11 +446,13 @@ public class EntityConfiguration {
 	}
 
 	public EntityConfiguration namedQueries(NamedQueryConfiguration[] namedQueries) {
+		this.annotations.add(NamedQueries.class);
 		this.namedQueries = namedQueries;
 		return this;
 	}
 
 	public EntityConfiguration namedQueries(NamedQueryConfiguration namedQuery) {
+		this.annotations.add(NamedQuery.class);
 		this.namedQueries = new NamedQueryConfiguration[] { namedQuery };
 		return this;
 	}

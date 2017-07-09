@@ -1,12 +1,14 @@
 package br.com.anteros.persistence.session.query.filter;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Filter implements Visitable {
 
 	protected FilterExpression filterExpression;
-
+	protected FieldSort[] fieldsToSort = new FieldSort[] {};
 
 	private static Set<FilterVisitor> visitors = new HashSet<FilterVisitor>();
 
@@ -20,7 +22,7 @@ public class Filter implements Visitable {
 
 	public static OperationExpression exp(final FieldExpression field) {
 		return new OperationExpression(field);
-	}	
+	}
 
 	public void runVisitors() throws FilterException {
 		for (final FilterVisitor visitor : visitors) {
@@ -117,7 +119,7 @@ public class Filter implements Visitable {
 		filterExpression = filterExpression.AND(exp);
 		return this;
 	}
-	
+
 	public Filter OR(final FieldExpression fieldExpression) throws FilterException {
 		assertWhereClauseIsInitialized("or");
 		filterExpression = filterExpression.OR(fieldExpression);
@@ -189,6 +191,23 @@ public class Filter implements Visitable {
 	public void setFilterExpression(FilterExpression filterExpression) {
 		this.filterExpression = filterExpression;
 	}
-	
+
+	public Filter SORTBY(FieldExpression field, boolean desc) {
+		List<FieldSort> fds = Arrays.asList(fieldsToSort);
+		fds.add(new FieldSort(field.getName() + (desc ? " DESC" : " ASC")));
+		fieldsToSort = fds.toArray(new FieldSort[] {});
+		return this;
+	}
+
+	public Filter SORTBY(String fieldName, boolean desc) {
+		List<FieldSort> fds = Arrays.asList(fieldsToSort);
+		fds.add(new FieldSort(fieldName + (desc ? " DESC" : " ASC")));
+		fieldsToSort = fds.toArray(new FieldSort[] {});
+		return this;
+	}
+
+	public FieldSort[] getFieldsToSort() {
+		return fieldsToSort;
+	}
 
 }

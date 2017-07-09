@@ -23,6 +23,7 @@ import br.com.anteros.core.utils.TypeResolver;
 import br.com.anteros.persistence.dsl.osql.OSQLQuery;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
 import br.com.anteros.persistence.metadata.identifier.Identifier;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionFactory;
@@ -513,6 +514,11 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	@Override
 	public String getTableName() throws Exception {
 		return repository.getTableName();
+	}
+
+	@Override
+	public DescriptionNamedQuery getNamedQuery(String queryName) throws Exception {
+		return repository.getNamedQuery(queryName);
 	}
 
 	
