@@ -70,14 +70,18 @@ public class DefaultFilterBuilder extends BaseVisitor {
 
 		result.append(OPEN_BRACKET);
 		acceptOrVisitValue(exp.getLhsValue(), baseVariableName);
-		if ((exp.getRhsValue() == null) //
-				|| ((exp.getRhsValue() instanceof Nullable) //
-						&& ((Nullable) exp.getRhsValue()).isNull())) {
-			if (!Operator.EQ.equals(exp.getOperator()))
+		if ((exp.getRhsValue() == null) || (exp.getRhsValue().equals(Constant.NULL.name()))
+				|| (exp.getRhsValue() instanceof Nullable)) {
+			if (!Operator.IS.equals(exp.getOperator()) && !Operator.IS_NOT.equals(exp.getOperator()))
 				throw new FilterException(
 						"Não é possível usar valor NULO com operador." + exp.getOperator().getValue());
-			result.append(" ").append(Operator.IS.getValue());
+			if (Operator.IS.equals(exp.getOperator())) {
+				result.append(" ").append(Operator.IS.getValue());
+			} else if (Operator.IS_NOT.equals(exp.getOperator())) {
+				result.append(" ").append(Operator.IS_NOT.getValue());
+			}
 			result.append(" ").append(Constant.NULL);
+			
 		} else {
 			result.append(" ").append(exp.getOperator().getValue()).append(" ");
 			acceptOrVisitValue(exp.getRhsValue(), baseVariableName);
