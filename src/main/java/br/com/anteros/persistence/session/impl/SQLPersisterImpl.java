@@ -30,6 +30,7 @@ import java.util.Set;
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.core.utils.ReflectionUtils;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityManaged;
 import br.com.anteros.persistence.metadata.FieldEntityValue;
@@ -47,6 +48,7 @@ import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.SQLPersister;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionValidatior;
+import br.com.anteros.persistence.session.cache.PersistenceMetadataCache;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
 import br.com.anteros.persistence.session.lock.LockMode;
 import br.com.anteros.persistence.session.lock.OptimisticLockException;
@@ -59,6 +61,7 @@ import br.com.anteros.persistence.sql.command.Select;
 import br.com.anteros.persistence.sql.command.Update;
 import br.com.anteros.persistence.sql.command.UpdateCommandSQL;
 import br.com.anteros.persistence.util.AnterosBeanValidationHelper;
+import br.com.anteros.persistence.util.SQLParserUtil;
 import br.com.anteros.persistence.validation.version.Versioning;
 
 public class SQLPersisterImpl implements SQLPersister {
@@ -191,6 +194,10 @@ public class SQLPersisterImpl implements SQLPersister {
 	}
 
 	protected boolean existsRecordInDatabaseTable(String tableName, Map<String, Object> identifier) throws Exception {
+		HashSet<String> tbs = new HashSet<String>();
+		tbs.add(tableName);
+		session.forceFlush(tbs);
+		
 		Select select = new Select(session.getDialect());
 		select.addColumn("count(*)", "numRows");
 		select.addTableName(tableName);
@@ -602,18 +609,57 @@ public class SQLPersisterImpl implements SQLPersister {
 							for (Object value : (Collection<?>) fieldValue)
 								result.addAll(getSQLCollectionTableCommands(value, SQLStatementType.INSERT,
 										descriptionField, null, null, primaryKeyOwner));
-						} else if (descriptionField.isCollectionEntity()) {
+						} else if (descriptionField.isCollectionEntity()) {	
+							
+							
+							/*
+							 * Pega o field pelo nome do mappedBy na classe do field atual
+							 */
+							Field mappedByField = ReflectionUtils.getFieldByName(descriptionField.getTargetEntity().getEntityClass(),
+									descriptionField.getMappedBy());
+							/*
+							 * Pega a EntityCache da classe e descriptionColumn
+							 */
+							EntityCache mappedByEntityCache = descriptionField.getTargetEntity();
+							/*
+							 * Pega o(s) DescriptionColumn(s) da coluna para pegar o ColumnName que
+							 * será usado no sql
+							 */
+							DescriptionColumn[] mappedByDescriptionColumn = mappedByEntityCache
+									.getDescriptionColumns(mappedByField.getName());
+							/*
+							 * Monta o SQL
+							 */
+							ArrayList<NamedParameter> params = new ArrayList<NamedParameter>();
+
+							Delete delete = new Delete();
+							delete.setTableName(mappedByEntityCache.getTableName());
+
+							if (mappedByDescriptionColumn != null) {
+								for (DescriptionColumn descriptionColumn : mappedByDescriptionColumn) {
+									delete.addWhereFragment(descriptionColumn.getColumnName()+" = ?");
+									params.add(new NamedParameter("P" + descriptionColumn.getColumnName(),
+											primaryKeyOwner.get(descriptionColumn.getReferencedColumnName())));
+								}
+							}
+							String sql = delete.toStatementString();
+							
+							result.add(new DeleteCommandSQL(session, sql,
+									params, null, null, mappedByEntityCache.getTableName(), session.getShowSql(),
+									null, executeInBatchMode()));
+							
+													
 							for (Object entity : (Collection<?>) fieldValue) {
 								if ((descriptionField.getMappedBy() != null)
 										&& (!"".equals(descriptionField.getMappedBy()))) {
-									Field mappedByField = descriptionField.getTargetEntity()
+									mappedByField = descriptionField.getTargetEntity()
 											.getDescriptionField(descriptionField.getMappedBy()).getField();
 									mappedByField.set(entity, targetObject);
 								}
 								if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 										|| Arrays.asList(descriptionField.getCascadeTypes())
 												.contains(CascadeType.SAVE))) {
-									session.save(entity);
+									saveUsingStatement(mappedByEntityCache, SQLStatementType.INSERT, entity, result);
 								}
 							}
 						} else if (descriptionField.isJoinTable()) {
