@@ -197,7 +197,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		HashSet<String> tbs = new HashSet<String>();
 		tbs.add(tableName);
 		session.forceFlush(tbs);
-		
+
 		Select select = new Select(session.getDialect());
 		select.addColumn("count(*)", "numRows");
 		select.addTableName(tableName);
@@ -609,21 +609,22 @@ public class SQLPersisterImpl implements SQLPersister {
 							for (Object value : (Collection<?>) fieldValue)
 								result.addAll(getSQLCollectionTableCommands(value, SQLStatementType.INSERT,
 										descriptionField, null, null, primaryKeyOwner));
-						} else if (descriptionField.isCollectionEntity()) {	
-							
-							
+						} else if (descriptionField.isCollectionEntity()) {
+
 							/*
-							 * Pega o field pelo nome do mappedBy na classe do field atual
+							 * Pega o field pelo nome do mappedBy na classe do
+							 * field atual
 							 */
-							Field mappedByField = ReflectionUtils.getFieldByName(descriptionField.getTargetEntity().getEntityClass(),
+							Field mappedByField = ReflectionUtils.getFieldByName(
+									descriptionField.getTargetEntity().getEntityClass(),
 									descriptionField.getMappedBy());
 							/*
 							 * Pega a EntityCache da classe e descriptionColumn
 							 */
 							EntityCache mappedByEntityCache = descriptionField.getTargetEntity();
 							/*
-							 * Pega o(s) DescriptionColumn(s) da coluna para pegar o ColumnName que
-							 * será usado no sql
+							 * Pega o(s) DescriptionColumn(s) da coluna para
+							 * pegar o ColumnName que será usado no sql
 							 */
 							DescriptionColumn[] mappedByDescriptionColumn = mappedByEntityCache
 									.getDescriptionColumns(mappedByField.getName());
@@ -637,18 +638,17 @@ public class SQLPersisterImpl implements SQLPersister {
 
 							if (mappedByDescriptionColumn != null) {
 								for (DescriptionColumn descriptionColumn : mappedByDescriptionColumn) {
-									delete.addWhereFragment(descriptionColumn.getColumnName()+" = ?");
+									delete.addWhereFragment(descriptionColumn.getColumnName() + " = ?");
 									params.add(new NamedParameter("P" + descriptionColumn.getColumnName(),
 											primaryKeyOwner.get(descriptionColumn.getReferencedColumnName())));
 								}
 							}
 							String sql = delete.toStatementString();
-							
-							result.add(new DeleteCommandSQL(session, sql,
-									params, null, null, mappedByEntityCache.getTableName(), session.getShowSql(),
-									null, executeInBatchMode()));
-							
-													
+
+							result.add(new DeleteCommandSQL(session, sql, params, null, null,
+									mappedByEntityCache.getTableName(), session.getShowSql(), null,
+									executeInBatchMode()));
+
 							for (Object entity : (Collection<?>) fieldValue) {
 								if ((descriptionField.getMappedBy() != null)
 										&& (!"".equals(descriptionField.getMappedBy()))) {
@@ -787,20 +787,23 @@ public class SQLPersisterImpl implements SQLPersister {
 					} else if (descriptionField.isCollectionTable())
 						result.addAll(getSQLCollectionTableCommands(sourceValue.getSource(), SQLStatementType.DELETE,
 								descriptionField, null, null, primaryKeyOwner));
-					else if (descriptionField.isCollectionEntity())
+					else if (descriptionField.isCollectionEntity()) {
 						if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.DELETE)
 								|| Arrays.asList(descriptionField.getCascadeTypes())
 										.contains(CascadeType.DELETE_ORPHAN))) {
 							save(session, sourceValue.getSource(), result);
 							remove(session, sourceValue.getSource());
-						} else if (descriptionField.isJoinTable())
-							result.addAll(getSQLJoinTableCommands(sourceValue.getSource(), SQLStatementType.DELETE,
-									descriptionField, null, null, primaryKeyOwner));
+						}
+					} else if (descriptionField.isJoinTable()) {
+						result.addAll(getSQLJoinTableCommands(sourceValue.getSource(), SQLStatementType.DELETE,
+								descriptionField, null, null, primaryKeyOwner));
+					}
 				}
 
 			}
 		}
+
 	}
 
 	protected void updateObject(Object targetObject, EntityCache entityCache, ArrayList<NamedParameter> namedParameters,
