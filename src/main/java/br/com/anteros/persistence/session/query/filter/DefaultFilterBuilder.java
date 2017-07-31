@@ -60,7 +60,11 @@ public class DefaultFilterBuilder extends BaseVisitor {
 	}
 
 	public void visit(final FieldExpression column) {
-		result.append(column.getName());
+		if (column.getNameSql() != null && column.getNameSql() != "") {
+			result.append(column.getNameSql());
+		} else {
+			result.append(column.getName());
+		}
 	}
 
 	public void visit(final OperationExpression exp) throws FilterException {
@@ -81,7 +85,7 @@ public class DefaultFilterBuilder extends BaseVisitor {
 				result.append(" ").append(Operator.IS_NOT.getValue());
 			}
 			result.append(" ").append(Constant.NULL);
-			
+
 		} else {
 			result.append(" ").append(exp.getOperator().getValue()).append(" ");
 			acceptOrVisitValue(exp.getRhsValue(), baseVariableName);
