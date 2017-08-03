@@ -245,7 +245,10 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 			 */
 			if (appendSeparator)
 				uniqueIdTemp.append("_");
-			uniqueIdTemp.append(resultSet.getObject(index));
+			Object value = resultSet.getObject(index);
+			if (value == null)
+				return null;
+			uniqueIdTemp.append(value);
 			appendSeparator = true;
 		}
 		/*
