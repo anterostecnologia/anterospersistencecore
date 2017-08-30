@@ -610,56 +610,19 @@ public class SQLPersisterImpl implements SQLPersister {
 								result.addAll(getSQLCollectionTableCommands(value, SQLStatementType.INSERT,
 										descriptionField, null, null, primaryKeyOwner));
 						} else if (descriptionField.isCollectionEntity()) {
-
-							/*
-							 * Pega o field pelo nome do mappedBy na classe do
-							 * field atual
-							 */
-							Field mappedByField = ReflectionUtils.getFieldByName(
-									descriptionField.getTargetEntity().getEntityClass(),
-									descriptionField.getMappedBy());
-							/*
-							 * Pega a EntityCache da classe e descriptionColumn
-							 */
-							EntityCache mappedByEntityCache = descriptionField.getTargetEntity();
-							/*
-							 * Pega o(s) DescriptionColumn(s) da coluna para
-							 * pegar o ColumnName que será usado no sql
-							 */
-							DescriptionColumn[] mappedByDescriptionColumn = mappedByEntityCache
-									.getDescriptionColumns(mappedByField.getName());
-							/*
-							 * Monta o SQL
-							 */
-							ArrayList<NamedParameter> params = new ArrayList<NamedParameter>();
-
-							Delete delete = new Delete();
-							delete.setTableName(mappedByEntityCache.getTableName());
-
-							if (mappedByDescriptionColumn != null) {
-								for (DescriptionColumn descriptionColumn : mappedByDescriptionColumn) {
-									delete.addWhereFragment(descriptionColumn.getColumnName() + " = ?");
-									params.add(new NamedParameter("P" + descriptionColumn.getColumnName(),
-											primaryKeyOwner.get(descriptionColumn.getReferencedColumnName())));
-								}
-							}
-							String sql = delete.toStatementString();
-
-							result.add(new DeleteCommandSQL(session, sql, params, null, null,
-									mappedByEntityCache.getTableName(), session.getShowSql(), null,
-									executeInBatchMode()));
-
-							for (Object entity : (Collection<?>) fieldValue) {
-								if ((descriptionField.getMappedBy() != null)
-										&& (!"".equals(descriptionField.getMappedBy()))) {
-									mappedByField = descriptionField.getTargetEntity()
-											.getDescriptionField(descriptionField.getMappedBy()).getField();
-									mappedByField.set(entity, targetObject);
-								}
-								if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
-										|| Arrays.asList(descriptionField.getCascadeTypes())
-												.contains(CascadeType.SAVE))) {
-									saveUsingStatement(mappedByEntityCache, SQLStatementType.INSERT, entity, result);
+							for (Object value : ((Collection<?>) fieldValue)) {
+								if (value != null) {
+									if ((descriptionField.getMappedBy() != null)
+											&& (!"".equals(descriptionField.getMappedBy()))) {
+										Field mappedByField = descriptionField.getTargetEntity()
+												.getDescriptionField(descriptionField.getMappedBy()).getField();
+										if (mappedByField.get(value) == null)
+											mappedByField.set(value, targetObject);
+									}
+									if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
+											|| Arrays.asList(descriptionField.getCascadeTypes())
+													.contains(CascadeType.SAVE)))
+										save(value, result);
 								}
 							}
 						} else if (descriptionField.isJoinTable()) {
@@ -1151,8 +1114,8 @@ public class SQLPersisterImpl implements SQLPersister {
 			DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert,
 			Map<String, Object> primaryKeyOwner) throws Exception {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
+		ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 		if (value != null) {
-			ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 			if (statement.equals(SQLStatementType.INSERT)) {
 				if (Arrays.asList(field.getCascadeTypes()).contains(CascadeType.ALL)
 						|| Arrays.asList(field.getCascadeTypes()).contains(CascadeType.SAVE)) {
@@ -1206,25 +1169,23 @@ public class SQLPersisterImpl implements SQLPersister {
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
 						namedParameters, null, null, field.getTableName(), session.getShowSql(),
 						field.getDescriptionSqlByType(statement), executeInBatchMode()));
-			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
-				Map<String, Object> foreignKeyRight = session.getIdentifier(value).getColumns();
-				for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
-					if (descriptionColumn.isPrimaryKey()) {
-						if (descriptionColumn.isForeignKey()) {
-							if (foreignKeyRight.containsKey(descriptionColumn.getColumnName()))
-								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
-										foreignKeyRight.get(descriptionColumn.getColumnName()), true));
-							else
-								namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
-										primaryKeyOwner.get(descriptionColumn.getReferencedColumnName()), true));
-						}
-					}
-				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
-						namedParameters, null, null, field.getTableName(), session.getShowSql(),
-						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
 		}
+
+		if (statement.equals(SQLStatementType.DELETE_ALL)) {
+			for (DescriptionColumn descriptionColumn : field.getDescriptionColumns()) {
+				if (descriptionColumn.isPrimaryKey()) {
+					if (descriptionColumn.isForeignKey() && primaryKeyOwner.containsKey(descriptionColumn.getReferencedColumnName())) {
+						namedParameters.add(new NamedParameter(descriptionColumn.getColumnName(),
+								primaryKeyOwner.get(descriptionColumn.getReferencedColumnName()), true));
+					}
+				}
+			}
+			result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), SQLStatementType.DELETE, namedParameters),
+					namedParameters, null, null, field.getTableName(), session.getShowSql(),
+					field.getDescriptionSqlByType(statement), executeInBatchMode()));
+		}
+
 		return result;
 	}
 
