@@ -246,7 +246,9 @@ public class DescriptionField {
 			if ("".equals(value) && isEnumerated()) {
 				value = null;
 			} else if (isEnumerated()) {
-				value = convertObjectToEnum(value);
+				if (value != null && !ReflectionUtils.isEnum(value.getClass())) {
+					value = convertObjectToEnum(value);
+				}
 			} else if (isBoolean()) {
 				value = convertObjectToBoolean(value);
 			} else if (isRelationShip() || isCollectionEntity()) {
@@ -273,7 +275,7 @@ public class DescriptionField {
 			} else {
 				value = ObjectUtils.convert(value, field.getType());
 			}
-			setValue(object,value);
+			setValue(object, value);
 		} catch (Exception ex) {
 			throw new EntityCacheException("Erro convertendo o valor do campo " + this.getName() + " valor=" + value
 					+ " para " + field.getType() + " na classe " + entityCache.getEntityClass().getName(), ex);
@@ -281,7 +283,7 @@ public class DescriptionField {
 		return value;
 	}
 
-	private void setValue(Object source, Object value) throws Exception {
+	public void setValue(Object source, Object value) throws Exception {
 		if (propertyAccessor != null) {
 			propertyAccessor.set(source, value);
 		} else {
@@ -424,10 +426,10 @@ public class DescriptionField {
 	public List<DescriptionColumn> getDescriptionColumns() {
 		return Collections.unmodifiableList(columns);
 	}
-	
+
 	public List<String> getDescriptionColumnsStr() {
 		List<String> result = new ArrayList<String>();
-		for (DescriptionColumn column : columns){
+		for (DescriptionColumn column : columns) {
 			result.add(column.getColumnName());
 		}
 		return result;
@@ -531,7 +533,7 @@ public class DescriptionField {
 	}
 
 	public String getTableName() {
-		if (StringUtils.isEmpty(tableName)){
+		if (StringUtils.isEmpty(tableName)) {
 			return entityCache.getTableName();
 		}
 		return tableName;
@@ -693,7 +695,7 @@ public class DescriptionField {
 
 	public Object getBooleanValue(Boolean value) {
 		if (value)
-			return getSimpleColumn().getTrueValue();	
+			return getSimpleColumn().getTrueValue();
 		else
 			return getSimpleColumn().getFalseValue();
 	}
