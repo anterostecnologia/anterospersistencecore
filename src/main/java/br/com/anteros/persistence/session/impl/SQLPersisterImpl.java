@@ -19,6 +19,8 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -760,6 +762,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		 * entidade delete somente se Cascade=DELETE_ORPHAN
 		 */
 		if (sourceList != null) {
+			List<Object> objectsToSaveRemove = new ArrayList<Object>();
 			for (FieldEntityValue sourceValue : sourceList) {
 				boolean found = false;
 				if (targetList != null) {
@@ -787,15 +790,43 @@ public class SQLPersisterImpl implements SQLPersister {
 								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.DELETE)
 								|| Arrays.asList(descriptionField.getCascadeTypes())
 										.contains(CascadeType.DELETE_ORPHAN))) {
-							save(session, sourceValue.getSource(), result);
-							remove(session, sourceValue.getSource());
+							objectsToSaveRemove.add(sourceValue.getSource());
 						}
 					} else if (descriptionField.isJoinTable()) {
 						result.addAll(getSQLJoinTableCommands(sourceValue.getSource(), SQLStatementType.DELETE,
 								descriptionField, null, null, primaryKeyOwner));
 					}
 				}
-
+			}
+			
+			if (!objectsToSaveRemove.isEmpty()) {
+				Collections.sort(objectsToSaveRemove, new Comparator<Object>() {
+					public int compare(Object obj1, Object obj2) {
+						if (obj1==null || obj2 ==null)
+							return 0;
+						
+						if (obj1 ==obj2)
+							return 0;
+						
+						EntityCache entityCache1 = session.getEntityCacheManager().getEntityCache(obj1.getClass());
+						EntityCache entityCache2 = session.getEntityCacheManager().getEntityCache(obj2.getClass());
+						
+						if (entityCache1.hasDependencyFrom(entityCache2, obj1, obj2)) {
+							return -1;
+						}
+						
+						if (entityCache2.hasDependencyFrom(entityCache1, obj2, obj1)){
+							return 1;
+						}
+						
+				        return 0;
+				    }
+				});
+				
+				for (Object obj : objectsToSaveRemove){
+					save(session, obj, result);
+					remove(session, obj);
+				}
 			}
 		}
 

@@ -1065,8 +1065,8 @@ public class EntityCache {
 	public void mergeValues(Object entity, Object newEntity) throws Exception {
 		for (DescriptionField descriptionField : getDescriptionFields()) {
 			if (descriptionField.isAnyCollectionOrMap()) {
-				if (descriptionField.getFetchType() != null && descriptionField.getFetchType().equals(FetchType.LAZY)){
-					if (descriptionField.getObjectValue(entity)!=null){
+				if (descriptionField.getFetchType() != null && descriptionField.getFetchType().equals(FetchType.LAZY)) {
+					if (descriptionField.getObjectValue(entity) != null) {
 						descriptionField.setValue(newEntity, descriptionField.getObjectValue(entity));
 					}
 				} else {
@@ -1076,6 +1076,23 @@ public class EntityCache {
 				descriptionField.setValue(newEntity, descriptionField.getObjectValue(entity));
 			}
 		}
+	}
+
+	public boolean hasDependencyFrom(EntityCache entityCache2, Object source, Object target)  {
+		for (DescriptionField descriptionField : getDescriptionFields()) {
+			if (descriptionField.isRelationShip()) {
+				try {
+					if ((descriptionField.getObjectValue(source) != null)
+							&& descriptionField.getObjectValue(source).equals(target)) {
+						return true;
+					}
+				} catch (Exception e) {
+					return false;
+				}
+			}
+		}
+
+		return false;
 	}
 
 }
