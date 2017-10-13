@@ -794,6 +794,18 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
 		return namedQuery;
 	}
+	
+	
+
+	@Override
+	protected void finalize() throws Throwable {
+		if (session!=null){
+			if (!session.isClosed()){
+				session.close();
+			}
+		}
+		super.finalize();
+	}
 
 	
 
