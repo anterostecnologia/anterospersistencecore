@@ -797,15 +797,6 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	
 	
 
-	@Override
-	protected void finalize() throws Throwable {
-		if (session!=null){
-			if (!session.isClosed()){
-				session.close();
-			}
-		}
-		super.finalize();
-	}
 
 	
 
