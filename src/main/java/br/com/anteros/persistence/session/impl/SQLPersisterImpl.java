@@ -825,6 +825,8 @@ public class SQLPersisterImpl implements SQLPersister {
 				
 				for (Object obj : objectsToSaveRemove){
 					save(session, obj, result);
+					session.getCommandQueue().addAll(result);
+					result.clear();
 					remove(session, obj);
 				}
 			}
