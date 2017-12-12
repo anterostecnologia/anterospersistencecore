@@ -55,15 +55,15 @@ import br.com.anteros.persistence.session.query.SQLQueryNoResultException;
  *
  * @author tiwe modified by: Edson Martins
  *
- * @param
- * 			<Q>
+ * @param <Q>
  *            subtipo concreto
  */
 public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends ProjectableSQLQuery<Q> {
 
 	private static Logger logger = LoggerProvider.getInstance().getLogger(AbstractOSQLQuery.class.getName());
 
-	private static final QueryFlag rowCountFlag = new QueryFlag(QueryFlag.Position.AFTER_PROJECTION, ", count(*) over() ");
+	private static final QueryFlag rowCountFlag = new QueryFlag(QueryFlag.Position.AFTER_PROJECTION,
+			", count(*) over() ");
 
 	private final SQLSession session;
 
@@ -133,7 +133,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	}
 
 	/**
-	 * Configura se o sql deve ser gerado usando literais para conversão de tipos em string.
+	 * Configura se o sql deve ser gerado usando literais para conversão de
+	 * tipos em string.
 	 * 
 	 * @param useLiterals
 	 */
@@ -171,8 +172,9 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	}
 
 	/**
-	 * Valida se a sessão sql foi configurado corretamente. É possível criar uma consulta sem atribuir a sessão e
-	 * atribuí-la posteriormente no momento de usá-la criando um clone usando o método {@link #clone(SQLSession)}.
+	 * Valida se a sessão sql foi configurado corretamente. É possível criar uma
+	 * consulta sem atribuir a sessão e atribuí-la posteriormente no momento de
+	 * usá-la criando um clone usando o método {@link #clone(SQLSession)}.
 	 */
 	protected void validateSession() {
 		if (session == null)
@@ -211,7 +213,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 				List<JoinExpression> joins = getMetadata().getJoins();
 				for (JoinExpression expr : joins) {
 					if ((expr.getTarget() != null) && (expr.getTarget() instanceof Operation<?>)) {
-						throw new OSQLQueryException("Não é possível projetar entidades a partir de SQL's onde foram usadas SubQueries na cláusula From.");
+						throw new OSQLQueryException(
+								"Não é possível projetar entidades a partir de SQL's onde foram usadas SubQueries na cláusula From.");
 					}
 				}
 			}
@@ -336,20 +339,25 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			 */
 			SQLSerializer serializer = serialize(forCount);
 			String sql = serializer.toString();
-			//System.out.println(sql);
+			// System.out.println(sql);
 			/*
-			 * Cria a query para execução passando a lista de classes de resultados esperadas.
+			 * Cria a query para execução passando a lista de classes de
+			 * resultados esperadas.
 			 */
 			query = session.createQuery(sql);
-			query.addResultClassDefinition(analyser.getResultClassDefinitions().toArray(new ResultClassDefinition[] {}));
-			query.setMaxResults(modifiers.getLimitAsInteger());
-			query.setFirstResult(modifiers.getOffsetAsInteger());
+			query.addResultClassDefinition(
+					analyser.getResultClassDefinitions().toArray(new ResultClassDefinition[] {}));
+			if (modifiers != null) {
+				query.setMaxResults(modifiers.getLimitAsInteger());
+				query.setFirstResult(modifiers.getOffsetAsInteger());
+			}
 			query.setLockOptions(lockOptions);
 			query.allowDuplicateObjects(allowDuplicateObjects);
 			query.nextAliasColumnName(configuration.getNextAliasColumnName());
 
 			/*
-			 * Converte os parâmetros no formato de expressão para o formato da query.
+			 * Converte os parâmetros no formato de expressão para o formato da
+			 * query.
 			 */
 			if (analyser.hasParameters())
 				query.setParameters(getParameters());
@@ -362,7 +370,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 
 		FactoryExpression<?> wrapped = projection.size() > 1 ? FactoryExpressionUtils.wrap(projection) : null;
 
-		if (!forCount && ((projection.size() == 1 && projection.get(0) instanceof FactoryExpression) || wrapped != null)) {
+		if (!forCount
+				&& ((projection.size() == 1 && projection.get(0) instanceof FactoryExpression) || wrapped != null)) {
 			this.projection = (FactoryExpression<?>) projection.get(0);
 			if (wrapped != null) {
 				this.projection = wrapped;
@@ -375,7 +384,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	}
 
 	/**
-	 * Converte os parâmetros no formato de expressão para o formato da query de consulta.
+	 * Converte os parâmetros no formato de expressão para o formato da query de
+	 * consulta.
 	 * 
 	 * @return Lista de parâmetros convertidos.
 	 */
@@ -391,9 +401,11 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 						result.add(new NamedParameter(param.getName(), params.get(param), TemporalType.DATE_TIME));
 					else if (param.getType() == Enum.class)
 						if (param instanceof EnumParam)
-							result.add(EnumeratedParameter.withFormatParameter(param.getName(), ((EnumParam) param).getFormat(), (Enum<?>) params.get(param)));
+							result.add(EnumeratedParameter.withFormatParameter(param.getName(),
+									((EnumParam) param).getFormat(), (Enum<?>) params.get(param)));
 						else
-							result.add(EnumeratedParameter.withFormatParameter(param.getName(), EnumeratedFormatSQL.STRING, (Enum<?>) params.get(param)));
+							result.add(EnumeratedParameter.withFormatParameter(param.getName(),
+									EnumeratedFormatSQL.STRING, (Enum<?>) params.get(param)));
 					else
 						result.add(new NamedParameter(param.getName(), params.get(param)));
 				}
@@ -407,8 +419,9 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	}
 
 	/**
-	 * Sobrescrevendo métodos para controlar quando não foi adicionado condição para o Join. Desta forma assume que o
-	 * join será feito com a primeira tabela do From e adiciona-se o Join automagicamente.
+	 * Sobrescrevendo métodos para controlar quando não foi adicionado condição
+	 * para o Join. Desta forma assume que o join será feito com a primeira
+	 * tabela do From e adiciona-se o Join automagicamente.
 	 */
 	@Override
 	public Q groupBy(Expression<?>... o) {
