@@ -1748,7 +1748,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		ResultSet rs = null;
 
 		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
-		String sqlForCount = "SELECT COUNT(*) FROM (" + sql + ")";
+		String sqlForCount = "SELECT COUNT(*) FROM (" + sql + ") P_";
 
 		if (this.parameters.size() > 0)
 			rs = session.getRunner().executeQuery(session.getConnection(), sqlForCount, parameters.values().toArray(),
@@ -1856,8 +1856,12 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			return makeSingleValueHandler();
 		} else if (resultIsMultiSelect()) {
 			return makeMultiSelectHandler();
-		} else
+		} else {
+			parsedNamedParameters = new TreeMap<Integer, NamedParameter>(this.namedParameters);
+			parsedParameters = new TreeMap<Integer, Object>(this.parameters);
+			parsedSql = sql;
 			return new ArrayListHandler();
+		}
 
 	}
 
