@@ -585,6 +585,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				showSQLAndParameters(sql, parameters, true, listeners, clientId);
 			}
 
+			System.out.println(sql);
 			rows = statement.executeUpdate();
 
 		} catch (

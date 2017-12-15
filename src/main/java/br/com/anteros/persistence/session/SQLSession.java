@@ -201,6 +201,8 @@ public interface SQLSession {
 	public long update(String sql, Object[] params) throws Exception;
 
 	public long update(String sql, NamedParameter[] params) throws Exception;
+	
+	public int[] batch(String sql,Object[][] params) throws Exception;
 
 	public void flush() throws Exception;
 
