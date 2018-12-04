@@ -129,4 +129,11 @@ public class ForeignKeySchema extends ConstraintSchema {
 		return result.toArray(new String[] {});
 	}
 
+	@Override
+	public String toString() {
+		return "ForeignKeySchema [columnsReferences=" + columnsReferences + ", referencedTable=" + referencedTable
+				+ ", cascadeOnDelete=" + cascadeOnDelete + "]";
+	}
+	
+
 }

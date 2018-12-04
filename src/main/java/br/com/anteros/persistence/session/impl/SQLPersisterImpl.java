@@ -49,7 +49,7 @@ import br.com.anteros.persistence.metadata.type.EntityStatus;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.SQLPersister;
 import br.com.anteros.persistence.session.SQLSession;
-import br.com.anteros.persistence.session.SQLSessionValidatior;
+import br.com.anteros.persistence.session.SQLSessionValidator;
 import br.com.anteros.persistence.session.cache.PersistenceMetadataCache;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
 import br.com.anteros.persistence.session.lock.LockMode;
@@ -72,7 +72,7 @@ public class SQLPersisterImpl implements SQLPersister {
 
 	private SQLSession session;
 
-	private SQLSessionValidatior validator;
+	private SQLSessionValidator validator;
 
 	private int currentBatchSize = 0;
 
@@ -85,7 +85,7 @@ public class SQLPersisterImpl implements SQLPersister {
 	private Set<Long> objectsInSavingProcess = new HashSet<Long>();
 
 	@Override
-	public SQLSessionValidatior getValidator() {
+	public SQLSessionValidator getValidator() {
 		if (beanValidationPresent) {
 			if (validator == null)
 				validator = new SQLSessionValidatorImpl();

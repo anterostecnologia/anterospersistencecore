@@ -642,6 +642,8 @@ public class FieldConfiguration {
 					convert(convertsConf);
 			} else if (annotation instanceof IdSynchronism) {
 				idSynchronism();
+			} else if (annotation instanceof Version) {
+				version();	
 			}
 		}
 

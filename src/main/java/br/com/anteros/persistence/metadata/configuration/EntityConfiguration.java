@@ -418,7 +418,7 @@ public class EntityConfiguration {
 					converts = ((Convert.List) annotation).value();
 
 				ConvertConfiguration[] convertsConf = null;
-				if (indexes != null) {
+				if (converts != null) {
 					convertsConf = new ConvertConfiguration[converts.length];
 					for (int i = 0; i < converts.length; i++) {
 						convertsConf[i] = new ConvertConfiguration(converts[i]);

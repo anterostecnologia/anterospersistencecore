@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package br.com.anteros.persistence.session;
+package br.com.anteros.persistence.metadata.annotation;
 
-import java.util.Collection;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface SQLPersister {
-
-	public Object save(SQLSession session, Object object) throws Exception;
-	
-	public void save(SQLSession session, Object[] objects) throws Exception;
-	
-	public void save(SQLSession session, Collection<?> objects) throws Exception;
-	
-	public Object save(SQLSession session, Object object, int batchSize) throws Exception;
-
-	public void remove(SQLSession session, Object object) throws Exception;
-
-	public void remove(SQLSession session, Object[] objects) throws Exception;
-
-	public void save(SQLSession session, Class<?> clazz, String[] columns, String[] values) throws Exception;
-	
-	public SQLSessionValidator getValidator();
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TenantId {
 }

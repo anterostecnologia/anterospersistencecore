@@ -20,15 +20,15 @@ import java.util.Set;
 
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
-import br.com.anteros.persistence.session.SQLSessionValidatior;
+import br.com.anteros.persistence.session.SQLSessionValidator;
 import br.com.anteros.persistence.util.AnterosBeanValidationHelper;
 import br.com.anteros.validation.api.ConstraintViolation;
 import br.com.anteros.validation.api.ConstraintViolationException;
 import br.com.anteros.validation.api.Validator;
 
-public class SQLSessionValidatorImpl implements SQLSessionValidatior {
+public class SQLSessionValidatorImpl implements SQLSessionValidator {
 	
-	private Logger LOG = LoggerProvider.getInstance().getLogger(SQLSessionValidatior.class);
+	private Logger LOG = LoggerProvider.getInstance().getLogger(SQLSessionValidator.class);
 
 	@Override
 	public void validateBean(Object object) throws Exception {
