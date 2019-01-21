@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.0.39</version>
+	<version>1.0.40</version>
 
 	<properties>
 		<java.versao>1.6</java.versao>
@@ -79,7 +79,7 @@
 				<jdk>[1.8,)</jdk>
 			</activation>
 			<properties>
-				<javadoc.opts>-Xdoclint:none</javadoc.opts>
+				<doclint>none</doclint>
 			</properties>
 		</profile>
 		<profile>
@@ -148,7 +148,6 @@
 						<plugin>
 						    <groupId>org.apache.maven.plugins</groupId>
 						    <artifactId>maven-javadoc-plugin</artifactId>
-						    <version>2.10.2</version>
 						    <executions>
 						        <execution>
 						            <id>attach-javadocs</id>
@@ -156,7 +155,7 @@
 						                <goal>jar</goal>
 						            </goals>
 						            <configuration> 
-						                <additionalparam>-Xdoclint:none</additionalparam>
+						               <doclint>none</doclint>
 						            </configuration>
 						        </execution>
 						    </executions>
@@ -215,7 +214,6 @@
 						<plugin>
 						    <groupId>org.apache.maven.plugins</groupId>
 						    <artifactId>maven-javadoc-plugin</artifactId>
-						    <version>2.10.2</version>
 						    <executions>
 						        <execution>
 						            <id>attach-javadocs</id>
@@ -223,7 +221,7 @@
 						                <goal>jar</goal>
 						            </goals>
 						            <configuration> 
-						                <additionalparam>-Xdoclint:none</additionalparam>
+						                <doclint>none</doclint>
 						            </configuration>
 						        </execution>
 						    </executions>
