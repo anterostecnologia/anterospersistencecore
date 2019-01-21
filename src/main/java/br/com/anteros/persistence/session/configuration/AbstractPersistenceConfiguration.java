@@ -47,7 +47,7 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 
 	protected static Logger LOG = LoggerProvider.getInstance().getLogger(AbstractPersistenceConfiguration.class);
 
-	public static final String SECURITY_PACKAGE = "br.com.anteros.security.model";
+	public static final String SECURITY_PACKAGE = "br.com.anteros.security.store.*";
 	public static final String CONVERTERS_PACKAGE = "br.com.anteros.persistence.metadata.converter.converters";
 
 	public static final String ANNOTATED_CLASSES = "annotatedClasses";

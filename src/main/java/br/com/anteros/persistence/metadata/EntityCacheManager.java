@@ -2580,8 +2580,10 @@ public class EntityCacheManager {
 	public EntityCache getEntityCacheByTableName(String tableName) {
 		int count = countEntityCacheByTableName(tableName);
 		if (countEntityCacheByTableName(tableName) > 1) {
+			List<EntityCache> tables = getEntityCachesByTableName(tableName);
+			
 			throw new EntityCacheManagerException(
-					"Foram encontradas " + count + " classes com o mesmo nome de tabela " + tableName);
+					"Foram encontradas " + count + " classes com o mesmo nome de tabela. "+Arrays.toString(tables.toArray(new EntityCache[] {})) );
 		}
 
 		if ((tableName != null) && (!"".equals(tableName))) {

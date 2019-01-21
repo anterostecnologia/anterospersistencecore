@@ -1316,6 +1316,8 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 	private Object getResultFromMappedBy(final DescriptionField descriptionFieldOwner,
 			Map<String, Object> columnKeyTarget, Cache transactionCache) throws Exception {
+		
+		System.out.println(descriptionFieldOwner);
 		Object result;
 		/*
 		 * Pega o field pelo nome do mappedBy na classe do field atual
