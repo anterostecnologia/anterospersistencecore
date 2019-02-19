@@ -184,5 +184,8 @@ public interface SQLService<T, ID extends Serializable> {
 	String getTableName() throws Exception;
 
 	DescriptionNamedQuery getNamedQuery(String queryName) throws Exception;
+
+
+	
 		
 }

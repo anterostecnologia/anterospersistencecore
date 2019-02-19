@@ -69,11 +69,11 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	protected Map<Object, String> aliasesCache = new HashMap<Object, String>();
 	private Map<String, Integer> cacheAliasIndex = new HashMap<String, Integer>();
 	private boolean isIncompleteKey;
-	private List<ExpressionFieldMapper> expressionsFieldMapper;
+	private Set<ExpressionFieldMapper> expressionsFieldMapper;
 	private LockOptions lockOptions;
 
 	public EntityHandler(LazyLoadFactory proxyFactory, Class<?> targetClass, EntityCacheManager entityCacheManager,
-			List<ExpressionFieldMapper> expressionsFieldMapper,
+			Set<ExpressionFieldMapper> expressionsFieldMapper,
 			Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases, SQLSession session, Cache transactionCache,
 			boolean allowDuplicateObjects, int firstResult, int maxResults, boolean readOnly, LockOptions lockOptions) {
 		this.resultClass = targetClass;
@@ -92,7 +92,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	public EntityHandler(LazyLoadFactory proxyFactory, Class<?> targetClazz, EntityCacheManager entityCacheManager,
 			SQLSession session, Cache transactionCache, boolean allowDuplicateObjects, int firstResult,
 			int maxResults) {
-		this(proxyFactory, targetClazz, entityCacheManager, new ArrayList<ExpressionFieldMapper>(),
+		this(proxyFactory, targetClazz, entityCacheManager, new LinkedHashSet<ExpressionFieldMapper>(),
 				new LinkedHashMap<SQLQueryAnalyserAlias, Map<String, String[]>>(), session, transactionCache,
 				allowDuplicateObjects, firstResult, maxResults, false, LockOptions.NONE);
 	}
@@ -702,8 +702,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	 */
 	private boolean checkNeedsProcessDescriptionField(EntityCache entityCache, DescriptionField descriptionField,
 			Object assignedValue) throws Exception {
-		if (firstResult > 0 || maxResults > 0)
-			return true;
+//		if (firstResult > 0 || maxResults > 0)
+//			return true;
 
 		Boolean process = (assignedValue == null);
 		Boolean existsExpression = existsExpressionForProcessing(entityCache, descriptionField.getField().getName());

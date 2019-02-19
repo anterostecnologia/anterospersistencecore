@@ -171,6 +171,9 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 			 */
 			newObject = descriptionField.getObjectValue(targetObject);
 			newEntityManaged = session.getPersistenceContext().getEntityManaged(newObject);
+			if (newEntityManaged==null)
+				newEntityManaged = session.getPersistenceContext().addEntityManaged(newObject, true, false,
+						false);
 		}
 
 		/*

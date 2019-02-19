@@ -520,7 +520,6 @@ public class SchemaManager implements Comparator<TableSchema> {
 	 * @return
 	 */
 	public TableSchema getTable(String tableName) {
-		System.out.println(tableName);
 		for (TableSchema tableSchema : tables) {
 			if (tableSchema.getName().equalsIgnoreCase(tableName))
 				return tableSchema;

@@ -258,7 +258,7 @@ public interface SQLSession {
 
 	public void removeTable(String tableName) throws Exception;
 
-	public EntityHandler createNewEntityHandler(Class<?> resultClass, List<ExpressionFieldMapper> expressionsFieldMapper,
+	public EntityHandler createNewEntityHandler(Class<?> resultClass, Set<ExpressionFieldMapper> expressionsFieldMapper,
 			Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases, Cache transactionCache, boolean allowDuplicateObjects,
 			Object objectToRefresh, int firstResult, int maxResults, boolean readOnly, LockOptions lockOptions) throws Exception;
 

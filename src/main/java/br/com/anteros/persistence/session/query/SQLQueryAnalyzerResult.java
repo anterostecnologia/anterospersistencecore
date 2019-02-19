@@ -32,12 +32,12 @@ import br.com.anteros.persistence.handler.EntityHandler;
 public class SQLQueryAnalyzerResult {
 
 	private Set<SQLQueryAnalyserAlias> aliases;
-	private List<ExpressionFieldMapper> expressionsFieldMapper;
+	private Set<ExpressionFieldMapper> expressionsFieldMapper;
 	private Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases;
 	private String parsedSql;
 	private boolean allowApplyLockStrategy = false;
 	
-	public SQLQueryAnalyzerResult(String parsedSql, Set<SQLQueryAnalyserAlias> aliases,List<ExpressionFieldMapper> expressionsFieldMapper, Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases,boolean allowApplyLockStrategy) {
+	public SQLQueryAnalyzerResult(String parsedSql, Set<SQLQueryAnalyserAlias> aliases,Set<ExpressionFieldMapper> expressionsFieldMapper, Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases,boolean allowApplyLockStrategy) {
 		this.aliases = aliases;
 		this.columnAliases = columnAliases;
 		this.parsedSql = parsedSql;
@@ -57,7 +57,7 @@ public class SQLQueryAnalyzerResult {
 		return parsedSql;
 	}
 
-	public List<ExpressionFieldMapper> getExpressionsFieldMapper() {
+	public Set<ExpressionFieldMapper> getExpressionsFieldMapper() {
 		return expressionsFieldMapper;
 	}
 

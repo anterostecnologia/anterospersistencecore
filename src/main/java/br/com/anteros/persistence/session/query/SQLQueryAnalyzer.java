@@ -75,7 +75,7 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 	private DatabaseDialect databaseDialect;
 	private Class<?> resultClass;
 	private Set<SQLQueryAnalyserAlias> aliases;
-	private List<ExpressionFieldMapper> expressionsFieldMapper = new ArrayList<ExpressionFieldMapper>();
+	private Set<ExpressionFieldMapper> expressionsFieldMapper = new LinkedHashSet<ExpressionFieldMapper>();
 	private Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases = new LinkedHashMap<SQLQueryAnalyserAlias, Map<String, String[]>>();
 	private int numberOfColumn = 0;
 	private Set<String> usedAliases;
@@ -188,7 +188,7 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 		 * classe de resultado
 		 */
 		buildExpressionsAndColumnAliases(getFirstSelectStatement(node));
-
+//
 //		 System.out.println(sql);
 //		 System.out.println("--------------------EXPRESSIONS-------------------------------");
 //		 for (ExpressionFieldMapper expField : expressionsFieldMapper)
@@ -1202,6 +1202,18 @@ public class SQLQueryAnalyzer implements Comparator<String[]> {
 			/*
 			 * Chama o método que cria a expressão.
 			 */
+//			System.out.println("");
+//			String r = "";
+//			for (String z : expressions.get(expression)) {
+//				r = r + z + ".";
+//			}
+//			System.out.print(r);
+//			r = "";
+//			for (String s : expressions.get(expression)) {
+//				r = r + s + ".";
+//			}
+//			System.out.print("  ->  "+r);
+			
 			makeExpressionFieldMapper(null, resultClass, expression, 0, expressions.get(expression));
 		}
 	}

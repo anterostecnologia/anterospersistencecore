@@ -123,13 +123,13 @@ public class SQLPersisterImpl implements SQLPersister {
 		if (entityManaged == null) {
 			if (session.getIdentifier(entity).hasIdentifier()) {
 				if (existsRecordInDatabaseTable(entityCache.getTableName(),
-						session.getIdentifier(entity).getDatabaseColumns())){
+						session.getIdentifier(entity).getDatabaseColumns())) {
 					Object newEntity = session.find(session.getIdentifier(entity));
-					entityCache.mergeValues(entity,newEntity);
+					entityCache.mergeValues(entity, newEntity);
 					return newEntity;
 				}
 			}
-			
+
 		}
 		return entity;
 	}
@@ -190,8 +190,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			 */
 			if (entityManaged != null) {
 				/*
-				 * Se o objeto foi selecionado parcialmente não permite
-				 * alteração
+				 * Se o objeto foi selecionado parcialmente não permite alteração
 				 */
 				if (entityManaged.getStatus().equals(EntityStatus.READ_ONLY))
 					throw new SQLSessionException("Objeto " + object.getClass().getSuperclass() + " ID "
@@ -201,8 +200,8 @@ public class SQLPersisterImpl implements SQLPersister {
 				saveUsingStatement(entityCache, SQLStatementType.UPDATE, object, stackCommands);
 			} else {
 				/*
-				 * Se o objeto não estiver sendo gerenciado porém já possuí um
-				 * ID será preciso verificar se o ID já existe no banco de dados
+				 * Se o objeto não estiver sendo gerenciado porém já possuí um ID será preciso
+				 * verificar se o ID já existe no banco de dados
 				 */
 				if (session.getIdentifier(object).hasIdentifier()) {
 					if (!existsRecordInDatabaseTable(entityCache.getTableName(),
@@ -411,16 +410,14 @@ public class SQLPersisterImpl implements SQLPersister {
 						namedParameterField = fieldModified.getNamedParameterFromDatabaseObjectValue(session,
 								targetObject, columnModified);
 						/*
-						 * Se a coluna possuí um Generator e o valor ainda não
-						 * foi gerado
+						 * Se a coluna possuí um Generator e o valor ainda não foi gerado
 						 */
 						if ((columnModified.hasGenerator()) && (namedParameterField.getValue() == null)) {
 							IdentifierGenerator identifierGenerator = IdentifierGeneratorFactory
 									.createGenerator(session, columnModified);
 							/*
-							 * Se o Generator for IDENTIY será gerado após a
-							 * execução do INSERT pelo getGeneratedKeys nativo
-							 * JDBC
+							 * Se o Generator for IDENTIY será gerado após a execução do INSERT pelo
+							 * getGeneratedKeys nativo JDBC
 							 */
 							if (identifierGenerator instanceof IdentifierPostInsert) {
 								identifierPostInsert = (IdentifierPostInsert) identifierGenerator;
@@ -473,6 +470,13 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 			}
+		}
+
+		DescriptionColumn versionColumn = entityCache.getVersionColumn();
+		if (versionColumn != null) {
+			Object newVersion = Versioning.incrementVersion(null, versionColumn.getField().getType());
+			namedParameters.put(versionColumn.getColumnName(),
+					new NamedParameter(versionColumn.getColumnName(), newVersion));
 		}
 	}
 
@@ -533,17 +537,16 @@ public class SQLPersisterImpl implements SQLPersister {
 		FieldEntityValue newFieldEntityValue = null;
 		Object newColumnValue;
 		/*
-		 * Salva as chaves estrangeiras que foram alteradas e que possuam
-		 * CascadeType = ALL ou SAVE. Se foi adicionado ou removido filhos nas
-		 * coleções gera DMLObject dos itens para execução posterior Se for um
-		 * objeto gerenciado compara lastValues com newValues e gera
-		 * insert,update,delete
+		 * Salva as chaves estrangeiras que foram alteradas e que possuam CascadeType =
+		 * ALL ou SAVE. Se foi adicionado ou removido filhos nas coleções gera DMLObject
+		 * dos itens para execução posterior Se for um objeto gerenciado compara
+		 * lastValues com newValues e gera insert,update,delete
 		 */
 		if (entityManaged != null) {
 			for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
 				/*
-				 * Se for uma coleção de entidades ou relacionamento joinTable
-				 * (muitos para muitos)
+				 * Se for uma coleção de entidades ou relacionamento joinTable (muitos para
+				 * muitos)
 				 */
 				if (descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable()) {
 					newColumnValue = descriptionField.getField().get(targetObject);
@@ -561,15 +564,14 @@ public class SQLPersisterImpl implements SQLPersister {
 					if (newFieldEntityValue != null)
 						targetList = (FieldEntityValue[]) newFieldEntityValue.getValue();
 					/*
-					 * Gera insert ou delete de item na coleção caso o field
-					 * tenha sido anotado com Cascade = ALL, SAVE ou
-					 * DELETE_ORPHAN
+					 * Gera insert ou delete de item na coleção caso o field tenha sido anotado com
+					 * Cascade = ALL, SAVE ou DELETE_ORPHAN
 					 */
 					boolean nullValues = (lastFieldEntityValue == null) && (newFieldEntityValue == null);
 					if (!nullValues) {
 						/*
-						 * Gera update dos itens da coleção caso o field tenha
-						 * sido anotado com Cascade = ALL ou SAVE
+						 * Gera update dos itens da coleção caso o field tenha sido anotado com Cascade
+						 * = ALL ou SAVE
 						 */
 						updateChangedItems(sourceList, targetList, descriptionField, result);
 
@@ -577,15 +579,13 @@ public class SQLPersisterImpl implements SQLPersister {
 								|| ((sourceList != null) && (targetList == null))
 								|| (lastFieldEntityValue.compareTo(newFieldEntityValue) != 0)) {
 							/*
-							 * Se existe em A(old) e não existe em B(new) gera
-							 * delete e se for entidade delete somente se
-							 * Cascade=DELETE_ORPHAN
+							 * Se existe em A(old) e não existe em B(new) gera delete e se for entidade
+							 * delete somente se Cascade=DELETE_ORPHAN
 							 */
 							deleteItensRemoved(result, primaryKeyOwner, sourceList, targetList, descriptionField);
 
 							/*
-							 * Se existe em B(new) e não existe em A(old) gera
-							 * insert se Cascade=ALL ou SAVE
+							 * Se existe em B(new) e não existe em A(old) gera insert se Cascade=ALL ou SAVE
 							 */
 							insertNewItens(result, primaryKeyOwner, sourceList, targetList, descriptionField);
 						}
@@ -594,15 +594,14 @@ public class SQLPersisterImpl implements SQLPersister {
 			}
 		} else {
 			/*
-			 * Se for um objeto não gerenciado deleta as listas (list,map) e
-			 * insere novamente. Caso seja uma lista de entidades insere ou
-			 * atualiza os itens da lista.
+			 * Se for um objeto não gerenciado deleta as listas (list,map) e insere
+			 * novamente. Caso seja uma lista de entidades insere ou atualiza os itens da
+			 * lista.
 			 */
 			for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
 				/*
-				 * Se for uma coleção de entidades ou relacionamento joinTable
-				 * (muitos para muitos) deleta os itens atuais e insere
-				 * novamente
+				 * Se for uma coleção de entidades ou relacionamento joinTable (muitos para
+				 * muitos) deleta os itens atuais e insere novamente
 				 */
 				if (descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable()) {
 					Object fieldValue = descriptionField.getObjectValue(targetObject);
@@ -681,8 +680,8 @@ public class SQLPersisterImpl implements SQLPersister {
 	protected void updateChangedItems(FieldEntityValue[] sourceList, FieldEntityValue[] targetList,
 			DescriptionField descriptionField, List<CommandSQL> result) throws Exception {
 		/*
-		 * Gera update dos itens da coleção caso o field tenha sido anotado com
-		 * Cascade = ALL ou SAVE
+		 * Gera update dos itens da coleção caso o field tenha sido anotado com Cascade
+		 * = ALL ou SAVE
 		 */
 		if (descriptionField.isCollectionEntity() || descriptionField.isJoinTable()) {
 			if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
@@ -711,8 +710,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			FieldEntityValue[] sourceList, FieldEntityValue[] targetList, DescriptionField descriptionField)
 			throws Exception {
 		/*
-		 * Se existe em B(new) e não existe em A(old) gera insert se Cascade=ALL
-		 * ou SAVE
+		 * Se existe em B(new) e não existe em A(old) gera insert se Cascade=ALL ou SAVE
 		 */
 		if (Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 				|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)) {
@@ -758,8 +756,8 @@ public class SQLPersisterImpl implements SQLPersister {
 			FieldEntityValue[] sourceList, FieldEntityValue[] targetList, DescriptionField descriptionField)
 			throws Exception {
 		/*
-		 * Se existe em A(old) e não existe em B(new) gera delete e se for
-		 * entidade delete somente se Cascade=DELETE_ORPHAN
+		 * Se existe em A(old) e não existe em B(new) gera delete e se for entidade
+		 * delete somente se Cascade=DELETE_ORPHAN
 		 */
 		if (sourceList != null) {
 			List<Object> objectsToSaveRemove = new ArrayList<Object>();
@@ -798,32 +796,32 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				}
 			}
-			
+
 			if (!objectsToSaveRemove.isEmpty()) {
 				Collections.sort(objectsToSaveRemove, new Comparator<Object>() {
 					public int compare(Object obj1, Object obj2) {
-						if (obj1==null || obj2 ==null)
+						if (obj1 == null || obj2 == null)
 							return 0;
-						
-						if (obj1 ==obj2)
+
+						if (obj1 == obj2)
 							return 0;
-						
+
 						EntityCache entityCache1 = session.getEntityCacheManager().getEntityCache(obj1.getClass());
 						EntityCache entityCache2 = session.getEntityCacheManager().getEntityCache(obj2.getClass());
-						
+
 						if (entityCache1.hasDependencyFrom(entityCache2, obj1, obj2)) {
 							return -1;
 						}
-						
-						if (entityCache2.hasDependencyFrom(entityCache1, obj2, obj1)){
+
+						if (entityCache2.hasDependencyFrom(entityCache1, obj2, obj1)) {
 							return 1;
 						}
-						
-				        return 0;
-				    }
+
+						return 0;
+					}
 				});
-				
-				for (Object obj : objectsToSaveRemove){
+
+				for (Object obj : objectsToSaveRemove) {
 					save(session, obj, result);
 					session.getCommandQueue().addAll(result);
 					result.clear();
@@ -1054,8 +1052,8 @@ public class SQLPersisterImpl implements SQLPersister {
 	protected void saveRelationShip(Object fieldValue, DescriptionField field, List<CommandSQL> result)
 			throws Exception {
 		/*
-		 * Se for uma entidade de relacionamento ForeignKey e Cascade = ALL ou
-		 * SAVE e o objeto não for somente leitura salva o objeto
+		 * Se for uma entidade de relacionamento ForeignKey e Cascade = ALL ou SAVE e o
+		 * objeto não for somente leitura salva o objeto
 		 */
 		if (Arrays.asList(field.getCascadeTypes()).contains(CascadeType.ALL)
 				|| Arrays.asList(field.getCascadeTypes()).contains(CascadeType.SAVE)) {

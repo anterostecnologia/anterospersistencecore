@@ -346,6 +346,8 @@ public class DescriptionField {
 			return ObjectUtils.toPrimitiveCharacterArray(value);
 		else if (field.getType() == Character[].class)
 			return ObjectUtils.toCharacterArray(value);
+		else if (field.getType() == String.class)
+			return new String(value);
 		return null;
 	}
 
@@ -1106,6 +1108,37 @@ public class DescriptionField {
 				return true;
 		}
 		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((entityCache == null) ? 0 : entityCache.hashCode());
+		result = prime * result + ((field == null) ? 0 : field.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DescriptionField other = (DescriptionField) obj;
+		if (entityCache == null) {
+			if (other.entityCache != null)
+				return false;
+		} else if (!entityCache.equals(other.entityCache))
+			return false;
+		if (field == null) {
+			if (other.field != null)
+				return false;
+		} else if (!field.equals(other.field))
+			return false;
+		return true;
 	}
 
 }

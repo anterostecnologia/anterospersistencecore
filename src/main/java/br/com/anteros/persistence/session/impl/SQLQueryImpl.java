@@ -1876,6 +1876,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		ResultClassColumnInfo simpleColumn = resultClassDefinitionsList.get(0).getSimpleColumn();
 		String aliasColumnName = (StringUtils.isEmpty(simpleColumn.getAliasColumnName()) ? simpleColumn.getColumnName()
 				: simpleColumn.getAliasColumnName());
+		parsedSql = appendLimit(parsedSql, parsedParameters, parsedNamedParameters);
 		return new SingleValueHandler(sql, resultClassDefinitionsList.get(0).getResultClass(), null, aliasColumnName,
 				simpleColumn.getColumnIndex());
 	}

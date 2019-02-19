@@ -20,7 +20,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
@@ -46,7 +48,7 @@ public abstract class ExpressionFieldMapper {
 	protected EntityCache targetEntityCache;
 	protected DescriptionField descriptionField;
 	protected String aliasColumnName;
-	protected List<ExpressionFieldMapper> children = new ArrayList<ExpressionFieldMapper>();
+	protected Set<ExpressionFieldMapper> children = new LinkedHashSet<ExpressionFieldMapper>();
 
 	public ExpressionFieldMapper(EntityCache targetEntityCache, DescriptionField descriptionField,
 			String aliasColumnName) {
@@ -99,8 +101,8 @@ public abstract class ExpressionFieldMapper {
 		this.aliasColumnName = aliasColumnName;
 	}
 
-	public List<ExpressionFieldMapper> getChildren() {
-		return Collections.unmodifiableList(children);
+	public Set<ExpressionFieldMapper> getChildren() {
+		return Collections.unmodifiableSet(children);
 	}
 
 	public ExpressionFieldMapper addChild(ExpressionFieldMapper child) {
@@ -242,6 +244,43 @@ public abstract class ExpressionFieldMapper {
 	public String toString() {
 		return (targetEntityCache == null ? "" : targetEntityCache.getEntityClass()) + ":"
 				+ descriptionField.getField().getName() + ":" + aliasColumnName;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((aliasColumnName == null) ? 0 : aliasColumnName.hashCode());
+		result = prime * result + ((descriptionField == null) ? 0 : descriptionField.hashCode());
+		result = prime * result + ((targetEntityCache == null) ? 0 : targetEntityCache.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionFieldMapper other = (ExpressionFieldMapper) obj;
+		if (aliasColumnName == null) {
+			if (other.aliasColumnName != null)
+				return false;
+		} else if (!aliasColumnName.equals(other.aliasColumnName))
+			return false;
+		if (descriptionField == null) {
+			if (other.descriptionField != null)
+				return false;
+		} else if (!descriptionField.equals(other.descriptionField))
+			return false;
+		if (targetEntityCache == null) {
+			if (other.targetEntityCache != null)
+				return false;
+		} else if (!targetEntityCache.equals(other.targetEntityCache))
+			return false;
+		return true;
 	}
 
 }
