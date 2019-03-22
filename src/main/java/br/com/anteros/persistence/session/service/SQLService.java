@@ -146,6 +146,7 @@ public interface SQLService<T, ID extends Serializable> {
 	Page<T> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... orders);
 	
 	
+	Class<T> getResultClass();
 	
 	SQLSession getSession();
 

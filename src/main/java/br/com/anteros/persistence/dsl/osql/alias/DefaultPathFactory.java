@@ -28,6 +28,7 @@ import br.com.anteros.persistence.dsl.osql.types.path.EnumPath;
 import br.com.anteros.persistence.dsl.osql.types.path.ListPath;
 import br.com.anteros.persistence.dsl.osql.types.path.MapPath;
 import br.com.anteros.persistence.dsl.osql.types.path.NumberPath;
+import br.com.anteros.persistence.dsl.osql.types.path.PathInits;
 import br.com.anteros.persistence.dsl.osql.types.path.SetPath;
 import br.com.anteros.persistence.dsl.osql.types.path.SimplePath;
 import br.com.anteros.persistence.dsl.osql.types.path.StringPath;
@@ -76,7 +77,7 @@ public class DefaultPathFactory implements PathFactory {
         if (Comparable.class.isAssignableFrom(type)) {
             return new ComparableEntityPath(type, metadata);
         } else {
-            return new EntityPathBase<T>(type, metadata);
+            return new EntityPathBase<T>(type, metadata, PathInits.DIRECT2);
         }
     }
 

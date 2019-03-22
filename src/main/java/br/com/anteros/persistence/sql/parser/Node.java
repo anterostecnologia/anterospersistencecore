@@ -154,7 +154,6 @@ public class Node implements INode {
 
 	public void dump(String prefix) {
 		LOG.info(toString(prefix));
-		System.out.println(toString(prefix));
 		if (children != null) {
 			for (int i = 0; i < children.size(); ++i) {
 				Node n = (Node) children.get(i);

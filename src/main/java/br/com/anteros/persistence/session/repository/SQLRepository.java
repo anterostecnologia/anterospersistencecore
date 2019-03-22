@@ -128,6 +128,8 @@ public interface SQLRepository<T, ID extends Serializable> {
 	Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly);
 
 	T findOne(Predicate predicate);
+	
+	Class<T> getResultClass();
 
 	List<T> findAll(Predicate predicate);
 	

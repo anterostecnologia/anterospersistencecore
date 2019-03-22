@@ -28,7 +28,6 @@ public class PageImpl<T> extends Chunk<T> implements Page<T> {
 	private final long total;
 
 	public PageImpl(List<T> content, Pageable pageable, long total) {
-
 		super(content, pageable);
 		this.total = total;
 	}

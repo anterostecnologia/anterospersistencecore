@@ -192,7 +192,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly) {
 
 		if (null == pageable) {
-			return new PageImpl<T>(findAll());
+			List<T> result = findAll();
+			return new PageImpl<T>(result);
 		}
 
 		TypedSQLQuery<?> query;
@@ -214,6 +215,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		}
 	}
 
+
 	@Override
 	public List<T> find(String sql, LockOptions lockOptions, boolean readOnly) {
 		try {
@@ -229,7 +231,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly) {
 		if (null == pageable) {
-			return new PageImpl<T>(find(sql));
+			return new PageImpl<T>(this.find(sql));
 		}
 
 		TypedSQLQuery<?> query;
@@ -793,6 +795,11 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
 		return namedQuery;
+	}
+
+	@Override
+	public Class<T> getResultClass() {
+		return (Class<T>) persistentClass;
 	}
 	
 	

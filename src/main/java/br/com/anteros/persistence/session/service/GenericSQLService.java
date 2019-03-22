@@ -521,5 +521,10 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 		return repository.getNamedQuery(queryName);
 	}
 
+	@Override
+	public Class<T> getResultClass() {
+		return repository.getResultClass();
+	}
+
 	
 }

@@ -76,7 +76,7 @@ public class MySQLDialect extends DatabaseDialect {
 		registerJavaColumnType(java.sql.Blob.class, new ColumnDatabaseType("LONGBLOB", false, Types.VARBINARY));
 		registerJavaColumnType(java.sql.Clob.class, new ColumnDatabaseType("LONGTEXT", false, Types.LONGVARCHAR));
 		registerJavaColumnType(java.sql.Date.class, new ColumnDatabaseType("DATE", false, Types.DATE));
-		registerJavaColumnType(java.util.Date.class, new ColumnDatabaseType("DATETIME", false, Types.TIMESTAMP));
+		registerJavaColumnType(java.util.Date.class, new ColumnDatabaseType("DATE", false, Types.TIMESTAMP));
 		registerJavaColumnType(java.sql.Time.class, new ColumnDatabaseType("TIME", false, Types.TIME));
 		registerJavaColumnType(java.sql.Timestamp.class, new ColumnDatabaseType("DATETIME", false, Types.TIMESTAMP));
 	}
