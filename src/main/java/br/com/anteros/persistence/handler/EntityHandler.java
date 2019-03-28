@@ -27,6 +27,7 @@ import java.util.TreeMap;
 
 import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityCacheManager;
 import br.com.anteros.persistence.metadata.EntityManaged;
@@ -821,7 +822,11 @@ public class EntityHandler implements ScrollableResultSetHandler {
 					if (descriptionColumn.isForeignKey() && !descriptionColumn.isInversedJoinColumn()) {
 						columnName = descriptionColumn.getColumnName();
 						String aliasColumnName = getAliasColumnName(entityCache, descriptionColumn.getColumnName());
-						int index = resultSet.findColumn(aliasColumnName);
+						if (descriptionField.isJoinTable() && StringUtils.isNotEmpty(descriptionColumn.getReferencedColumnName())) {
+							aliasColumnName = getAliasColumnName(entityCache, descriptionColumn.getReferencedColumnName());
+						}
+
+						int index = resultSet.findColumn(aliasColumnName);						
 						if (index < 0) {
 							return null;
 						}
