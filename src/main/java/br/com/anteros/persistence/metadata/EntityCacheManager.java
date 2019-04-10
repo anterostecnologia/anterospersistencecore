@@ -1825,6 +1825,16 @@ public class EntityCacheManager {
 			if (fieldConfiguration.isAnnotationPresent(Enumerated.class)) {
 				readEnumeratedConfiguration(fieldConfiguration, entityCache, model, descriptionColumn);
 			}
+			
+			/*
+			 * Se for Temporal
+			 */
+			if (fieldConfiguration.isAnnotationPresent(Temporal.class)) {
+				descriptionColumn.setTemporalType(fieldConfiguration.getTemporalType());
+				descriptionColumn.setDatePattern(fieldConfiguration.getSimpleColumn().getDatePattern());
+				descriptionColumn.setDateTimePattern(fieldConfiguration.getSimpleColumn().getDateTimePattern());
+				descriptionColumn.setTimePattern(fieldConfiguration.getSimpleColumn().getTimePattern());
+			}
 
 			/*
 			 * Se for ForeignKey
