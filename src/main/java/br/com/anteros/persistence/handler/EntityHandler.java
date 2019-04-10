@@ -441,7 +441,13 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			 */
 			if (appendSeparator)
 				uniqueIdTemp.append("_");
-			uniqueIdTemp.append(resultSet.getObject(index));
+			
+			if (column.getDescriptionField().isTemporalDateTime()) {
+				uniqueIdTemp.append(resultSet.getTimestamp(index));
+			} else {
+				uniqueIdTemp.append(resultSet.getObject(index));
+			}				
+			
 			appendSeparator = true;
 		}
 		/*
