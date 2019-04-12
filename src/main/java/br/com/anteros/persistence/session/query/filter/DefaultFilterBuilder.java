@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.anteros.core.utils.StringUtils;
+import br.com.anteros.persistence.metadata.EntityCache;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
 import br.com.anteros.persistence.parameter.NamedParameter;
+import br.com.anteros.persistence.session.SQLSession;
+import br.com.anteros.persistence.session.exception.SQLSessionException;
 
 public class DefaultFilterBuilder extends BaseVisitor {
 	public static final String DEFAULT_BASE_VARIABLE_NAME = "param";
@@ -15,6 +19,8 @@ public class DefaultFilterBuilder extends BaseVisitor {
 	protected StringBuffer result = new StringBuffer();
 	private int variableIndex = 1;
 	private List<NamedParameter> params = new ArrayList<NamedParameter>();
+	private SQLSession session;
+	private Class<?> resultClass;
 
 	public StringBuffer getResult() {
 		return result;
@@ -32,7 +38,17 @@ public class DefaultFilterBuilder extends BaseVisitor {
 
 	private String getVariableName(final Object obj, final String defaultName) {
 		if (obj instanceof FieldExpression) {
-			return ((FieldExpression) obj).getName();
+			FieldExpression column = (FieldExpression) obj;
+			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
+			if (entityCache==null) {
+				throw new SQLSessionException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
+			}
+			DescriptionField descriptionField = entityCache.getDescriptionField(column.getName());
+			
+			if (descriptionField==null) {
+				throw new SQLSessionException("Não foi encontrada campo "+column.getName()+" na entidade gerenciada "+resultClass.getSimpleName());
+			}
+			return descriptionField.getSimpleColumn().getColumnName();
 		} else {
 			return defaultName;
 		}
@@ -60,11 +76,17 @@ public class DefaultFilterBuilder extends BaseVisitor {
 	}
 
 	public void visit(final FieldExpression column) {
-		if (column.getNameSql() != null && column.getNameSql() != "") {
-			result.append(column.getNameSql());
-		} else {
-			result.append(column.getName());
+		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
+		if (entityCache==null) {
+			throw new FilterException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
 		}
+		DescriptionField descriptionField = entityCache.getDescriptionField(column.getName());
+		
+		if (descriptionField==null) {
+			throw new FilterException("Não foi encontrada campo "+column.getName()+" na entidade gerenciada "+resultClass.getSimpleName());
+		}
+		
+		result.append(descriptionField.getSimpleColumn().getColumnName());
 	}
 
 	public void visit(final OperationExpression exp) throws FilterException {
@@ -158,22 +180,37 @@ public class DefaultFilterBuilder extends BaseVisitor {
 		acceptOrVisitValue(nullable.getValue());
 	}
 
-	public String toSql(Filter filter) throws FilterException {
+	public String toSql(Filter filter, SQLSession session, Class<?> resultClass) throws FilterException {
+		this.session = session;
+		this.resultClass = resultClass;
 		filter.runVisitors();
 		filter.accept(this);
 		final String sqlQuery = this.getResult().toString();
 		return sqlQuery;
 	}
 
-	public String toSortSql(Filter filter) throws FilterException {
+	public String toSortSql(Filter filter, SQLSession session, Class<?> resultClass) throws FilterException {
+		this.session = session;
+		this.resultClass = resultClass;
 		String result = "";
 		boolean appendDelimiter = false;
 		for (FieldSort field : filter.getFieldsToSort()) {
 			if (appendDelimiter)
 				result += ", ";
 			appendDelimiter = true;
+			
+			
+			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
+			if (entityCache==null) {
+				throw new FilterException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
+			}
+			DescriptionField descriptionField = entityCache.getDescriptionField(field.getField());
+			
+			if (descriptionField==null) {
+				throw new FilterException("Não foi encontrada campo "+field.getField()+" na entidade gerenciada "+resultClass.getSimpleName());
+			}
 
-			result += field.getField();
+			result += descriptionField.getSimpleColumn().getColumnName();
 		}
 		return result;
 	}

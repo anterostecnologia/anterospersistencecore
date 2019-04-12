@@ -142,7 +142,7 @@ public class AnterosMultipleFieldsFilter<T> {
 								paramNumber++;
 								StringParam param1 = new StringParam("P" + paramNumber);
 								parameters.put(param1, value1);
-
+								
 								paramNumber++;
 								StringParam param2 = new StringParam("P" + paramNumber);
 								parameters.put(param2, value2);

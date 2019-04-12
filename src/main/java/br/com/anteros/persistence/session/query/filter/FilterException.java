@@ -1,6 +1,6 @@
 package br.com.anteros.persistence.session.query.filter;
 
-public class FilterException extends Exception {
+public class FilterException extends RuntimeException {
 
 	public FilterException() {
 	}

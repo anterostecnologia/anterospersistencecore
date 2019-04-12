@@ -526,5 +526,10 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 		return repository.getResultClass();
 	}
 
+	@Override
+	public void validate(T entity) throws Exception {
+		repository.validate(entity);		
+	}
+
 	
 }

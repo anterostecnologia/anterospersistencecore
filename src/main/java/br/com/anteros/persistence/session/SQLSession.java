@@ -178,6 +178,8 @@ public interface SQLSession {
 
 	public <T> TypedSQLQuery<T> createStoredProcedureNamedQuery(String name, Class<T> resultClass, Object[] parameters) throws Exception;
 
+	public void validate(Object object) throws Exception;
+	
 	public Object save(Object object) throws Exception;
 
 	public void save(Object[] object) throws Exception;

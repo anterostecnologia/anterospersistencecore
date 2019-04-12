@@ -29,6 +29,8 @@ import br.com.anteros.persistence.transaction.Transaction;
 
 public interface SQLService<T, ID extends Serializable> {
 
+	void validate(T entity) throws Exception;
+	
 	<S extends T> S save(S entity);
 
 	<S extends T> Iterable<S> save(Iterable<S> entities);

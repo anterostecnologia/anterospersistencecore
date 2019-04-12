@@ -35,7 +35,8 @@ public class DateTimeParameterBinding implements ParameterBinding {
 	
 	public void bindValue(PreparedStatement statement, int parameterIndex) throws SQLException {
 		Date date = (Date) this.getValue();
-		statement.setTimestamp(parameterIndex, new Timestamp(date.getTime()));
+//		statement.setTimestamp(parameterIndex, new Timestamp(date.getTime()));
+		statement.setDate(parameterIndex, new java.sql.Date(date.getTime()));
 	}
 	
 	@Override
