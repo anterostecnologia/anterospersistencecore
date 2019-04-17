@@ -107,7 +107,7 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 		this.modelConfiguration = modelConfiguration;
 	}
 
-	public SessionFactoryConfiguration getSessionFactoryConfiguration() {
+	public SessionFactoryConfiguration getSessionFactoryConfiguration() { 
 		if (sessionFactory == null)
 			sessionFactory = new SessionFactoryConfiguration();
 		return sessionFactory;
