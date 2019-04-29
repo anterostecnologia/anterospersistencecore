@@ -21,6 +21,7 @@ import java.util.List;
 import br.com.anteros.core.utils.Assert;
 import br.com.anteros.core.utils.TypeResolver;
 import br.com.anteros.persistence.dsl.osql.OSQLQuery;
+import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
@@ -529,6 +530,11 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	@Override
 	public void validate(T entity) throws Exception {
 		repository.validate(entity);		
+	}
+
+	@Override
+	public EntityPath<T> getEntityPath() {
+		return repository.getEntityPath();
 	}
 
 	

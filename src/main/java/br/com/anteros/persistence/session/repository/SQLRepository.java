@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import br.com.anteros.persistence.dsl.osql.OSQLQuery;
+import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
@@ -184,5 +185,7 @@ public interface SQLRepository<T, ID extends Serializable> {
 	String getTableName() throws Exception;
 	
 	DescriptionNamedQuery getNamedQuery(String queryName) throws Exception;
+	
+	public EntityPath<T> getEntityPath();
 
 }

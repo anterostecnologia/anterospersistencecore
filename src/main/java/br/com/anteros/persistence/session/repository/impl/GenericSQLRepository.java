@@ -347,7 +347,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		return createQuery(predicate).uniqueResult(getEntityPath());
 	}
 
-	private EntityPath<T> getEntityPath() {
+	public EntityPath<T> getEntityPath() {
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
@@ -517,7 +517,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	protected OSQLQuery createQuery(Predicate... predicate) {
-		OSQLQuery query = new OSQLQuery(session).from(getEntityPath()).where(predicate);
+		OSQLQuery query = new OSQLQuery(getSession()).from(getEntityPath()).where(predicate);
 		return query;
 	}
 
@@ -723,7 +723,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	@Override
 	public OSQLQuery createObjectQuery() {
-		return new OSQLQuery(session);
+		return new OSQLQuery(getSession());
 	}
 
 	@Override

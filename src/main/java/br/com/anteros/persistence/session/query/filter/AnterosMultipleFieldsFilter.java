@@ -18,6 +18,7 @@ import br.com.anteros.persistence.dsl.osql.DynamicEntityPath;
 import br.com.anteros.persistence.dsl.osql.OSQLQuery;
 import br.com.anteros.persistence.dsl.osql.support.Expressions;
 import br.com.anteros.persistence.dsl.osql.types.Ops;
+import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.Param;
 import br.com.anteros.persistence.dsl.osql.types.expr.params.BigDecimalParam;
@@ -51,7 +52,14 @@ public class AnterosMultipleFieldsFilter<T> {
 	private DynamicEntityPath entityPath;
 	private OSQLQuery query;
 	private String fieldsSort;
+	private Predicate predicate;
 
+	public AnterosMultipleFieldsFilter(DynamicEntityPath entityPath, Predicate predicate) {
+		super();
+		this.entityPath = entityPath;
+		this.predicate = predicate;
+	}
+	
 	public AnterosMultipleFieldsFilter() {
 		super();
 	}
@@ -104,10 +112,14 @@ public class AnterosMultipleFieldsFilter<T> {
 		if (arrFields == null) {
 			arrFields = new String[] { fields };
 		}
-
-		entityPath = new DynamicEntityPath(resultClass, "P");
+		
+		if (entityPath==null) {
+			this.entityPath = new DynamicEntityPath(resultClass, "P");
+		}
 
 		query = new OSQLQuery(session).from(entityPath);
+		
+		
 
 		BooleanBuilder builder = new BooleanBuilder();
 
@@ -391,6 +403,9 @@ public class AnterosMultipleFieldsFilter<T> {
 
 				}
 			}
+		}
+		if (this.predicate!=null) {
+			builder.and(predicate);
 		}
 		query.where(builder);
 		for (Param param : parameters.keySet()) {

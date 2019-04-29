@@ -47,6 +47,7 @@ import br.com.anteros.persistence.metadata.descriptor.type.ColumnType;
 import br.com.anteros.persistence.metadata.descriptor.type.ConnectivityType;
 import br.com.anteros.persistence.metadata.descriptor.type.SQLStatementType;
 import br.com.anteros.persistence.metadata.identifier.IdentifierPath;
+import br.com.anteros.persistence.proxy.collection.AnterosPersistentCollection;
 import br.com.anteros.persistence.session.SQLSession;
 
 public class EntityCache {
@@ -1067,6 +1068,9 @@ public class EntityCache {
 			if (descriptionField.isAnyCollectionOrMap()) {
 				if (descriptionField.getFetchType() != null && descriptionField.getFetchType().equals(FetchType.LAZY)) {
 					if (descriptionField.getObjectValue(entity) != null) {
+						Object value = descriptionField.getObjectValue(newEntity);
+						if (value instanceof AnterosPersistentCollection)
+							((AnterosPersistentCollection)value).initialize();
 						descriptionField.setValue(newEntity, descriptionField.getObjectValue(entity));
 					}
 				} else {
