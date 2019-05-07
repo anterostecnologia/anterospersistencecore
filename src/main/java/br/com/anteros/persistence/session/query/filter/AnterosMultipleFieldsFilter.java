@@ -133,7 +133,9 @@ public class AnterosMultipleFieldsFilter<T> {
 				throw new SQLSessionException("Campo " + field + " não encontrado na lista de campos da classe "
 						+ resultClass.getSimpleName() + " ou de suas heranças.");
 			}
-
+			
+			
+			
 			for (String vl : values) {
 
 				String value1 = vl;

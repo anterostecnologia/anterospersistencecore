@@ -26,6 +26,7 @@ import br.com.anteros.persistence.dsl.osql.SimpleEntityPathResolver;
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
+import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
@@ -810,7 +811,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		
 		getSession().validate(entity);		
 	}
-	
+
 	@Override
 	public void validate(T entity, Class<?>... groups) throws Exception {
 		if (!getSession().validationIsActive()) {
@@ -819,5 +820,10 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		
 		getSession().validate(entity, groups);		
 	}	
+	
+	
+
+
+	
 
 }
