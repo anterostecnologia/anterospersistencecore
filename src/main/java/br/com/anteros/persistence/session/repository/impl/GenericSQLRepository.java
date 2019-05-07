@@ -811,9 +811,13 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		getSession().validate(entity);		
 	}
 	
-	
-
-
-	
+	@Override
+	public void validate(T entity, Class<?>... groups) throws Exception {
+		if (!getSession().validationIsActive()) {
+			throw new SQLQueryException("A validação está desativada no servidor.");
+		}
+		
+		getSession().validate(entity, groups);		
+	}	
 
 }

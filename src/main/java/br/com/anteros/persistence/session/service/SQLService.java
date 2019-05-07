@@ -32,6 +32,8 @@ public interface SQLService<T, ID extends Serializable> {
 
 	void validate(T entity) throws Exception;
 	
+	void validate(T entity, Class<?>... groups) throws Exception;
+	
 	<S extends T> S save(S entity);
 
 	<S extends T> Iterable<S> save(Iterable<S> entities);

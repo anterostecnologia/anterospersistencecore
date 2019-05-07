@@ -18,4 +18,6 @@ package br.com.anteros.persistence.session;
 public interface SQLSessionValidator {
 
 	public void validateBean(Object object) throws Exception;
+	
+	public void validateBean(Object object, Class<?>... groups) throws Exception;
 }

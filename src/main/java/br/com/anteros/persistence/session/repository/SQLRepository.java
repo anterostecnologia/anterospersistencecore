@@ -29,6 +29,8 @@ import br.com.anteros.persistence.transaction.Transaction;
 public interface SQLRepository<T, ID extends Serializable> {
 
 	void validate(T entity) throws Exception;
+
+	void validate(T entity, Class<?>... groups) throws Exception;
 	
 	<S extends T> S save(S entity);
 

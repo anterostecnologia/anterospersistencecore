@@ -533,6 +533,11 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
+	public void validate(T entity, Class<?>... groups) throws Exception {
+		repository.validate(entity, groups);		
+	}
+
+	@Override
 	public EntityPath<T> getEntityPath() {
 		return repository.getEntityPath();
 	}
