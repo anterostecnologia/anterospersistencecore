@@ -939,7 +939,11 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 					mappedByForPath.put(newPath, descriptionField.getMappedBy());
 					boExpression = (BooleanExpression) ReflectionUtils.invokeMethod(expr, "eq", newPath);
 				} else {
-					newPath = (EntityPath<?>) ReflectionUtils.invokeConstructor(expr.getClass(), alias);
+					if (expr instanceof DynamicEntityPath) {
+						newPath = new DynamicEntityPath(expr.getType(), alias);
+					} else {
+						newPath = (EntityPath<?>) ReflectionUtils.invokeConstructor(expr.getClass(), alias);
+					}
 					boExpression = (BooleanExpression) ReflectionUtils.invokeMethod(expr, "eq", newPath);
 				}
 
@@ -1062,6 +1066,9 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 	 * @return Classe
 	 */
 	public Class<?> getClassByEntityPath(EntityPath<?> path) {
+		if (path instanceof DynamicEntityPath) {
+			return path.getType();
+		}
 		Type mySuperclass = path.getClass().getGenericSuperclass();
 		return (Class<?>) ((ParameterizedType) mySuperclass).getActualTypeArguments()[0];
 	}

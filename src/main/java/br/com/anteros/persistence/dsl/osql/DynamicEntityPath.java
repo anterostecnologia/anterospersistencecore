@@ -17,7 +17,7 @@ public class DynamicEntityPath extends EntityPathBase {
 	private static final long serialVersionUID = 1923255001L;
 
 	private static final PathInits INITS = PathInits.DIRECT2;
-
+	
 
 	public DynamicEntityPath(Class<?> resultClass, String variable) {
 		this(resultClass, forVariable(variable), INITS);
@@ -25,6 +25,7 @@ public class DynamicEntityPath extends EntityPathBase {
 
 	public DynamicEntityPath(Class<?> resultClass, PathMetadata<?> metadata, PathInits inits) {
 		super(resultClass, metadata, inits);
+		
 	}
 
 	public <A extends Number & Comparable<?>> NumberPath<A> createFieldNumber(String property, Class<? super A> type) {
@@ -49,6 +50,10 @@ public class DynamicEntityPath extends EntityPathBase {
 	
 	public <A extends Comparable> TimePath<A> createFieldTime(String property, Class<? super A> type) {
 		return super.createTime(property, type);
+	}
+	
+	public DynamicEntityPath createEntityPath(Class<?> resultClass, String variable) {
+		return new DynamicEntityPath(resultClass, forProperty(variable),INITS.get(variable));
 	}
 	
 }

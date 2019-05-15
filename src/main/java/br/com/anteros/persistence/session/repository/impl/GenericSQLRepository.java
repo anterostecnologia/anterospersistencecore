@@ -20,6 +20,7 @@ import java.util.List;
 
 import br.com.anteros.core.utils.Assert;
 import br.com.anteros.core.utils.TypeResolver;
+import br.com.anteros.persistence.dsl.osql.DynamicEntityPath;
 import br.com.anteros.persistence.dsl.osql.EntityPathResolver;
 import br.com.anteros.persistence.dsl.osql.OSQLQuery;
 import br.com.anteros.persistence.dsl.osql.SimpleEntityPathResolver;
@@ -352,8 +353,10 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
-		if (path == null)
-			this.path = (EntityPath<T>) DEFAULT_ENTITY_PATH_RESOLVER.createPath(persistentClass);
+		if (path == null) {
+			//this.path = (EntityPath<T>) DEFAULT_ENTITY_PATH_RESOLVER.createPath(persistentClass);
+			this.path = new DynamicEntityPath(persistentClass, persistentClass.getSimpleName());
+		}
 		return path;
 	}
 
@@ -518,7 +521,10 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	protected OSQLQuery createQuery(Predicate... predicate) {
-		OSQLQuery query = new OSQLQuery(getSession()).from(getEntityPath()).where(predicate);
+		OSQLQuery query = new OSQLQuery(getSession()).from(getEntityPath());
+		if (predicate == null || predicate.length==0)
+			return query;
+		query.where(predicate);
 		return query;
 	}
 
