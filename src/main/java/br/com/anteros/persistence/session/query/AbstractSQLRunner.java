@@ -303,25 +303,23 @@ public abstract class AbstractSQLRunner {
 	 * ABSTRACT METHODS
 	 */
 
-	public abstract int[] batch(Connection conn, String sql, Object[][] params, ShowSQLType[] showSql, boolean formatSql, List<SQLSessionListener> listeners,
+	public abstract int[] batch(SQLSession session, String sql, Object[][] params, ShowSQLType[] showSql, boolean formatSql, List<SQLSessionListener> listeners,
 			String clientId) throws Exception;
 
-	public abstract int[] batch(String sql, Object[][] params, ShowSQLType[] showSql, boolean formatSql, List<SQLSessionListener> listeners, String clientId)
-			throws Exception;
-
-	public abstract Object query(Connection connection, String sql, ResultSetHandler resultSetHandler, Object[] parameters, ShowSQLType[] showSql, boolean formatSql,
+	
+	public abstract Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, Object[] parameters, ShowSQLType[] showSql, boolean formatSql,
 			int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract Object query(Connection connection, String sql, ResultSetHandler resultSetHandler, NamedParameter[] parameters, ShowSQLType[] showSql,
+	public abstract Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, NamedParameter[] parameters, ShowSQLType[] showSql,
 			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract SQLSessionResult queryWithResultSet(Connection connection, String sql, ResultSetHandler resultSetHandler, NamedParameter[] parameters,
+	public abstract SQLSessionResult queryWithResultSet(SQLSession session, String sql, ResultSetHandler resultSetHandler, NamedParameter[] parameters,
 			ShowSQLType[] showSql, boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract SQLSessionResult queryWithResultSet(Connection connection, String sql, ResultSetHandler resultSetHandler, Object[] parameters,
+	public abstract SQLSessionResult queryWithResultSet(SQLSession session, String sql, ResultSetHandler resultSetHandler, Object[] parameters,
 			ShowSQLType[] showSql, boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract Object query(Connection connection, String sql, ResultSetHandler resultSetHandler, Map<String, Object> parameters, ShowSQLType[] showSql,
+	public abstract Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, Map<String, Object> parameters, ShowSQLType[] showSql,
 			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception;
 
 	public abstract Object queryProcedure(SQLSession session, DatabaseDialect dialect, CallableType type, String name, ResultSetHandler resultSetHandler,
@@ -330,58 +328,46 @@ public abstract class AbstractSQLRunner {
 	public abstract ProcedureResult executeProcedure(SQLSession session, DatabaseDialect dialect, CallableType type, String name, NamedParameter[] parameters,
 			ShowSQLType[] showSql, int timeOut, String clientId) throws Exception;
 
-	public abstract Object query(Connection conn, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql,
+	public abstract Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql,
 			List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract Object query(Connection conn, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql, int timeOut,
+	public abstract Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract Object query(String sql, ResultSetHandler rsh, Object[] parameters, ShowSQLType[] showSql, boolean formatSql, List<SQLSessionListener> listeners,
-			String clientId) throws Exception;
-
-	public abstract Object query(String sql, ResultSetHandler resultSetHandler, Object[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
+	public abstract ResultSet executeQuery(SQLSession session, String sql, NamedParameter[] parameters, ShowSQLType[] showSql, boolean formatSql,
 			List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract Object query(String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql, List<SQLSessionListener> listeners,
-			String clientId) throws Exception;
-
-	public abstract Object query(String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql, int timeOut,
+	public abstract ResultSet executeQuery(SQLSession session, String sql, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract ResultSet executeQuery(Connection connection, String sql, NamedParameter[] parameters, ShowSQLType[] showSql, boolean formatSql,
+	public abstract ResultSet executeQuery(SQLSession session, String sql, NamedParameter[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract ResultSet executeQuery(Connection connection, String sql, ShowSQLType[] showSql, boolean formatSql, int timeOut,
+	public abstract ResultSet executeQuery(SQLSession session, String sql, Object[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract ResultSet executeQuery(Connection connection, String sql, NamedParameter[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
+	public abstract ResultSet executeQuery(SQLSession session, String sql, Map<String, Object> parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract ResultSet executeQuery(Connection connection, String sql, Object[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
-			List<SQLSessionListener> listeners, String clientId) throws Exception;
-
-	public abstract ResultSet executeQuery(Connection connection, String sql, Map<String, Object> parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
-			List<SQLSessionListener> listeners, String clientId) throws Exception;
-
-	public abstract int update(Connection connection, String sql, Object[] parameters, IdentifierPostInsert identifierPostInsert, String identitySelectString,
+	public abstract int update(SQLSession session, String sql, Object[] parameters, IdentifierPostInsert identifierPostInsert, String identitySelectString,
 			ShowSQLType[] showSql, List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract int update(Connection connection, String sql, NamedParameter[] parameters, ShowSQLType[] showSql, List<SQLSessionListener> listeners,
+	public abstract int update(SQLSession session, String sql, NamedParameter[] parameters, ShowSQLType[] showSql, List<SQLSessionListener> listeners,
 			String clientId) throws Exception;
 
-	public abstract int update(Connection connection, String sql, NamedParameter[] parameters, IdentifierPostInsert identifierPostInsert,
+	public abstract int update(SQLSession session, String sql, NamedParameter[] parameters, IdentifierPostInsert identifierPostInsert,
 			String identitySelectString, ShowSQLType[] showSql, List<SQLSessionListener> listeners, String clientId) throws Exception;
 
-	public abstract int update(Connection connection, String sql, List<SQLSessionListener> listeners) throws Exception;
+	public abstract int update(SQLSession session, String sql, List<SQLSessionListener> listeners) throws Exception;
 
-	public abstract int update(Connection connection, String sql, Object parameter, List<SQLSessionListener> listeners) throws Exception;
+	public abstract int update(SQLSession session, String sql, Object parameter, List<SQLSessionListener> listeners) throws Exception;
 
-	public abstract int update(Connection connection, String sql, Object[] parameters, List<SQLSessionListener> listeners) throws Exception;
+	public abstract int update(SQLSession session, String sql, Object[] parameters, List<SQLSessionListener> listeners) throws Exception;
 
-	public abstract int update(Connection connection, String sql, NamedParameter[] parameters, List<SQLSessionListener> listeners) throws Exception;
+	public abstract int update(SQLSession session, String sql, NamedParameter[] parameters, List<SQLSessionListener> listeners) throws Exception;
 
-	public abstract ResultSet executeQuery(Connection connection, String sql, ShowSQLType[] showSql, boolean formatSql, String clientId) throws Exception;
+	public abstract ResultSet executeQuery(SQLSession session, String sql, ShowSQLType[] showSql, boolean formatSql, String clientId) throws Exception;
 
-	public abstract void executeDDL(Connection connection, String ddl, ShowSQLType[] showSql, boolean formatSql, String clientId) throws Exception;
+	public abstract void executeDDL(SQLSession session, String ddl, ShowSQLType[] showSql, boolean formatSql, String clientId) throws Exception;
 
 }

@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import br.com.anteros.core.utils.SQLFormatter;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.handler.ResultSetHandler;
 import br.com.anteros.persistence.metadata.annotation.type.CallableType;
 import br.com.anteros.persistence.metadata.identifier.IdentifierPostInsert;
@@ -60,218 +61,318 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 
 	private Map<String, StoredProcedureSchema> cacheStoredProcedures = new HashMap<String, StoredProcedureSchema>();
 
-	public int[] batch(Connection connection, String sql, Object[][] parameters, ShowSQLType[] showSql,
-			boolean formatSql, List<SQLSessionListener> listeners, String clientId) throws Exception {
+	public int[] batch(SQLSession session, String sql, Object[][] parameters, ShowSQLType[] showSql, boolean formatSql,
+			List<SQLSessionListener> listeners, String clientId) throws Exception {
 		PreparedStatement statement = null;
 		int[] rows = null;
-		try {
-			statement = this.prepareStatement(connection, sql);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = this.prepareStatement(session.getConnection(), sql);
 
-			for (int i = 0; i < parameters.length; i++) {
-				if (ShowSQLType.contains(showSql, ShowSQLType.ALL)
-						|| (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT))
-						|| (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE))
-						|| (sql.toLowerCase().contains("delete")
-								&& ShowSQLType.contains(showSql, ShowSQLType.DELETE))) {
-					showSQLAndParameters(sql, parameters[i], formatSql, listeners, clientId);
+				for (int i = 0; i < parameters.length; i++) {
+					if (ShowSQLType.contains(showSql, ShowSQLType.ALL)
+							|| (sql.toLowerCase().contains("insert")
+									&& ShowSQLType.contains(showSql, ShowSQLType.INSERT))
+							|| (sql.toLowerCase().contains("update")
+									&& ShowSQLType.contains(showSql, ShowSQLType.UPDATE))
+							|| (sql.toLowerCase().contains("delete")
+									&& ShowSQLType.contains(showSql, ShowSQLType.DELETE))) {
+						showSQLAndParameters(sql, parameters[i], formatSql, listeners, clientId);
+					}
+					this.fillStatement(statement, parameters[i]);
+					statement.addBatch();
 				}
-				this.fillStatement(statement, parameters[i]);
-				statement.addBatch();
-			}
-			rows = statement.executeBatch();
+				rows = statement.executeBatch();
+				break;
 
-		} catch (SQLException e) {
-			this.rethrow(e, sql, parameters, "");
-		} finally {
-			close(statement);
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, "");
+			} finally {
+				close(statement);
+			}
 		}
 		return rows;
 	}
 
-	public int[] batch(String sql, Object[][] parameters, ShowSQLType[] showSql, boolean formatSql,
-			List<SQLSessionListener> listeners, String clientId) throws Exception {
-		Connection connection = this.prepareConnection();
-		try {
-			return this.batch(connection, sql, parameters, showSql, formatSql, listeners, clientId);
-		} finally {
-			close(connection);
-		}
-	}
-
-	public Object query(Connection connection, String sql, ResultSetHandler resultSetHandler, Object[] parameters,
+	public Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, Object[] parameters,
 			ShowSQLType[] showSql, boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId)
 			throws Exception {
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		Object result = null;
-		try {
-			statement = this.prepareStatement(connection, sql);
-			if (timeOut > 0)
-				statement.setQueryTimeout(timeOut);
-
-			this.fillStatement(statement, parameters);
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
-			}
-
-			resultSet = this.wrap(statement.executeQuery());
-			result = resultSetHandler.handle(resultSet);
-
-		} catch (SQLException e) {
-			this.rethrow(e, sql, parameters, clientId);
-
-		} finally {
+		boolean retry = true;
+		while (true) {
 			try {
-				close(resultSet);
+				statement = this.prepareStatement(session.getConnection(), sql);
+				if (timeOut > 0)
+					statement.setQueryTimeout(timeOut);
+
+				this.fillStatement(statement, parameters);
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+				}
+
+				resultSet = this.wrap(statement.executeQuery());
+				result = resultSetHandler.handle(resultSet);
+				break;
+
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, clientId);
+
 			} finally {
-				close(statement);
+				try {
+					close(resultSet);
+				} finally {
+					close(statement);
+				}
 			}
 		}
 		return result;
 	}
 
-	public Object query(Connection connection, String sql, ResultSetHandler resultSetHandler,
-			NamedParameter[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
-			List<SQLSessionListener> listeners, String clientId) throws Exception {
+	public Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, NamedParameter[] parameters,
+			ShowSQLType[] showSql, boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId)
+			throws Exception {
 
 		ResultSet resultSet = null;
 		Object result = null;
 		NamedParameterStatement statement = null;
-		try {
-			statement = new NamedParameterStatement(connection, sql, parameters);
-			if (timeOut > 0)
-				statement.getStatement().setQueryTimeout(timeOut);
-
-			for (NamedParameter param : parameters) {
-				if (!(param instanceof SubstitutedParameter))
-					statement.setObject(param.getName(), param.getValue());
-			}
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
-			}
-
-			resultSet = this.wrap(statement.executeQuery());
-			result = resultSetHandler.handle(resultSet);
-		} catch (SQLException e) {
-			statement = null;
-			this.rethrow(e, sql, parameters, clientId);
-
-		} finally {
+		boolean retry = true;
+		while (true) {
 			try {
-				close(resultSet);
-			} finally {
-				close(statement);
+				statement = new NamedParameterStatement(session.getConnection(), sql, parameters);
+				if (timeOut > 0)
+					statement.getStatement().setQueryTimeout(timeOut);
+
+				for (NamedParameter param : parameters) {
+					if (!(param instanceof SubstitutedParameter))
+						statement.setObject(param.getName(), param.getValue());
+				}
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+				}
+
+				resultSet = this.wrap(statement.executeQuery());
+				result = resultSetHandler.handle(resultSet);
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
 				statement = null;
+				this.rethrow(e, sql, parameters, clientId);
+
+			} finally {
+				try {
+					close(resultSet);
+				} finally {
+					close(statement);
+					statement = null;
+				}
 			}
 		}
 		return result;
 	}
 
-	public SQLSessionResult queryWithResultSet(Connection connection, String sql, ResultSetHandler resultSetHandler,
+	public SQLSessionResult queryWithResultSet(SQLSession session, String sql, ResultSetHandler resultSetHandler,
 			NamedParameter[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception {
 		SQLSessionResult result = new SQLSessionResult();
 		ResultSet resultSet = null;
 		NamedParameterStatement statement = null;
-		try {
-			statement = new NamedParameterStatement(connection, sql, parameters);
-			if (timeOut > 0)
-				statement.getStatement().setQueryTimeout(timeOut);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = new NamedParameterStatement(session.getConnection(), sql, parameters);
+				if (timeOut > 0)
+					statement.getStatement().setQueryTimeout(timeOut);
 
-			for (NamedParameter param : parameters) {
-				if (!(param instanceof SubstitutedParameter))
-					statement.setObject(param.getName(), param.getValue());
-			}
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
-			}
+				for (NamedParameter param : parameters) {
+					if (!(param instanceof SubstitutedParameter))
+						statement.setObject(param.getName(), param.getValue());
+				}
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+				}
 
-			resultSet = this.wrap(statement.executeQuery());
-			Object resultHandler = resultSetHandler.handle(resultSet);
-			result.setResultSet(resultSet);
-			result.setResultList(((List) resultHandler));
-		} catch (SQLException e) {
-			statement = null;
-			this.rethrow(e, sql, parameters, clientId);
+				resultSet = this.wrap(statement.executeQuery());
+				Object resultHandler = resultSetHandler.handle(resultSet);
+				result.setResultSet(resultSet);
+				result.setResultList(((List) resultHandler));
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				statement = null;
+				this.rethrow(e, sql, parameters, clientId);
+			}
 		}
 
 		return result;
 	}
 
-	public SQLSessionResult queryWithResultSet(Connection connection, String sql, ResultSetHandler resultSetHandler,
+	public SQLSessionResult queryWithResultSet(SQLSession session, String sql, ResultSetHandler resultSetHandler,
 			Object[] parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception {
 		SQLSessionResult result = new SQLSessionResult();
 		ResultSet resultSet = null;
 		PreparedStatement statement = null;
-		try {
-			statement = this.prepareStatement(connection, sql);
-			if (timeOut > 0)
-				statement.setQueryTimeout(timeOut);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = this.prepareStatement(session.getConnection(), sql);
+				if (timeOut > 0)
+					statement.setQueryTimeout(timeOut);
 
-			this.fillStatement(statement, parameters);
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
-			}
-
-			resultSet = this.wrap(statement.executeQuery());
-			Object resultHandler = null;
-			if (resultSetHandler != null)
-				resultHandler = resultSetHandler.handle(resultSet);
-
-			if (resultHandler == null)
-				resultHandler = Collections.EMPTY_LIST;
-
-			if (!(resultHandler instanceof List)) {
-				if (resultHandler instanceof Collection)
-					resultHandler = new ArrayList<Object>((Collection<?>) resultHandler);
-				else {
-					resultHandler = Arrays.asList(resultHandler);
+				this.fillStatement(statement, parameters);
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
 				}
+
+				resultSet = this.wrap(statement.executeQuery());
+				Object resultHandler = null;
+				if (resultSetHandler != null)
+					resultHandler = resultSetHandler.handle(resultSet);
+
+				if (resultHandler == null)
+					resultHandler = Collections.EMPTY_LIST;
+
+				if (!(resultHandler instanceof List)) {
+					if (resultHandler instanceof Collection)
+						resultHandler = new ArrayList<Object>((Collection<?>) resultHandler);
+					else {
+						resultHandler = Arrays.asList(resultHandler);
+					}
+				}
+				result.setResultSet(resultSet);
+				result.setResultList((List<?>) resultHandler);
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				close(statement);
+				this.rethrow(e, sql, parameters, clientId);
 			}
-			result.setResultSet(resultSet);
-			result.setResultList((List<?>) resultHandler);
-		} catch (SQLException e) {
-			close(statement);
-			this.rethrow(e, sql, parameters, clientId);
 		}
 
 		return result;
 	}
 
-	public Object query(Connection connection, String sql, ResultSetHandler resultSetHandler,
+	public Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler,
 			Map<String, Object> parameters, ShowSQLType[] showSql, boolean formatSql, int timeOut,
 			List<SQLSessionListener> listeners, String clientId) throws Exception {
 		ResultSet resultSet = null;
 		Object result = null;
 		NamedParameterStatement statement = null;
-		try {
-			statement = new NamedParameterStatement(connection, sql, null);
-			if (timeOut > 0)
-				statement.getStatement().setQueryTimeout(timeOut);
-
-			Iterator<String> it = parameters.keySet().iterator();
-			while (it.hasNext()) {
-				String key = it.next();
-				statement.setObject(key, parameters.get(key));
-			}
-
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
-			}
-
-			resultSet = this.wrap(statement.executeQuery());
-			result = resultSetHandler.handle(resultSet);
-		} catch (SQLException e) {
-			close(statement);
-			statement = null;
-			this.rethrow(e, sql, parameters, clientId);
-
-		} finally {
+		boolean retry = true;
+		while (true) {
 			try {
-				close(resultSet);
-			} finally {
+				statement = new NamedParameterStatement(session.getConnection(), sql, null);
+				if (timeOut > 0)
+					statement.getStatement().setQueryTimeout(timeOut);
+
+				Iterator<String> it = parameters.keySet().iterator();
+				while (it.hasNext()) {
+					String key = it.next();
+					statement.setObject(key, parameters.get(key));
+				}
+
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+				}
+
+				resultSet = this.wrap(statement.executeQuery());
+				result = resultSetHandler.handle(resultSet);
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
 				close(statement);
+				statement = null;
+				this.rethrow(e, sql, parameters, clientId);
+
+			} finally {
+				try {
+					close(resultSet);
+				} finally {
+					close(statement);
+				}
 			}
 		}
 		return result;
@@ -283,35 +384,53 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 		CallableStatement statement = null;
 		ResultSet resultSet = null;
 		Object result = null;
-		try {
-			String[] split = name.split("\\(");
-			List<NamedParameter> newParameters = adjustNamedParametersStoredProcedure(session, split[0], parameters,
-					type);
-			statement = dialect.prepareCallableStatement(session.getConnection(), type, split[0],
-					newParameters.toArray(new NamedParameter[] {}), timeOut,
-					(ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)), clientId);
-
-			if (type == CallableType.FUNCTION) {
-				if (statement.execute()) {
-					Object object = statement.getObject(1);
-					if (object instanceof ResultSet)
-						resultSet = (ResultSet) object;
-				}
-			} else {
-				if (statement.execute())
-					resultSet = statement.getResultSet();
-			}
-			if (resultSet != null)
-				result = resultSetHandler.handle(resultSet);
-
-		} catch (SQLException e) {
-			this.rethrow(e, "", new Object[] {}, clientId);
-
-		} finally {
+		boolean retry = true;
+		while (true) {
 			try {
-				close(resultSet);
+				String[] split = name.split("\\(");
+				List<NamedParameter> newParameters = adjustNamedParametersStoredProcedure(session, split[0], parameters,
+						type);
+				statement = dialect.prepareCallableStatement(session.getConnection(), type, split[0],
+						newParameters.toArray(new NamedParameter[] {}), timeOut,
+						(ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)), clientId);
+
+				if (type == CallableType.FUNCTION) {
+					if (statement.execute()) {
+						Object object = statement.getObject(1);
+						if (object instanceof ResultSet)
+							resultSet = (ResultSet) object;
+					}
+				} else {
+					if (statement.execute())
+						resultSet = statement.getResultSet();
+				}
+				if (resultSet != null)
+					result = resultSetHandler.handle(resultSet);
+				break;
+
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, "", new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, "", new Object[] {}, clientId);
+
 			} finally {
-				close(statement);
+				try {
+					close(resultSet);
+				} finally {
+					close(statement);
+				}
 			}
 		}
 
@@ -382,382 +501,528 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			NamedParameter[] parameters, ShowSQLType[] showSql, int timeOut, String clientId) throws Exception {
 		CallableStatement statement = null;
 		ProcedureResult result = new ProcedureResult();
-		try {
-			String[] split = name.split("\\(");
-			log.debug("Preparando CallableStatement " + split[0] + " ##" + clientId);
-			List<NamedParameter> newParameters = adjustNamedParametersStoredProcedure(session, split[0], parameters,
-					type);
+		boolean retry = true;
+		while (true) {
+			try {
+				String[] split = name.split("\\(");
+				log.debug("Preparando CallableStatement " + split[0] + " ##" + clientId);
+				List<NamedParameter> newParameters = adjustNamedParametersStoredProcedure(session, split[0], parameters,
+						type);
 
-			statement = dialect.prepareCallableStatement(session.getConnection(), type, split[0],
-					newParameters.toArray(new NamedParameter[] {}), timeOut,
-					(ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)), clientId);
+				statement = dialect.prepareCallableStatement(session.getConnection(), type, split[0],
+						newParameters.toArray(new NamedParameter[] {}), timeOut,
+						(ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)), clientId);
 
-			if (type == CallableType.FUNCTION) {
-				if (statement.execute()) {
-					Object object = statement.getObject(1);
-					if (object instanceof ResultSet)
-						result.setResultSet((ResultSet) object);
-				}
-			} else {
-				statement.execute();
-				result.setResultSet(statement.getResultSet());
-			}
-			if (NamedParameter.hasOutputParameters(newParameters)) {
-				int i = 1;
-				for (NamedParameter p : newParameters) {
-					if (p instanceof OutputNamedParameter) {
-						result.getOutputParameters().put(p.getName(), statement.getObject(i));
+				if (type == CallableType.FUNCTION) {
+					if (statement.execute()) {
+						Object object = statement.getObject(1);
+						if (object instanceof ResultSet)
+							result.setResultSet((ResultSet) object);
 					}
-					i++;
+				} else {
+					statement.execute();
+					result.setResultSet(statement.getResultSet());
 				}
+				if (NamedParameter.hasOutputParameters(newParameters)) {
+					int i = 1;
+					for (NamedParameter p : newParameters) {
+						if (p instanceof OutputNamedParameter) {
+							result.getOutputParameters().put(p.getName(), statement.getObject(i));
+						}
+						i++;
+					}
+				}
+				break;
+
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, "", new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, "", new Object[] {}, clientId);
 			}
 
-		} catch (SQLException e) {
-			this.rethrow(e, "", new Object[] {}, clientId);
-		}
-
-		if (result.getResultSet() == null) {
-			statement.close();
+			if (result.getResultSet() == null) {
+				statement.close();
+			}
 		}
 
 		return result;
 
 	}
 
-	public Object query(Connection conn, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql,
+	public Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql,
 			boolean formatSql, List<SQLSessionListener> listeners, String clientId) throws Exception {
-		return this.query(conn, sql, resultSetHandler, (Object[]) null, showSql, formatSql, 0, listeners, clientId);
+		return this.query(session, sql, resultSetHandler, (Object[]) null, showSql, formatSql, 0, listeners, clientId);
 	}
 
-	public Object query(Connection conn, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql,
+	public Object query(SQLSession session, String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql,
 			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
-		return this.query(conn, sql, resultSetHandler, (Object[]) null, showSql, formatSql, timeOut, listeners,
+		return this.query(session, sql, resultSetHandler, (Object[]) null, showSql, formatSql, timeOut, listeners,
 				clientId);
 	}
 
-	public Object query(String sql, ResultSetHandler rsh, Object[] parameters, ShowSQLType[] showSql, boolean formatSql,
-			List<SQLSessionListener> listeners, String clientId) throws Exception {
-		Connection connection = this.prepareConnection();
-		try {
-			return this.query(connection, sql, rsh, parameters, showSql, formatSql, 0, listeners, clientId);
-		} finally {
-			close(connection);
-		}
-	}
-
-	public Object query(String sql, ResultSetHandler resultSetHandler, Object[] parameters, ShowSQLType[] showSql,
-			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
-		Connection conn = this.prepareConnection();
-		try {
-			return this.query(conn, sql, resultSetHandler, parameters, showSql, formatSql, timeOut, listeners,
-					clientId);
-		} finally {
-			close(conn);
-		}
-	}
-
-	public Object query(String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql,
-			List<SQLSessionListener> listeners, String clientId) throws Exception {
-		return this.query(sql, resultSetHandler, (Object[]) null, showSql, formatSql, listeners, clientId);
-	}
-
-	public Object query(String sql, ResultSetHandler resultSetHandler, ShowSQLType[] showSql, boolean formatSql,
-			int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
-		return this.query(sql, resultSetHandler, (Object[]) null, showSql, formatSql, timeOut, listeners, clientId);
-	}
-
-	public ResultSet executeQuery(Connection connection, String sql, NamedParameter[] parameters, ShowSQLType[] showSql,
+	public ResultSet executeQuery(SQLSession session, String sql, NamedParameter[] parameters, ShowSQLType[] showSql,
 			boolean formatSql, List<SQLSessionListener> listeners, String clientId) throws Exception {
-		return executeQuery(connection, sql, parameters, showSql, formatSql, 0, listeners, clientId);
+		return executeQuery(session, sql, parameters, showSql, formatSql, 0, listeners, clientId);
 	}
 
-	public ResultSet executeQuery(Connection connection, String sql, ShowSQLType[] showSql, boolean formatSql,
-			int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
-		return executeQuery(connection, sql, (Object[]) null, showSql, formatSql, timeOut, listeners, clientId);
+	public ResultSet executeQuery(SQLSession session, String sql, ShowSQLType[] showSql, boolean formatSql, int timeOut,
+			List<SQLSessionListener> listeners, String clientId) throws Exception {
+		return executeQuery(session, sql, (Object[]) null, showSql, formatSql, timeOut, listeners, clientId);
 	}
 
-	public ResultSet executeQuery(Connection connection, String sql, NamedParameter[] parameters, ShowSQLType[] showSql,
+	public ResultSet executeQuery(SQLSession session, String sql, NamedParameter[] parameters, ShowSQLType[] showSql,
 			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
 		ResultSet result = null;
 		NamedParameterStatement statement = null;
-		try {
-			statement = new NamedParameterStatement(connection, sql, parameters);
-			for (NamedParameter namedParameter : parameters)
-				statement.setObject(namedParameter.getName(), namedParameter.getValue());
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = new NamedParameterStatement(session.getConnection(), sql, parameters);
+				for (NamedParameter namedParameter : parameters)
+					statement.setObject(namedParameter.getName(), namedParameter.getValue());
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+				}
+				result = this.wrap(statement.executeQuery());
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				statement = null;
+				this.rethrow(e, sql, parameters, clientId);
+			} finally {
 			}
-			result = this.wrap(statement.executeQuery());
-		} catch (SQLException e) {
-			statement = null;
-			this.rethrow(e, sql, parameters, clientId);
-		} finally {
 		}
 
 		return result;
 	}
 
-	public ResultSet executeQuery(Connection connection, String sql, Object[] parameters, ShowSQLType[] showSql,
+	public ResultSet executeQuery(SQLSession session, String sql, Object[] parameters, ShowSQLType[] showSql,
 			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
 		PreparedStatement statement = null;
 		ResultSet result = null;
-		try {
-			statement = this.prepareStatement(connection, sql);
-			if (timeOut > 0)
-				statement.setQueryTimeout(timeOut);
-			this.fillStatement(statement, parameters);
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = this.prepareStatement(session.getConnection(), sql);
+				if (timeOut > 0)
+					statement.setQueryTimeout(timeOut);
+				this.fillStatement(statement, parameters);
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+				}
+				result = this.wrap(statement.executeQuery());
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, clientId);
 			}
-			result = this.wrap(statement.executeQuery());
-		} catch (SQLException e) {
-			this.rethrow(e, sql, parameters, clientId);
 		}
 		return result;
 	}
 
-	public ResultSet executeQuery(Connection connection, String sql, Map<String, Object> parameters,
-			ShowSQLType[] showSql, boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId)
-			throws Exception {
+	public ResultSet executeQuery(SQLSession session, String sql, Map<String, Object> parameters, ShowSQLType[] showSql,
+			boolean formatSql, int timeOut, List<SQLSessionListener> listeners, String clientId) throws Exception {
 		ResultSet resultSet = null;
 		NamedParameterStatement statement = null;
-		try {
-			statement = new NamedParameterStatement(connection, sql, null);
-			if (timeOut > 0)
-				statement.getStatement().setQueryTimeout(timeOut);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = new NamedParameterStatement(session.getConnection(), sql, null);
+				if (timeOut > 0)
+					statement.getStatement().setQueryTimeout(timeOut);
 
-			Iterator<String> it = parameters.keySet().iterator();
-			while (it.hasNext()) {
-				String key = it.next();
-				statement.setObject(key, parameters.get(key));
+				Iterator<String> it = parameters.keySet().iterator();
+				while (it.hasNext()) {
+					String key = it.next();
+					statement.setObject(key, parameters.get(key));
+				}
+
+				if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
+					showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
+				}
+
+				resultSet = this.wrap(statement.executeQuery());
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, clientId);
+
+			} finally {
+				close(statement);
+				statement = null;
 			}
-
-			if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT)) {
-				showSQLAndParameters(sql, parameters, formatSql, listeners, clientId);
-			}
-
-			resultSet = this.wrap(statement.executeQuery());
-
-		} catch (SQLException e) {
-			this.rethrow(e, sql, parameters, clientId);
-
-		} finally {
-			close(statement);
-			statement = null;
 		}
 
 		return resultSet;
 	}
 
-	public int update(Connection connection, String sql, List<SQLSessionListener> listeners) throws Exception {
-		return this.update(connection, sql, (Object[]) null, listeners);
+	public int update(SQLSession session, String sql, List<SQLSessionListener> listeners) throws Exception {
+		return this.update(session, sql, (Object[]) null, listeners);
 	}
 
-	public int update(Connection connection, String sql, Object[] parameters, List<SQLSessionListener> listeners)
+	public int update(SQLSession session, String sql, Object[] parameters, List<SQLSessionListener> listeners)
 			throws Exception {
 
-		return this.update(connection, sql, parameters, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
+		return this.update(session, sql, parameters, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
 	}
 
-	public int update(Connection connection, String sql, NamedParameter[] parameters,
-			List<SQLSessionListener> listeners) throws Exception {
+	public int update(SQLSession session, String sql, NamedParameter[] parameters, List<SQLSessionListener> listeners)
+			throws Exception {
 
-		return this.update(connection, sql, parameters, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
+		return this.update(session, sql, parameters, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
 	}
 
-	public int update(Connection connection, String sql, Object[] parameters, ShowSQLType[] showSql,
+	public int update(SQLSession session, String sql, Object[] parameters, ShowSQLType[] showSql,
 			List<SQLSessionListener> listeners, String clientId) throws Exception {
 
 		PreparedStatement statement = null;
 		int rows = 0;
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = this.prepareStatement(session.getConnection(), sql);
+				this.fillStatement(statement, parameters);
 
-		try {
-			statement = this.prepareStatement(connection, sql);
-			this.fillStatement(statement, parameters);
+				if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				}
 
-			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				System.out.println(sql);
+				rows = statement.executeUpdate();
+				break;
+
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, clientId);
+
+			} finally
+
+			{
+				close(statement);
 			}
-
-			System.out.println(sql);
-			rows = statement.executeUpdate();
-
-		} catch (
-
-		SQLException e)
-
-		{
-			this.rethrow(e, sql, parameters, clientId);
-
-		} finally
-
-		{
-			close(statement);
 		}
 
 		return rows;
 
 	}
 
-	public int update(Connection connection, String sql, Object[] parameters, IdentifierPostInsert identifierPostInsert,
+	public int update(SQLSession session, String sql, Object[] parameters, IdentifierPostInsert identifierPostInsert,
 			String identitySelectString, ShowSQLType[] showSql, List<SQLSessionListener> listeners, String clientId)
 			throws Exception {
 		PreparedStatement statement = null;
 		PreparedStatement statementGeneratedKeys = null;
 		ResultSet rsGeneratedKeys;
 		int rows = 0;
-		try {
-			statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-			this.fillStatement(statement, parameters);
-			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			}
-
-			rows = statement.executeUpdate();
-
-			rsGeneratedKeys = statement.getGeneratedKeys();
-			if (rsGeneratedKeys.next()) {
-				identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
-				close(rsGeneratedKeys);
-			} else {
-				close(rsGeneratedKeys);
-				if ((identitySelectString != null) && ("".equals(identitySelectString))) {
-					statementGeneratedKeys = connection.prepareStatement(identitySelectString);
-					rsGeneratedKeys = statementGeneratedKeys.executeQuery();
-					if (rsGeneratedKeys.next())
-						identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
-					close(rsGeneratedKeys);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = session.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+				this.fillStatement(statement, parameters);
+				if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
 				}
+
+				rows = statement.executeUpdate();
+
+				rsGeneratedKeys = statement.getGeneratedKeys();
+				if (rsGeneratedKeys.next()) {
+					identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
+					close(rsGeneratedKeys);
+				} else {
+					close(rsGeneratedKeys);
+					if ((identitySelectString != null) && ("".equals(identitySelectString))) {
+						statementGeneratedKeys = session.getConnection().prepareStatement(identitySelectString);
+						rsGeneratedKeys = statementGeneratedKeys.executeQuery();
+						if (rsGeneratedKeys.next())
+							identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
+						close(rsGeneratedKeys);
+					}
+				}
+				break;
+
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, clientId);
+
+			} finally {
+				close(statement);
+				close(statementGeneratedKeys);
 			}
-
-		} catch (SQLException e) {
-			this.rethrow(e, sql, parameters, clientId);
-
-		} finally {
-			close(statement);
-			close(statementGeneratedKeys);
 		}
 
 		return rows;
 	}
 
-	public int update(Connection connection, String sql, NamedParameter[] parameters, ShowSQLType[] showSql,
+	public int update(SQLSession session, String sql, NamedParameter[] parameters, ShowSQLType[] showSql,
 			List<SQLSessionListener> listeners, String clientId) throws Exception {
 		NamedParameterStatement statement = null;
 		int rows = 0;
-		try {
-			statement = new NamedParameterStatement(connection, sql, parameters);
-			for (NamedParameter namedParameter : parameters) {
-				statement.setObject(namedParameter.getName(), namedParameter.getValue());
-			}
-			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			}
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = new NamedParameterStatement(session.getConnection(), sql, parameters);
+				for (NamedParameter namedParameter : parameters) {
+					statement.setObject(namedParameter.getName(), namedParameter.getValue());
+				}
+				if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				}
 
-			rows = statement.executeUpdate();
-		} catch (SQLException e) {
-			this.rethrow(e, sql, parameters, clientId);
+				rows = statement.executeUpdate();
+				break;
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, clientId);
 
-		} finally {
-			close(statement);
-			statement = null;
+			} finally {
+				close(statement);
+				statement = null;
+			}
 		}
 
 		return rows;
 	}
 
-	public int update(Connection connection, String sql, NamedParameter[] parameters,
+	public int update(SQLSession session, String sql, NamedParameter[] parameters,
 			IdentifierPostInsert identifierPostInsert, String identitySelectString, ShowSQLType[] showSql,
 			List<SQLSessionListener> listeners, String clientId) throws Exception {
 		NamedParameterStatement statement = null;
 		PreparedStatement stmtGeneratedKeys = null;
 		ResultSet rsGeneratedKeys;
 		int rows = 0;
-		try {
-			statement = new NamedParameterStatement(connection, sql, parameters, Statement.RETURN_GENERATED_KEYS);
-			for (NamedParameter namedParameter : parameters) {
-				statement.setObject(namedParameter.getName(), namedParameter.getValue());
-			}
-			if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
-				showSQLAndParameters(sql, parameters, true, listeners, clientId);
-			}
-
-			rows = statement.executeUpdate();
-
-			rsGeneratedKeys = statement.getStatement().getGeneratedKeys();
-			if (rsGeneratedKeys.next()) {
-				identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
-				close(rsGeneratedKeys);
-			} else {
-				close(rsGeneratedKeys);
-				if ((identitySelectString != null) && ("".equals(identitySelectString))) {
-					stmtGeneratedKeys = connection.prepareStatement(identitySelectString);
-					rsGeneratedKeys = stmtGeneratedKeys.executeQuery();
-					if (rsGeneratedKeys.next()) {
-						identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
-					}
-					close(rsGeneratedKeys);
+		boolean retry = true;
+		while (true) {
+			try {
+				statement = new NamedParameterStatement(session.getConnection(), sql, parameters,
+						Statement.RETURN_GENERATED_KEYS);
+				for (NamedParameter namedParameter : parameters) {
+					statement.setObject(namedParameter.getName(), namedParameter.getValue());
 				}
+				if (sql.toLowerCase().contains("insert") && ShowSQLType.contains(showSql, ShowSQLType.INSERT)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("update") && ShowSQLType.contains(showSql, ShowSQLType.UPDATE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (sql.toLowerCase().contains("delete") && ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				} else if (ShowSQLType.contains(showSql, ShowSQLType.ALL)) {
+					showSQLAndParameters(sql, parameters, true, listeners, clientId);
+				}
+
+				rows = statement.executeUpdate();
+
+				rsGeneratedKeys = statement.getStatement().getGeneratedKeys();
+				if (rsGeneratedKeys.next()) {
+					identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
+					close(rsGeneratedKeys);
+				} else {
+					close(rsGeneratedKeys);
+					if ((identitySelectString != null) && ("".equals(identitySelectString))) {
+						stmtGeneratedKeys = session.getConnection().prepareStatement(identitySelectString);
+						rsGeneratedKeys = stmtGeneratedKeys.executeQuery();
+						if (rsGeneratedKeys.next()) {
+							identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
+						}
+						close(rsGeneratedKeys);
+					}
+				}
+				break;
+
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					close(statement);
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, parameters, clientId);
+
+			} finally {
+				if (statement != null)
+					close(statement.getStatement());
+				close(stmtGeneratedKeys);
+				statement = null;
+				stmtGeneratedKeys = null;
 			}
-
-		} catch (SQLException e) {
-			this.rethrow(e, sql, parameters, clientId);
-
-		} finally {
-			if (statement != null)
-				close(statement.getStatement());
-			close(stmtGeneratedKeys);
-			statement = null;
-			stmtGeneratedKeys = null;
 		}
 
 		return rows;
 	}
 
-	public ResultSet executeQuery(Connection connection, String sql, ShowSQLType[] showSql, boolean formatSql,
+	public ResultSet executeQuery(SQLSession session, String sql, ShowSQLType[] showSql, boolean formatSql,
 			String clientId) throws Exception {
 		if (ShowSQLType.contains(showSql, ShowSQLType.ALL, ShowSQLType.SELECT))
 			log.debug("Sql-> " + (formatSql == true ? SQLFormatter.format(sql) : sql) + " ##" + clientId);
-		return connection.prepareStatement(sql).executeQuery();
+		boolean retry = true;
+		while (true) {
+			try {
+				return session.getConnection().prepareStatement(sql).executeQuery();
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, sql, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, sql, new Object[] {}, clientId);
+			}
+		}
 	}
 
 	@Override
-	public int update(Connection connection, String sql, Object parameter, List<SQLSessionListener> listeners)
+	public int update(SQLSession session, String sql, Object parameter, List<SQLSessionListener> listeners)
 			throws Exception {
-		return update(connection, sql, new Object[] { parameter }, new ShowSQLType[] { ShowSQLType.NONE }, listeners,
-				"");
+		return update(session, sql, new Object[] { parameter }, new ShowSQLType[] { ShowSQLType.NONE }, listeners, "");
 	}
 
 	@Override
-	public void executeDDL(Connection connection, String ddl, ShowSQLType[] showSql, boolean formatSql, String clientId)
+	public void executeDDL(SQLSession session, String ddl, ShowSQLType[] showSql, boolean formatSql, String clientId)
 			throws Exception {
 		if (ShowSQLType.contains(showSql, ShowSQLType.ALL))
 			log.debug("DDL-> " + (formatSql == true ? SQLFormatter.format(ddl) : ddl) + " ##" + clientId);
-		connection.prepareStatement(ddl).executeUpdate();
+		boolean retry = true;
+		while (true) {
+			try {
+				session.getConnection().prepareStatement(ddl).executeUpdate();
+			} catch (SQLException e) {
+				String message = e.getCause().getMessage();
+				if (retry && StringUtils.isNotEmpty(message)
+						&& (message.toLowerCase().contains("connection")
+								&& ((message.toLowerCase().contains("closed")
+										|| message.toLowerCase().contains("lost"))))) {
+					retry = false;
+					try {
+						session.invalidateConnection();
+					} catch (SQLException ex1) {
+						this.rethrow(ex1, ddl, new Object[] {}, clientId);
+					}
+					continue;
+				}
+				this.rethrow(e, ddl, new Object[] {}, clientId);
+			}
+		}
 	}
 
 	protected void showSQLAndParameters(String sql, Object[] parameters, boolean formatSql,

@@ -79,13 +79,13 @@ public class DeleteCommandSQL extends CommandSQL {
 					}
 				} else {
 					if (descriptionSQL != null)
-						queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters), showSql,
+						queryRunner.update(session, descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters), showSql,
 								session.getListeners(), session.clientId());
 					else {
 						if (inBatchMode) {
 							return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
 						} else {
-							queryRunner.update(this.getSession().getConnection(), sql, NamedParameter.getAllValues(namedParameters), showSql,
+							queryRunner.update(this.getSession(), sql, NamedParameter.getAllValues(namedParameters), showSql,
 									session.getListeners(), session.clientId());
 						}
 					}

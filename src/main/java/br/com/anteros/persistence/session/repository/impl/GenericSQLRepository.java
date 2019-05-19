@@ -27,7 +27,6 @@ import br.com.anteros.persistence.dsl.osql.SimpleEntityPathResolver;
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
-import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
@@ -60,7 +59,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	protected PathBuilder<T> builder;
 
 	public GenericSQLRepository(SQLSession session) {
-		this.session = session;
+		this.setSession(session);
 		Class<?>[] typeArguments = TypeResolver.resolveRawArguments(GenericSQLRepository.class, getClass());
 		if (typeArguments != null) {
 			this.persistentClass = typeArguments[0];
@@ -76,7 +75,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	public GenericSQLRepository(SQLSession session, Class<?> type) {
-		this.session = session;
+		this.setSession(session);
 		this.persistentClass = type;
 	}
 
@@ -296,7 +295,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
-		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
+		EntityCache cache = getSession().getEntityCacheManager().getEntityCache(persistentClass);
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
@@ -309,7 +308,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
-		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
+		EntityCache cache = getSession().getEntityCacheManager().getEntityCache(persistentClass);
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
@@ -323,7 +322,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
-		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
+		EntityCache cache = getSession().getEntityCacheManager().getEntityCache(persistentClass);
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
@@ -336,7 +335,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
-		EntityCache cache = session.getEntityCacheManager().getEntityCache(persistentClass);
+		EntityCache cache = getSession().getEntityCacheManager().getEntityCache(persistentClass);
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");

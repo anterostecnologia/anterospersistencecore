@@ -107,23 +107,23 @@ public class InsertCommandSQL extends CommandSQL {
 				} else {
 					if (identifierPostInsert != null) {
 						if (descriptionSQL != null) {
-							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters),
+							queryRunner.update(session, descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters),
 									identifierPostInsert, session.getDialect().getIdentitySelectString(), showSql, session.getListeners(), session.clientId());
 						} else {
-							queryRunner.update(session.getConnection(), sql, NamedParameter.getAllValues(namedParameters), identifierPostInsert,
+							queryRunner.update(session, sql, NamedParameter.getAllValues(namedParameters), identifierPostInsert,
 									session.getDialect().getIdentitySelectString(), showSql, session.getListeners(), session.clientId());
 						}
 						generatedId = identifierPostInsert.generate();
 						ReflectionUtils.setObjectValueByFieldName(targetObject, identifyColumn.getField().getName(), generatedId);
 					} else {
 						if (descriptionSQL != null) {
-							queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(),namedParameters), showSql,
+							queryRunner.update(session, descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(),namedParameters), showSql,
 									session.getListeners(), session.clientId());
 						} else {
 							if (inBatchMode) {
 								return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
 							} else {
-								queryRunner.update(session.getConnection(), sql, NamedParameter.getAllValues(namedParameters), showSql, session.getListeners(),
+								queryRunner.update(session, sql, NamedParameter.getAllValues(namedParameters), showSql, session.getListeners(),
 										session.clientId());
 							}
 						}

@@ -464,15 +464,15 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			Object result = null;
 
 			if (parsedParameters.size() > 0)
-				result = session.getRunner().query(session.getConnection(), parsedSql, targetHandler,
+				result = session.getRunner().query(session, parsedSql, targetHandler,
 						parsedParameters.values().toArray(), showSql, formatSql, timeOut, session.getListeners(),
 						session.clientId());
 			else if (parsedNamedParameters.size() > 0)
-				result = session.getRunner().query(session.getConnection(), parsedSql, targetHandler,
+				result = session.getRunner().query(session, parsedSql, targetHandler,
 						parsedNamedParameters.values().toArray(new NamedParameter[] {}), showSql, formatSql, timeOut,
 						session.getListeners(), session.clientId());
 			else
-				result = session.getRunner().query(session.getConnection(), parsedSql, targetHandler, showSql,
+				result = session.getRunner().query(session, parsedSql, targetHandler, showSql,
 						formatSql, timeOut, session.getListeners(), session.clientId());
 
 			if (result == null)
@@ -540,15 +540,15 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			SQLSessionResult<?> result = null;
 
 			if (parsedParameters.size() > 0)
-				result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, null,
+				result = session.getRunner().queryWithResultSet(session, parsedSql, null,
 						parsedParameters.values().toArray(), showSql, formatSql, timeOut, session.getListeners(),
 						session.clientId());
 			else if (parsedNamedParameters.size() > 0)
-				result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, null,
+				result = session.getRunner().queryWithResultSet(session, parsedSql, null,
 						parsedNamedParameters.values().toArray(new NamedParameter[] {}), showSql, formatSql, timeOut,
 						session.getListeners(), session.clientId());
 			else
-				result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, null,
+				result = session.getRunner().queryWithResultSet(session, parsedSql, null,
 						new NamedParameterParserResult[] {}, showSql, formatSql, timeOut, session.getListeners(),
 						session.clientId());
 
@@ -710,15 +710,15 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			parsedSql = session.applyLock(parsedSql, null, lockOptions);
 
 		if (this.parameters.size() > 0)
-			result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, customHandler,
+			result = session.getRunner().queryWithResultSet(session, parsedSql, customHandler,
 					parameters.values().toArray(), showSql, formatSql, timeOut, session.getListeners(),
 					session.clientId());
 		else if (this.namedParameters.size() > 0)
-			result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, customHandler,
+			result = session.getRunner().queryWithResultSet(session, parsedSql, customHandler,
 					namedParameters.values().toArray(new NamedParameter[] {}), showSql, formatSql, timeOut,
 					session.getListeners(), session.clientId());
 		else
-			result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, customHandler,
+			result = session.getRunner().queryWithResultSet(session, parsedSql, customHandler,
 					new NamedParameterParserResult[] {}, showSql, formatSql, timeOut, session.getListeners(),
 					session.clientId());
 		return result;
@@ -732,14 +732,14 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		ResultSet result = null;
 		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
 		if (this.parameters.size() > 0)
-			result = session.getRunner().executeQuery(session.getConnection(), sql, parameters.values().toArray(),
+			result = session.getRunner().executeQuery(session, sql, parameters.values().toArray(),
 					showSql, formatSql, timeOut, session.getListeners(), session.clientId());
 		else if (this.namedParameters.size() > 0)
-			result = session.getRunner().executeQuery(session.getConnection(), sql,
+			result = session.getRunner().executeQuery(session, sql,
 					namedParameters.values().toArray(new NamedParameter[] {}), showSql, formatSql, timeOut,
 					session.getListeners(), session.clientId());
 		else
-			result = session.getRunner().executeQuery(session.getConnection(), sql, showSql, formatSql, timeOut,
+			result = session.getRunner().executeQuery(session, sql, showSql, formatSql, timeOut,
 					session.getListeners(), session.clientId());
 		return result;
 	}
@@ -1453,7 +1453,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 		session.forceFlush(SQLParserUtil.getTableNames(parsedSql, session.getDialect()));
 		
-		Collection<?> resultRunner = (Collection<?>) session.getRunner().query(session.getConnection(), parsedSql, handler, namedParameter,
+		Collection<?> resultRunner = (Collection<?>) session.getRunner().query(session, parsedSql, handler, namedParameter,
 				showSql, formatSql, 0, session.getListeners(), session.clientId());
 
 		if (resultRunner == null)
@@ -1504,7 +1504,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 		session.forceFlush(SQLParserUtil.getTableNames(sql, session.getDialect()));
 
-		result = (List) session.getRunner().query(session.getConnection(), sql, handler, parameter, showSql, formatSql,
+		result = (List) session.getRunner().query(session, sql, handler, parameter, showSql, formatSql,
 				0, session.getListeners(), session.clientId());
 
 		if (result == null)
@@ -1590,15 +1590,15 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		try {
 
 			if (this.parsedParameters.size() > 0)
-				result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, targetHandler,
+				result = session.getRunner().queryWithResultSet(session, parsedSql, targetHandler,
 						parsedParameters.values().toArray(), showSql, formatSql, timeOut, session.getListeners(),
 						session.clientId());
 			else if (this.parsedNamedParameters.size() > 0)
-				result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, targetHandler,
+				result = session.getRunner().queryWithResultSet(session, parsedSql, targetHandler,
 						parsedNamedParameters.values().toArray(new NamedParameter[] {}), showSql, formatSql, timeOut,
 						session.getListeners(), session.clientId());
 			else
-				result = session.getRunner().queryWithResultSet(session.getConnection(), parsedSql, targetHandler,
+				result = session.getRunner().queryWithResultSet(session, parsedSql, targetHandler,
 						new NamedParameterParserResult[] {}, showSql, formatSql, timeOut, session.getListeners(),
 						session.clientId());
 
@@ -1752,14 +1752,14 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		String sqlForCount = "SELECT COUNT(*) FROM (" + sql + ") P_";
 
 		if (this.parameters.size() > 0)
-			rs = session.getRunner().executeQuery(session.getConnection(), sqlForCount, parameters.values().toArray(),
+			rs = session.getRunner().executeQuery(session, sqlForCount, parameters.values().toArray(),
 					showSql, formatSql, timeOut, session.getListeners(), session.clientId());
 		else if (this.namedParameters.size() > 0)
-			rs = session.getRunner().executeQuery(session.getConnection(), sqlForCount,
+			rs = session.getRunner().executeQuery(session, sqlForCount,
 					namedParameters.values().toArray(new NamedParameter[] {}), showSql, formatSql, timeOut,
 					session.getListeners(), session.clientId());
 		else
-			rs = session.getRunner().executeQuery(session.getConnection(), sqlForCount, showSql, formatSql, timeOut,
+			rs = session.getRunner().executeQuery(session, sqlForCount, showSql, formatSql, timeOut,
 					session.getListeners(), session.clientId());
 		long value = 0;
 		try {

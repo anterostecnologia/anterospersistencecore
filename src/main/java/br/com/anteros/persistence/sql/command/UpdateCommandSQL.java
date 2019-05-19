@@ -79,13 +79,13 @@ public class UpdateCommandSQL extends CommandSQL {
 				} else {
 					int rowsUpdated;
 					if (descriptionSQL != null)
-						rowsUpdated = queryRunner.update(session.getConnection(), descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(),namedParameters),
+						rowsUpdated = queryRunner.update(session, descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(),namedParameters),
 								showSql, session.getListeners(), session.clientId());
 					else {
 						if (inBatchMode) {
 							return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
 						} else {
-							rowsUpdated = queryRunner.update(this.getSession().getConnection(), sql, NamedParameter.getAllValues(namedParameters), showSql,
+							rowsUpdated = queryRunner.update(this.getSession(), sql, NamedParameter.getAllValues(namedParameters), showSql,
 									session.getListeners(), session.clientId());
 							if (rowsUpdated == 0) {
 								if (entityCache.isVersioned())

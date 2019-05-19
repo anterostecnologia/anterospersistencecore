@@ -50,7 +50,7 @@ public class BatchCommandSQL extends CommandSQL {
 				/*
 				 * Executa e zera fila, reinicia contagem
 				 */
-				queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}), showSql, session.isFormatSql(), null, null);
+				queryRunner.batch(session, sql, batchParameters.toArray(new Object[][] {}), showSql, session.isFormatSql(), null, null);
 				batchParameters.clear();
 				batchCount = 0;
 				/*
@@ -62,7 +62,7 @@ public class BatchCommandSQL extends CommandSQL {
 			}
 		}
 		if (batchCount > 0) {
-			queryRunner.batch(session.getConnection(), sql, batchParameters.toArray(new Object[][] {}), showSql, session.isFormatSql(), null, null);
+			queryRunner.batch(session, sql, batchParameters.toArray(new Object[][] {}), showSql, session.isFormatSql(), null, null);
 		}
 		
 		for (CommandSQL command : commands) {

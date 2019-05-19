@@ -17,6 +17,8 @@ package br.com.anteros.persistence.session;
 
 import java.sql.Connection;
 
+import javax.sql.DataSource;
+
 import br.com.anteros.persistence.metadata.EntityCacheManager;
 
 
@@ -49,5 +51,7 @@ public interface SQLSessionFactory {
 	 * @return
 	 */
 	public EntityCacheManager getEntityCacheManager();
+	
+	public DataSource getDataSource();
 
 }

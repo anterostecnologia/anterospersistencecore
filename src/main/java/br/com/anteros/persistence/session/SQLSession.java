@@ -308,4 +308,6 @@ public interface SQLSession {
 
 	public Long getNextValFromCacheSequence(String sequenceName);
 
+	public void invalidateConnection() throws SQLException;
+
 }
