@@ -17,6 +17,11 @@ package br.com.anteros.persistence.dsl.osql.types.expr.params;
 
 import java.util.Date;
 
+import br.com.anteros.persistence.dsl.osql.types.ConstantImpl;
+import br.com.anteros.persistence.dsl.osql.types.Expression;
+import br.com.anteros.persistence.dsl.osql.types.Ops;
+import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
+import br.com.anteros.persistence.dsl.osql.types.expr.BooleanOperation;
 import br.com.anteros.persistence.dsl.osql.types.expr.Param;
 
 /**
@@ -36,4 +41,6 @@ public class DateParam extends Param<Date> {
 	public DateParam() {
 		super(Date.class);
 	}
+	
+	
 }

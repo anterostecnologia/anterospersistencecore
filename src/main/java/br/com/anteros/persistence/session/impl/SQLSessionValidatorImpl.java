@@ -39,14 +39,14 @@ public class SQLSessionValidatorImpl implements SQLSessionValidator {
 	}
 
 	@Override
-	public void validateBean(Object object, Class<?>... groups) throws Exception {
+	public void validateBean(Object object, Class<?>... groups) {
 		Validator validator = AnterosBeanValidationHelper.getBeanValidator();
 		final Set<ConstraintViolation<Object>> constraintViolations = validator.validate(object, groups);
 
 		this.validate(constraintViolations);
 	}
 		
-	private void validate(final Set<ConstraintViolation<Object>> constraintViolations) throws Exception  {
+	private void validate(final Set<ConstraintViolation<Object>> constraintViolations)  {
 		if (constraintViolations.size() > 0) {
 			Set<ConstraintViolation<?>> propagatedViolations = new HashSet<ConstraintViolation<?>>(
 					constraintViolations.size());

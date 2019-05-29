@@ -223,7 +223,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 	public TypedSQLQuery<T> setParameters(Object[] parameters) throws Exception {
 		if (parameters.length != this.parameters.size())
-			throw new SQLQueryException("Número de parâmetros diferente do número encontrado na instrução SQL.");
+			throw new SQLQueryException("Número de parâmetros diferente do número encontrado na instrução SQL. "+sql);
 		for (int i = 0; i < parameters.length; i++)
 			this.parameters.put(i + 1, parameters[i]);
 
@@ -232,7 +232,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 	public TypedSQLQuery<T> setParameters(Map<String, Object> parameters) throws Exception {
 		if (parameters.size() != this.namedParameters.size())
-			throw new SQLQueryException("Número de parâmetros diferente do número encontrado na instrução SQL.");
+			throw new SQLQueryException("Número de parâmetros diferente do número encontrado na instrução SQL. "+sql);
 
 		for (String parameterName : parameters.keySet()) {
 			Object value = parameters.get(parameterName);
