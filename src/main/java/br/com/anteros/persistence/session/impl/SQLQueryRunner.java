@@ -87,11 +87,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				break;
 
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -132,11 +132,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				break;
 
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -185,11 +185,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				result = resultSetHandler.handle(resultSet);
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -241,11 +241,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				result.setResultList(((List) resultHandler));
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -300,11 +300,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				result.setResultList((List<?>) resultHandler);
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -349,11 +349,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				result = resultSetHandler.handle(resultSet);
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -409,11 +409,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				break;
 
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -535,11 +535,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				break;
 
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -598,11 +598,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				result = this.wrap(statement.executeQuery());
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -638,11 +638,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				result = this.wrap(statement.executeQuery());
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -682,11 +682,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				resultSet = this.wrap(statement.executeQuery());
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -749,11 +749,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				break;
 
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -817,11 +817,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				break;
 
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -866,11 +866,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				rows = statement.executeUpdate();
 				break;
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -936,11 +936,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				break;
 
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					close(statement);
 					try {
@@ -973,11 +973,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			try {
 				return session.getConnection().prepareStatement(sql).executeQuery();
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					try {
 						session.invalidateConnection();
@@ -1007,11 +1007,11 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			try {
 				session.getConnection().prepareStatement(ddl).executeUpdate();
 			} catch (SQLException e) {
-				String message = (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
-				if (retry && StringUtils.isNotEmpty(message)
-						&& (message.toLowerCase().contains("connection")
-								&& ((message.toLowerCase().contains("closed")
-										|| message.toLowerCase().contains("lost"))))) {
+				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
+				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
+						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
+						|| (message.toLowerCase().contains("communications link failure") 
+						|| (message.toLowerCase().contains("connection reset"))))) {
 					retry = false;
 					try {
 						session.invalidateConnection();
