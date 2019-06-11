@@ -343,9 +343,10 @@ public class EntityCache {
 				if (column.isForeignKey() && column.isPrimaryKey()) {
 					try {
 						Object value = column.getDescriptionField().getObjectValue(object);
-						return column.getDescriptionField().getTargetEntity()
-								.getValue((StringUtils.isEmpty(column.getReferencedColumnName())
-										? column.getColumnName() : column.getReferencedColumnName()), value);
+						return column.getDescriptionField().getTargetEntity().getValue(
+								(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName()
+										: column.getReferencedColumnName()),
+								value);
 					} catch (Exception ex) {
 					}
 				} else if (column.isPrimaryKey()) {
@@ -367,9 +368,10 @@ public class EntityCache {
 					try {
 						Object value = column
 								.convertToDatabaseColumn(column.getDescriptionField().getObjectValue(object));
-						return column.getDescriptionField().getTargetEntity()
-								.getValue((StringUtils.isEmpty(column.getReferencedColumnName())
-										? column.getColumnName() : column.getReferencedColumnName()), value);
+						return column.getDescriptionField().getTargetEntity().getValue(
+								(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName()
+										: column.getReferencedColumnName()),
+								value);
 					} catch (Exception ex) {
 					}
 				} else if (column.isPrimaryKey()) {
@@ -391,9 +393,10 @@ public class EntityCache {
 			if (column.isForeignKey() && column.isPrimaryKey()) {
 				try {
 					Object value = ReflectionUtils.getFieldValueByName(object, column.getField().getName());
-					Object columnValue = column.getDescriptionField().getTargetEntity()
-							.getColumnValue((StringUtils.isEmpty(column.getReferencedColumnName())
-									? column.getColumnName() : column.getReferencedColumnName()), value);
+					Object columnValue = column.getDescriptionField().getTargetEntity().getColumnValue(
+							(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName()
+									: column.getReferencedColumnName()),
+							value);
 					result.put(column.getColumnName(), ObjectUtils.cloneObject(columnValue));
 				} catch (Exception ex) {
 				}
@@ -416,9 +419,10 @@ public class EntityCache {
 				try {
 					Object value = column.convertToDatabaseColumn(
 							ReflectionUtils.getFieldValueByName(object, column.getField().getName()));
-					Object columnValue = column.getDescriptionField().getTargetEntity()
-							.getDatabaseValue((StringUtils.isEmpty(column.getReferencedColumnName())
-									? column.getColumnName() : column.getReferencedColumnName()), value);
+					Object columnValue = column.getDescriptionField().getTargetEntity().getDatabaseValue(
+							(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName()
+									: column.getReferencedColumnName()),
+							value);
 					result.put(column.getColumnName(), ObjectUtils.cloneObject(columnValue));
 				} catch (Exception ex) {
 				}
@@ -439,9 +443,10 @@ public class EntityCache {
 				if (column.isForeignKey() && column.isPrimaryKey()) {
 					try {
 						Object value = column.getDescriptionField().getObjectValue(object);
-						return column.getDescriptionField().getTargetEntity()
-								.getValue((StringUtils.isEmpty(column.getReferencedColumnName())
-										? column.getColumnName() : column.getReferencedColumnName()), value);
+						return column.getDescriptionField().getTargetEntity().getValue(
+								(StringUtils.isEmpty(column.getReferencedColumnName()) ? column.getColumnName()
+										: column.getReferencedColumnName()),
+								value);
 					} catch (Exception ex) {
 					}
 				} else {
@@ -465,10 +470,9 @@ public class EntityCache {
 					Object value = column.getDescriptionField().getObjectValue(object);
 					result.put(column.getColumnName(),
 							column.getDescriptionField().getTargetEntity()
-									.getValue(
-											(StringUtils.isEmpty(column.getReferencedColumnName())
-													? column.getColumnName() : column.getReferencedColumnName()),
-											value));
+									.getValue((StringUtils.isEmpty(column.getReferencedColumnName())
+											? column.getColumnName()
+											: column.getReferencedColumnName()), value));
 				} catch (Exception ex) {
 				}
 			} else {
@@ -529,14 +533,16 @@ public class EntityCache {
 		FieldEntityValue lastFieldValue;
 		FieldEntityValue newFieldValue;
 		for (DescriptionField field : fields) {
-			if (fieldCanbeChanged(session, object, field.getField().getName())) {
-				lastFieldValue = getLastFieldEntityValue(session, object, field.getField().getName());
-				newFieldValue = field.getFieldEntityValue(session, object);
-				if ((lastFieldValue != null) || (newFieldValue != null)) {
-					if (((lastFieldValue == null) && (newFieldValue != null))
-							|| ((lastFieldValue != null) && (newFieldValue == null))
-							|| (newFieldValue.compareTo(lastFieldValue) != 0))
-						result.add(field);
+			if (!field.isVersioned()) {
+				if (fieldCanbeChanged(session, object, field.getField().getName())) {
+					lastFieldValue = getLastFieldEntityValue(session, object, field.getField().getName());
+					newFieldValue = field.getFieldEntityValue(session, object);
+					if ((lastFieldValue != null) || (newFieldValue != null)) {
+						if (((lastFieldValue == null) && (newFieldValue != null))
+								|| ((lastFieldValue != null) && (newFieldValue == null))
+								|| (newFieldValue.compareTo(lastFieldValue) != 0))
+							result.add(field);
+					}
 				}
 			}
 		}
@@ -1070,7 +1076,7 @@ public class EntityCache {
 					if (descriptionField.getObjectValue(entity) != null) {
 						Object value = descriptionField.getObjectValue(newEntity);
 						if (value instanceof AnterosPersistentCollection)
-							((AnterosPersistentCollection)value).initialize();
+							((AnterosPersistentCollection) value).initialize();
 						descriptionField.setValue(newEntity, descriptionField.getObjectValue(entity));
 					}
 				} else {
@@ -1082,7 +1088,7 @@ public class EntityCache {
 		}
 	}
 
-	public boolean hasDependencyFrom(EntityCache entityCache2, Object source, Object target)  {
+	public boolean hasDependencyFrom(EntityCache entityCache2, Object source, Object target) {
 		for (DescriptionField descriptionField : getDescriptionFields()) {
 			if (descriptionField.isRelationShip()) {
 				try {

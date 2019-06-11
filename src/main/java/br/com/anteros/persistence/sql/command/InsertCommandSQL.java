@@ -29,6 +29,7 @@ import br.com.anteros.persistence.metadata.identifier.IdentifierColumn;
 import br.com.anteros.persistence.metadata.identifier.IdentifierColumnList;
 import br.com.anteros.persistence.metadata.identifier.IdentifierPostInsert;
 import br.com.anteros.persistence.parameter.NamedParameter;
+import br.com.anteros.persistence.parameter.VersionNamedParameter;
 import br.com.anteros.persistence.session.ProcedureResult;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
@@ -112,6 +113,15 @@ public class InsertCommandSQL extends CommandSQL {
 						} else {
 							queryRunner.update(session, sql, NamedParameter.getAllValues(namedParameters), identifierPostInsert,
 									session.getDialect().getIdentitySelectString(), showSql, session.getListeners(), session.clientId());
+							
+							for (NamedParameter np : namedParameters) {
+								if (np instanceof VersionNamedParameter) {
+									DescriptionColumn versionColumn = entityCache.getVersionColumn();
+									if (versionColumn!=null) {
+										ReflectionUtils.setObjectValueByFieldName(targetObject, versionColumn.getField().getName(), np.getValue());
+									}
+								}
+							}
 						}
 						generatedId = identifierPostInsert.generate();
 						ReflectionUtils.setObjectValueByFieldName(targetObject, identifyColumn.getField().getName(), generatedId);

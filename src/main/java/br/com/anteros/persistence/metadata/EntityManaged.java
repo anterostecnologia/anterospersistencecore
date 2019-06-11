@@ -34,7 +34,7 @@ public class EntityManaged {
 	private Object oldVersion;
 	private Object currentVersion;
 	private boolean newEntity;
-	private LockMode lockMode = LockMode.NONE;
+	private LockMode lockMode = LockMode.WRITE;
 
 	public EntityManaged(EntityCache entityCache) {
 		this.entityCache = entityCache;

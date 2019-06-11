@@ -27,6 +27,7 @@ import br.com.anteros.core.utils.AnterosWeakHashMap;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityCacheManager;
 import br.com.anteros.persistence.metadata.EntityManaged;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
 import br.com.anteros.persistence.metadata.type.EntityStatus;
 import br.com.anteros.persistence.session.SQLSession;
@@ -63,6 +64,13 @@ public class SQLPersistenceContextImpl implements SQLPersistenceContext {
 			entityManaged = new EntityManaged(entityCache);
 			entityManaged.setStatus(readOnly ? EntityStatus.READ_ONLY : EntityStatus.MANAGED);
 			entityManaged.setNewEntity(newEntity);
+			
+			if (entityCache.isVersioned()) {
+				DescriptionColumn versionColumn = entityCache.getVersionColumn();
+				if (versionColumn!=null) {
+					entityManaged.setCurrentVersion(versionColumn.getField().get(value));
+				}
+			}
 
 			if (!readOnly) {
 				entityManaged.setFieldsForUpdate(entityCache.getAllFieldNames());

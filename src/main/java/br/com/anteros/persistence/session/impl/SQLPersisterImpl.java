@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +33,6 @@ import java.util.Set;
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.core.utils.ReflectionUtils;
-import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityManaged;
 import br.com.anteros.persistence.metadata.FieldEntityValue;
@@ -47,12 +47,13 @@ import br.com.anteros.persistence.metadata.identifier.IdentifierGeneratorFactory
 import br.com.anteros.persistence.metadata.identifier.IdentifierPostInsert;
 import br.com.anteros.persistence.metadata.type.EntityStatus;
 import br.com.anteros.persistence.parameter.NamedParameter;
+import br.com.anteros.persistence.parameter.VersionNamedParameter;
 import br.com.anteros.persistence.session.SQLPersister;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionValidator;
-import br.com.anteros.persistence.session.cache.PersistenceMetadataCache;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
 import br.com.anteros.persistence.session.lock.LockMode;
+import br.com.anteros.persistence.session.lock.LockOptions;
 import br.com.anteros.persistence.session.lock.OptimisticLockException;
 import br.com.anteros.persistence.sql.command.CommandSQL;
 import br.com.anteros.persistence.sql.command.Delete;
@@ -63,7 +64,6 @@ import br.com.anteros.persistence.sql.command.Select;
 import br.com.anteros.persistence.sql.command.Update;
 import br.com.anteros.persistence.sql.command.UpdateCommandSQL;
 import br.com.anteros.persistence.util.AnterosBeanValidationHelper;
-import br.com.anteros.persistence.util.SQLParserUtil;
 import br.com.anteros.persistence.validation.version.Versioning;
 
 public class SQLPersisterImpl implements SQLPersister {
@@ -83,6 +83,7 @@ public class SQLPersisterImpl implements SQLPersister {
 	}
 
 	private Set<Long> objectsInSavingProcess = new HashSet<Long>();
+	private Set<Object> objectsInSaving = new LinkedHashSet<Object>();
 
 	@Override
 	public SQLSessionValidator getValidator() {
@@ -96,7 +97,8 @@ public class SQLPersisterImpl implements SQLPersister {
 	@Override
 	public Object save(SQLSession session, Object object, int batchSize) throws Exception {
 		this.currentBatchSize = batchSize;
-		return save(session, object);
+		save(session, object);		
+		return object;
 	}
 
 	public Object save(SQLSession session, Object object) throws Exception {
@@ -108,6 +110,12 @@ public class SQLPersisterImpl implements SQLPersister {
 			result = save(mergeIfNeed(object), null);
 		} finally {
 			objectsInSavingProcess.clear();
+			for (Object ob : objectsInSaving) {
+				EntityManaged entityManaged = session.getPersistenceContext().addEntityManaged(ob, false,
+						false,true);
+				entityManaged.updateLastValues(session, ob);
+			}
+			objectsInSaving.clear();
 		}
 		return result;
 	}
@@ -124,7 +132,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			if (session.getIdentifier(entity).hasIdentifier()) {
 				if (existsRecordInDatabaseTable(entityCache.getTableName(),
 						session.getIdentifier(entity).getDatabaseColumns())) {
-					Object newEntity = session.find(session.getIdentifier(entity));
+					Object newEntity = session.find(session.getIdentifier(entity), LockOptions.OPTIMISTIC_FORCE_INCREMENT);
 					entityCache.mergeValues(entity, newEntity);
 					return newEntity;
 				}
@@ -175,6 +183,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		Long hashCodeObject = new Long(System.identityHashCode(object));
 		if (!objectsInSavingProcess.contains(hashCodeObject)) {
 			objectsInSavingProcess.add(hashCodeObject);
+			objectsInSaving.add(object);
 			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(object.getClass());
 			if (entityCache == null)
 				throw new SQLSessionException("Objeto não pode ser salvo pois a classe " + object.getClass().getName()
@@ -476,7 +485,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		if (versionColumn != null) {
 			Object newVersion = Versioning.incrementVersion(null, versionColumn.getField().getType());
 			namedParameters.put(versionColumn.getColumnName(),
-					new NamedParameter(versionColumn.getColumnName(), newVersion));
+					new VersionNamedParameter(versionColumn.getColumnName(), newVersion));
 		}
 	}
 
@@ -912,7 +921,7 @@ public class SQLPersisterImpl implements SQLPersister {
 				newVersion = Versioning.incrementVersion(oldVersion,
 						entityCache.getVersionColumn().getField().getType());
 			}
-			namedParameters.add(new NamedParameter(entityCache.getVersionColumn().getColumnName(), newVersion));
+			namedParameters.add(new VersionNamedParameter(entityCache.getVersionColumn().getColumnName(), newVersion));
 		}
 		return oldVersion;
 	}

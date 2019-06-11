@@ -17,12 +17,15 @@ import java.util.List;
 
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
+import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.annotation.type.CallableType;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.metadata.identifier.IdentifierPostInsert;
 import br.com.anteros.persistence.parameter.NamedParameter;
+import br.com.anteros.persistence.parameter.VersionNamedParameter;
 import br.com.anteros.persistence.session.ProcedureResult;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
@@ -93,6 +96,15 @@ public class UpdateCommandSQL extends CommandSQL {
 								else
 									throw new SQLException("Não foi possível atualizar o objeto " + this.getObjectId()
 											+ " pois o mesmo não foi encontrado. Verifique os parâmetros.");
+							} else {
+								for (NamedParameter np : namedParameters) {
+									if (np instanceof VersionNamedParameter) {
+										DescriptionColumn versionColumn = entityCache.getVersionColumn();
+										if (versionColumn!=null) {
+											ReflectionUtils.setObjectValueByFieldName(targetObject, versionColumn.getField().getName(), np.getValue());
+										}
+									}
+								}
 							}
 						}
 					}
