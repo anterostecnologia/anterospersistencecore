@@ -573,11 +573,17 @@ public class AnterosMultipleFieldsFilter<T> {
 
 	public List<T> buildAndGetList() {
 		buildQuery();
+		if (page != null) {
+			query.limit(page.getPageSize()).offset(page.getOffset());
+		}
 		return query.list(entityPath);
 	}
 
 	public List buildAndGetIds() {
 		buildQuery();
+		if (page != null) {
+			query.limit(page.getPageSize()).offset(page.getOffset());
+		}
 		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
 
 		DescriptionField[] descriptionFields = entityCache.getPrimaryKeyFields();
@@ -625,6 +631,11 @@ public class AnterosMultipleFieldsFilter<T> {
 		}
 		return null;
 
+	}
+	
+	public Long buildAndGetTotal() {		
+		buildQuery();
+		return query.count();
 	}
 
 	public Page<T> buildAndGetPage() {
