@@ -56,6 +56,7 @@ public class AnterosMultipleFieldsFilter<T> {
 	private OSQLQuery query;
 	private String fieldsSort;
 	private Predicate predicate;
+	private Integer paramNumber;
 
 	public AnterosMultipleFieldsFilter(DynamicEntityPath entityPath, Predicate predicate) {
 		super();
@@ -127,11 +128,11 @@ public class AnterosMultipleFieldsFilter<T> {
 		BooleanBuilder builder = new BooleanBuilder();
 
 		Map<Param<?>, Object> parameters = new LinkedHashMap<Param<?>, Object>();
-		Integer paramNumber = 0;
+		this.paramNumber = 0;
 
 		for (String field : arrFields) {					
 			String[] fieldArr = StringUtils.tokenizeToStringArray(field, ".");
-			processField(entityPath, entityCaches, fieldArr, values, paramNumber, parameters, builder);
+			processField(entityPath, entityCaches, fieldArr, values, parameters, builder);
 		}
 		
 		if (this.predicate!=null) {
@@ -186,7 +187,7 @@ public class AnterosMultipleFieldsFilter<T> {
 		
 	}
 	
-	private void processField(DynamicEntityPath dynamicEntityPath, EntityCache[] entityCaches, String[] fieldArr, String[] values, Integer paramNumber, Map<Param<?>, Object> parameters, BooleanBuilder builder) {
+	private void processField(DynamicEntityPath dynamicEntityPath, EntityCache[] entityCaches, String[] fieldArr, String[] values, Map<Param<?>, Object> parameters, BooleanBuilder builder) {
 		
 		String field = fieldArr[0];	
 		
@@ -201,13 +202,13 @@ public class AnterosMultipleFieldsFilter<T> {
 			EntityCache[] newEntityCaches = session.getEntityCacheManager().getEntitiesBySuperClassIncluding(targetClass);
 			String[] restFields = ArrayUtils.remove(fieldArr, 0);
 			if (restFields.length > 0) {
-				processField(relationShipEntityPath, newEntityCaches, restFields, values, paramNumber, parameters, builder);
+				processField(relationShipEntityPath, newEntityCaches, restFields, values, parameters, builder);
 			} else {
-				addCondition(dynamicEntityPath, values, descriptionField, paramNumber, parameters, builder);
+				addCondition(dynamicEntityPath, values, descriptionField, parameters, builder);
 			}
 			
 		} else if (descriptionField.isSimple()) {
-			addCondition(dynamicEntityPath, values, descriptionField, paramNumber, parameters, builder);
+			addCondition(dynamicEntityPath, values, descriptionField, parameters, builder);
 		} else if (descriptionField.isAnyCollection()) {
 			throw new SQLSessionException("Campo " + field + " é uma coleção. Ainda não é permitido fazer buscas em coleções até esta versão.");
 		}		
@@ -299,7 +300,7 @@ public class AnterosMultipleFieldsFilter<T> {
 		}
 	}
 
-	private void addCondition(DynamicEntityPath entityPath, String[] values, DescriptionField descriptionField, Integer paramNumber, Map<Param<?>, Object> parameters, BooleanBuilder builder) {
+	private void addCondition(DynamicEntityPath entityPath, String[] values, DescriptionField descriptionField, Map<Param<?>, Object> parameters, BooleanBuilder builder) {
 		
 		for (String vl : values) {
 
@@ -505,6 +506,8 @@ public class AnterosMultipleFieldsFilter<T> {
 								Date dt1 = getDateTime(value1);
 								DateTimeParam dtTimeParam1 = new DateTimeParam("P" + paramNumber);
 								parameters.put(dtTimeParam1, dt1);
+								
+								paramNumber++;
 
 								Date dt2 = getDateTime(value2);
 								DateTimeParam dtTimeParam2 = new DateTimeParam("P" + paramNumber);
