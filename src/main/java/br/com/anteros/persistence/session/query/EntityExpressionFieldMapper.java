@@ -51,15 +51,15 @@ public class EntityExpressionFieldMapper extends ExpressionFieldMapper {
 	@Override
 	public void execute(SQLSession session, ResultSet resultSet, EntityManaged entityManaged, Object targetObject,
 			Cache transactionCache) throws Exception {
+		if (descriptionField==null)
+			return;
 
 		DescriptionField newDescriptionField = descriptionField;
 
 		if (!session.getEntityCacheManager().getEntityCache(targetObject.getClass())
 				.containsDescriptionField(descriptionField)) {
-
 			descriptionField = session.getEntityCacheManager().getEntityCache(targetObject.getClass())
 					.getDescriptionFieldUsesColumns(newDescriptionField.getDescriptionColumnsStr());
-
 			if (descriptionField == null)
 				return;
 

@@ -884,7 +884,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			return true;
 
 		for (ExpressionFieldMapper expression : expressionsFieldMapper) {
-			if (expression.getDescriptionField().getField().getName().equalsIgnoreCase(fieldName)) {
+			if (expression.getDescriptionField()!=null && expression.getDescriptionField().getField().getName().equalsIgnoreCase(fieldName)) {
 				/*
 				 * Armazena no cache para acelerar a próxima busca
 				 */
