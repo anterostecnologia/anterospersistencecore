@@ -27,6 +27,7 @@ import br.com.anteros.core.resource.messages.AnterosResourceBundle;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.SQLTemplates;
 import br.com.anteros.persistence.dsl.osql.templates.MariaDBTemplates;
+import br.com.anteros.persistence.metadata.annotation.type.TemporalType;
 import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessages;
 import br.com.anteros.persistence.schema.definition.type.ColumnDatabaseType;
 import br.com.anteros.persistence.session.configuration.AnterosPersistenceProperties;
@@ -367,5 +368,16 @@ public class MariaDBDialect extends DatabaseDialect {
 	@Override
 	public String getIndexHint(Map<String, String> indexes) {
 		return "";
+	}
+	
+	@Override
+	public ColumnDatabaseType convertJavaToDatabaseType(Class<?> javaType, TemporalType temporalType) {
+		if (temporalType.equals(TemporalType.DATE)) {
+			return new ColumnDatabaseType("DATE", false, Types.DATE);
+		} else if (temporalType.equals(TemporalType.DATE_TIME)) {
+			return new ColumnDatabaseType("DATETIME", false, Types.TIMESTAMP);
+		} else {
+			return new ColumnDatabaseType("TIME", false, Types.TIME);
+		}
 	}
 }

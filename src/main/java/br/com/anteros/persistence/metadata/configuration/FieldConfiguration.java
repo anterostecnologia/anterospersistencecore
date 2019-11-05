@@ -60,6 +60,7 @@ import br.com.anteros.persistence.metadata.annotation.SQLUpdate;
 import br.com.anteros.persistence.metadata.annotation.SequenceGenerator;
 import br.com.anteros.persistence.metadata.annotation.TableGenerator;
 import br.com.anteros.persistence.metadata.annotation.Temporal;
+import br.com.anteros.persistence.metadata.annotation.TenantId;
 import br.com.anteros.persistence.metadata.annotation.Transient;
 import br.com.anteros.persistence.metadata.annotation.UUIDGenerator;
 import br.com.anteros.persistence.metadata.annotation.UniqueConstraint;
@@ -115,9 +116,14 @@ public class FieldConfiguration {
 	private boolean externalFile;
 	private String generator;
 	private UUIDGeneratorConfiguration uuidGenerator;
+	private boolean tenant;
 
 	public boolean isExternalFile() {
 		return externalFile;
+	}
+	
+	public boolean isTenant() {
+		return tenant;
 	}
 
 	public void externalFile(boolean externalFile) {
@@ -643,7 +649,9 @@ public class FieldConfiguration {
 			} else if (annotation instanceof IdSynchronism) {
 				idSynchronism();
 			} else if (annotation instanceof Version) {
-				version();	
+				version();
+			} else if (annotation instanceof TenantId) {
+				tenant();	
 			}
 		}
 
@@ -659,6 +667,8 @@ public class FieldConfiguration {
 			getIndexes()[0].columns(cns.toArray(new String[] {}));
 		}
 	}
+
+	
 
 	public boolean isIdSynchronism() {
 		return idSynchronism;
@@ -715,6 +725,12 @@ public class FieldConfiguration {
 	public FieldConfiguration version() {
 		this.annotations.add(Version.class);
 		this.version = true;
+		return this;
+	}
+	
+	private FieldConfiguration tenant() {
+		this.annotations.add(TenantId.class);
+		this.tenant = true;
 		return this;
 	}
 

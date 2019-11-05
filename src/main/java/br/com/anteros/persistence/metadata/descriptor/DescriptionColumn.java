@@ -85,6 +85,7 @@ public class DescriptionColumn {
 	private DiscriminatorType discriminatorType;
 	private String secondaryTableName;
 	private String tableName;
+	private boolean tenant=false;
 
 	public DescriptionColumn(EntityCache entityCache, Field field) {
 		setField(field);
@@ -728,5 +729,14 @@ public class DescriptionColumn {
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
+	}
+
+	public void setTenant(boolean tenant) {
+		this.tenant = tenant;
+		
+	}
+
+	public boolean isTenant() {
+		return tenant;
 	}
 }

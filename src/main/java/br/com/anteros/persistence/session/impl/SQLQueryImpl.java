@@ -1833,6 +1833,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			if (this.identifier != null) {
 				Select select = new Select(session.getDialect());
 				select.addTableName(identifier.getEntityCache().getTableName());
+				DescriptionField tenantId = identifier.getEntityCache().getTenantId();
 				Map<String, Object> columns = identifier.getDatabaseColumns();
 				List<NamedParameter> params = new ArrayList<NamedParameter>();
 				boolean appendOperator = false;
@@ -1843,6 +1844,17 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 					params.add(new NamedParameter("P" + column, columns.get(column)));
 					appendOperator = true;
 				}
+				if (tenantId!=null) {
+					if (session.getTenantId()==null) {
+						throw new SQLQueryException(
+								"Informe o Tenant ID para que seja possível fazer select na entidade "+identifier.getEntityCache().getEntityClass().getName());
+					}
+					if (appendOperator) {
+						select.and();
+					}
+					select.addCondition(tenantId.getSimpleColumn().getColumnName(),"=", '"'+session.getTenantId().toString()+'"');
+				}
+				
 				this.sql(select.toStatementString());
 				this.setParameters(params.toArray(new NamedParameter[] {}));
 				Object objectToRefresh = null;

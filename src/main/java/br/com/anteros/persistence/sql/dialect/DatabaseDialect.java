@@ -38,6 +38,7 @@ import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.dsl.osql.QueryFlag;
 import br.com.anteros.persistence.dsl.osql.SQLTemplates;
 import br.com.anteros.persistence.metadata.annotation.type.CallableType;
+import br.com.anteros.persistence.metadata.annotation.type.TemporalType;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.parameter.OutputNamedParameter;
 import br.com.anteros.persistence.schema.definition.ColumnSchema;
@@ -1702,6 +1703,10 @@ public abstract class DatabaseDialect {
 
 	public boolean bindLimitParametersInReverseOrder() {
 		return false;
+	}
+
+	public ColumnDatabaseType convertJavaToDatabaseType(Class<?> javaType, TemporalType temporalType) {
+		return convertJavaToDatabaseType(javaType);
 	}
 
 	// public abstract List<ProcedureMetadata> getNativeFunctions() throws

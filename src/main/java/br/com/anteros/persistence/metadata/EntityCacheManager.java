@@ -77,6 +77,7 @@ import br.com.anteros.persistence.metadata.annotation.SequenceGenerator;
 import br.com.anteros.persistence.metadata.annotation.Table;
 import br.com.anteros.persistence.metadata.annotation.TableGenerator;
 import br.com.anteros.persistence.metadata.annotation.Temporal;
+import br.com.anteros.persistence.metadata.annotation.TenantId;
 import br.com.anteros.persistence.metadata.annotation.Transient;
 import br.com.anteros.persistence.metadata.annotation.UUIDGenerator;
 import br.com.anteros.persistence.metadata.annotation.Version;
@@ -1981,6 +1982,13 @@ public class EntityCacheManager {
 		 */
 		if (fieldConfiguration.isAnnotationPresent(Version.class)) {
 			descriptionColumn.setVersioned(true);
+		}
+		
+		/*
+		 * Se possuir Tenant
+		 */
+		if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
+			descriptionColumn.setTenant(true);
 		}
 
 		/*

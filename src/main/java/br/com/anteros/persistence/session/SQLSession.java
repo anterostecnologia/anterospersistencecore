@@ -309,5 +309,9 @@ public interface SQLSession {
 	public Long getNextValFromCacheSequence(String sequenceName);
 
 	public void invalidateConnection() throws SQLException;
+	
+	public void setTenantId(Object value);
+	
+	public Object getTenantId();
 
 }

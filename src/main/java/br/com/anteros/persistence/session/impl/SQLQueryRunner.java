@@ -90,8 +90,9 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
-						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						|| (message.toLowerCase().contains("communications link failure")
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 
+						||  message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -135,8 +136,9 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
-						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						|| (message.toLowerCase().contains("communications link failure")
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -189,7 +191,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -245,7 +248,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -304,7 +308,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -353,7 +358,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						||  message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -413,7 +419,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -539,7 +546,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -602,7 +610,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -642,7 +651,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -686,7 +696,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 
+						||  message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -753,7 +764,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 
+						||  message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -821,7 +833,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -870,7 +883,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -940,7 +954,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					close(statement);
 					try {
@@ -977,7 +992,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					try {
 						session.invalidateConnection();
@@ -1011,7 +1027,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")
 						&& ((message.toLowerCase().contains("closed") || message.toLowerCase().contains("lost"))))
 						|| (message.toLowerCase().contains("communications link failure") 
-						|| (message.toLowerCase().contains("connection reset"))))) {
+						||	message.toLowerCase().contains("Broken pipe") || message.toLowerCase().contains("Connection was killed") 		
+						|| message.toLowerCase().contains("connection reset")))) {
 					retry = false;
 					try {
 						session.invalidateConnection();

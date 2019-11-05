@@ -1141,4 +1141,12 @@ public class DescriptionField {
 		return true;
 	}
 
+	public boolean isTenant() {
+		if (getSimpleColumn()!=null) {
+			return getSimpleColumn().isTenant();
+		}
+		return false;
+	}
+
+
 }

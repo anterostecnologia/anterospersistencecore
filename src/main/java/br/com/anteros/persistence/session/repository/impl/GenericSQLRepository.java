@@ -30,6 +30,7 @@ import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
 import br.com.anteros.persistence.metadata.identifier.Identifier;
 import br.com.anteros.persistence.parameter.InClauseSubstitutedParameter;
@@ -172,7 +173,17 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		try {
-			TypedSQLQuery<?> query = getSession().createQuery("select * from " + getEntityCache().getTableName(),
+			DescriptionField tenantId = getTenantId();
+			
+			String sql = "select * from " + getEntityCache().getTableName();
+			if (tenantId!=null) {
+				if (getSession().getTenantId()==null) {
+					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+				}
+				sql = sql + " where "+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+			}
+			
+			TypedSQLQuery<?> query = getSession().createQuery(sql,
 					persistentClass);
 			query.setLockOptions(lockOptions);
 			query.setReadOnly(readOnly);
@@ -188,6 +199,16 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		return getSession().getEntityCacheManager().getEntityCache(persistentClass);
 	}
+	
+	protected DescriptionField getTenantId() {
+		List<EntityCache> entityCaches = getSession().getEntityCacheManager().getEntityCachesByTableName(getEntityCache().getTableName());
+		for (EntityCache entityCache : entityCaches) {
+			if (entityCache.getTenantId()!=null) {
+				return entityCache.getTenantId();
+			}
+		}
+		return null;
+	}
 
 	@Override
 	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly) {
@@ -199,7 +220,16 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		TypedSQLQuery<?> query;
 		try {
-			query = getSession().createQuery("select * from " + getEntityCache().getTableName(), persistentClass);
+			DescriptionField tenantId = getTenantId();
+			
+			String sql = "select * from " + getEntityCache().getTableName();
+			if (tenantId!=null) {
+				if (getSession().getTenantId()==null) {
+					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+				}
+				sql = sql + " where "+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+			}
+			query = getSession().createQuery(sql, persistentClass);
 
 			query.setFirstResult(pageable.getOffset());
 			query.setMaxResults(pageable.getPageSize());
@@ -432,7 +462,16 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	@Override
 	public long count() {
-		return doCount(getCountQueryString(getEntityCache().getTableName()));
+		DescriptionField tenantId = getTenantId();
+		String sql = getCountQueryString(getEntityCache().getTableName());
+		if (tenantId!=null) {
+			if (getSession().getTenantId()==null) {
+				throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+			}
+			sql = sql + " where "+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+		}
+		
+		return doCount(sql);
 	}
 
 	protected long doCount(String countSql) {

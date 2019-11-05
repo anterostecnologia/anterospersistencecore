@@ -135,6 +135,14 @@ public class EntityCache {
 	public ScopeType getCacheScope() {
 		return cacheScope;
 	}
+	
+	public DescriptionField getTenantId() {
+		for (DescriptionField f : fields) {
+			if (f.isTenant())
+				return f;
+		}
+		return null;
+	}
 
 	public List<DescriptionField> getDescriptionFields() {
 		return fields;
