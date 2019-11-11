@@ -31,6 +31,7 @@ import br.com.anteros.persistence.metadata.annotation.CollectionTable;
 import br.com.anteros.persistence.metadata.annotation.Column;
 import br.com.anteros.persistence.metadata.annotation.Columns;
 import br.com.anteros.persistence.metadata.annotation.Comment;
+import br.com.anteros.persistence.metadata.annotation.CompanyId;
 import br.com.anteros.persistence.metadata.annotation.CompositeId;
 import br.com.anteros.persistence.metadata.annotation.Convert;
 import br.com.anteros.persistence.metadata.annotation.Converter;
@@ -117,6 +118,7 @@ public class FieldConfiguration {
 	private String generator;
 	private UUIDGeneratorConfiguration uuidGenerator;
 	private boolean tenant;
+	private boolean company;
 
 	public boolean isExternalFile() {
 		return externalFile;
@@ -124,6 +126,10 @@ public class FieldConfiguration {
 	
 	public boolean isTenant() {
 		return tenant;
+	}
+	
+	public boolean isCompany() {
+		return company;
 	}
 
 	public void externalFile(boolean externalFile) {
@@ -652,6 +658,8 @@ public class FieldConfiguration {
 				version();
 			} else if (annotation instanceof TenantId) {
 				tenant();	
+			} else if (annotation instanceof CompanyId) {
+				company();	
 			}
 		}
 
@@ -731,6 +739,12 @@ public class FieldConfiguration {
 	private FieldConfiguration tenant() {
 		this.annotations.add(TenantId.class);
 		this.tenant = true;
+		return this;
+	}
+	
+	private FieldConfiguration company() {
+		this.annotations.add(CompanyId.class);
+		this.company = true;
 		return this;
 	}
 

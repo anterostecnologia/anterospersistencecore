@@ -1148,5 +1148,12 @@ public class DescriptionField {
 		return false;
 	}
 
+	public boolean isCompany() {
+		if (getSimpleColumn()!=null) {
+			return getSimpleColumn().isCompany();
+		}
+		return false;
+	}
+
 
 }

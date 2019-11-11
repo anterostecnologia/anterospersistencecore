@@ -1834,6 +1834,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 				Select select = new Select(session.getDialect());
 				select.addTableName(identifier.getEntityCache().getTableName());
 				DescriptionField tenantId = identifier.getEntityCache().getTenantId();
+				DescriptionField companyId = identifier.getEntityCache().getCompanyId();
 				Map<String, Object> columns = identifier.getDatabaseColumns();
 				List<NamedParameter> params = new ArrayList<NamedParameter>();
 				boolean appendOperator = false;
@@ -1853,6 +1854,18 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 						select.and();
 					}
 					select.addCondition(tenantId.getSimpleColumn().getColumnName(),"=", '"'+session.getTenantId().toString()+'"');
+				}
+				
+				
+				if (companyId!=null) {
+					if (session.getCompanyId()==null) {
+						throw new SQLQueryException(
+								"Informe o Company ID para que seja possível fazer select na entidade "+identifier.getEntityCache().getEntityClass().getName());
+					}
+					if (appendOperator) {
+						select.and();
+					}
+					select.addCondition(companyId.getSimpleColumn().getColumnName(),"=", '"'+session.getCompanyId().toString()+'"');
 				}
 				
 				this.sql(select.toStatementString());

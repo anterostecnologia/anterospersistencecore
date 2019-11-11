@@ -143,6 +143,14 @@ public class EntityCache {
 		}
 		return null;
 	}
+	
+	public DescriptionField getCompanyId() {
+		for (DescriptionField f : fields) {
+			if (f.isCompany())
+				return f;
+		}
+		return null;
+	}
 
 	public List<DescriptionField> getDescriptionFields() {
 		return fields;

@@ -86,6 +86,7 @@ public class DescriptionColumn {
 	private String secondaryTableName;
 	private String tableName;
 	private boolean tenant=false;
+	private boolean company=false;
 
 	public DescriptionColumn(EntityCache entityCache, Field field) {
 		setField(field);
@@ -732,11 +733,18 @@ public class DescriptionColumn {
 	}
 
 	public void setTenant(boolean tenant) {
-		this.tenant = tenant;
-		
+		this.tenant = tenant;		
+	}
+	
+	public void setCompany(boolean company) {
+		this.company = company;		
 	}
 
 	public boolean isTenant() {
 		return tenant;
+	}
+	
+	public boolean isCompany() {
+		return company;
 	}
 }

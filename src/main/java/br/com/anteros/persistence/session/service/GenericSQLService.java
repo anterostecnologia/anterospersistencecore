@@ -15,7 +15,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.session.service;
 
-import java.io.Serializable;
+import java.io.Serializable; 
 import java.util.List;
 
 import br.com.anteros.core.utils.Assert;

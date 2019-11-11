@@ -42,6 +42,7 @@ import br.com.anteros.persistence.metadata.annotation.Cascade;
 import br.com.anteros.persistence.metadata.annotation.CollectionTable;
 import br.com.anteros.persistence.metadata.annotation.Column;
 import br.com.anteros.persistence.metadata.annotation.Columns;
+import br.com.anteros.persistence.metadata.annotation.CompanyId;
 import br.com.anteros.persistence.metadata.annotation.CompositeId;
 import br.com.anteros.persistence.metadata.annotation.Convert;
 import br.com.anteros.persistence.metadata.annotation.Converts;
@@ -1627,6 +1628,20 @@ public class EntityCacheManager {
 
 			descriptionField.add(descriptionJoinColumn);
 		}
+		
+		/*
+		 * Se possuir Tenant
+		 */
+		if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
+			descriptionColumn.setTenant(true);
+		}
+		
+		/*
+		 * Se possuir Company
+		 */
+		if (fieldConfiguration.isAnnotationPresent(CompanyId.class)) {
+			descriptionColumn.setCompany(true);
+		}
 
 		descriptionField.add(descriptionColumn);
 
@@ -1836,6 +1851,20 @@ public class EntityCacheManager {
 				descriptionColumn.setDateTimePattern(fieldConfiguration.getSimpleColumn().getDateTimePattern());
 				descriptionColumn.setTimePattern(fieldConfiguration.getSimpleColumn().getTimePattern());
 			}
+			
+			/*
+			 * Se possuir Tenant
+			 */
+			if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
+				descriptionColumn.setTenant(true);
+			}
+			
+			/*
+			 * Se possuir Company
+			 */
+			if (fieldConfiguration.isAnnotationPresent(CompanyId.class)) {
+				descriptionColumn.setCompany(true);
+			}
 
 			/*
 			 * Se for ForeignKey
@@ -1989,6 +2018,13 @@ public class EntityCacheManager {
 		 */
 		if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
 			descriptionColumn.setTenant(true);
+		}
+		
+		/*
+		 * Se possuir Company
+		 */
+		if (fieldConfiguration.isAnnotationPresent(CompanyId.class)) {
+			descriptionColumn.setCompany(true);
 		}
 
 		/*
@@ -2306,6 +2342,21 @@ public class EntityCacheManager {
 			DescriptionColumn descriptionColumn = new DescriptionColumn(entityCache, fieldConfiguration.getField());
 			descriptionColumn.setColumnName(fieldConfiguration.getName().toLowerCase());
 			descriptionColumn.setForeignKey(true);
+			
+			/*
+			 * Se possuir Tenant
+			 */
+			if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
+				descriptionColumn.setTenant(true);
+			}
+			
+			/*
+			 * Se possuir Company
+			 */
+			if (fieldConfiguration.isAnnotationPresent(CompanyId.class)) {
+				descriptionColumn.setCompany(true);
+			}
+			
 			FieldConfiguration foreingKeyField = getIdFieldConfiguration(fieldConfiguration.getType(), model);
 			if (foreingKeyField == null)
 				throw new EntityCacheException("Campo " + fieldConfiguration.getName() + " da classe "

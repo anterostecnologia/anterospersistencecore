@@ -20,14 +20,19 @@ import java.util.List;
 
 import br.com.anteros.core.utils.Assert;
 import br.com.anteros.core.utils.TypeResolver;
+import br.com.anteros.persistence.dsl.osql.BooleanBuilder;
 import br.com.anteros.persistence.dsl.osql.DynamicEntityPath;
 import br.com.anteros.persistence.dsl.osql.EntityPathResolver;
 import br.com.anteros.persistence.dsl.osql.OSQLQuery;
 import br.com.anteros.persistence.dsl.osql.SimpleEntityPathResolver;
+import br.com.anteros.persistence.dsl.osql.support.Expressions;
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
+import br.com.anteros.persistence.dsl.osql.types.Ops;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
+import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
+import br.com.anteros.persistence.dsl.osql.types.path.StringPath;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
@@ -37,6 +42,7 @@ import br.com.anteros.persistence.parameter.InClauseSubstitutedParameter;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionFactory;
+import br.com.anteros.persistence.session.exception.SQLSessionException;
 import br.com.anteros.persistence.session.lock.LockOptions;
 import br.com.anteros.persistence.session.query.SQLQueryException;
 import br.com.anteros.persistence.session.query.TypedSQLQuery;
@@ -174,13 +180,28 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		try {
 			DescriptionField tenantId = getTenantId();
+			DescriptionField companyId = getCompanyId();
 			
-			String sql = "select * from " + getEntityCache().getTableName();
+			String sql = "select * from " + getEntityCache().getTableName()+" P ";
+			boolean hasWhere = false;
 			if (tenantId!=null) {
 				if (getSession().getTenantId()==null) {
 					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
 				}
-				sql = sql + " where "+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+				hasWhere = true;
+				sql = sql + " where P."+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+			}
+			
+			if (companyId!=null) {
+				if (getSession().getCompanyId()==null) {
+					throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+				}
+				if (!hasWhere) {
+					sql = sql + " where ";
+				} else {
+					sql = sql + " and ";
+				}
+				sql = sql + "P."+companyId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getCompanyId().toString()+'"';
 			}
 			
 			TypedSQLQuery<?> query = getSession().createQuery(sql,
@@ -209,6 +230,16 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		}
 		return null;
 	}
+	
+	protected DescriptionField getCompanyId() {
+		List<EntityCache> entityCaches = getSession().getEntityCacheManager().getEntityCachesByTableName(getEntityCache().getTableName());
+		for (EntityCache entityCache : entityCaches) {
+			if (entityCache.getCompanyId()!=null) {
+				return entityCache.getCompanyId();
+			}
+		}
+		return null;
+	}
 
 	@Override
 	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly) {
@@ -221,13 +252,27 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		TypedSQLQuery<?> query;
 		try {
 			DescriptionField tenantId = getTenantId();
+			DescriptionField companyId = getCompanyId();
 			
-			String sql = "select * from " + getEntityCache().getTableName();
+			String sql = "select * from " + getEntityCache().getTableName()+" P ";
+			boolean hasWhere = false;
 			if (tenantId!=null) {
 				if (getSession().getTenantId()==null) {
 					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
 				}
-				sql = sql + " where "+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+				hasWhere = true;
+				sql = sql + " where P."+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+			}
+			if (companyId!=null) {
+				if (getSession().getCompanyId()==null) {
+					throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+				}
+				if (!hasWhere) {
+					sql = sql + " where ";
+				} else {
+					sql = sql + " and ";
+				}
+				sql = sql + "P."+companyId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getCompanyId().toString()+'"';
 			}
 			query = getSession().createQuery(sql, persistentClass);
 
@@ -408,6 +453,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
+		
+		predicate = addTenantAndCompanyId(predicate);	
 
 		OSQLQuery countQuery = createQuery(predicate);
 		Long total = countQuery.count();
@@ -421,8 +468,53 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		return new PageImpl<T>(content, pageable, total);
 	}
 
+	protected Predicate addTenantAndCompanyId(Predicate predicate) {
+		if (predicate==null) {
+			predicate = new BooleanBuilder();
+		}
+		EntityCache[] entityCaches = getSession().getEntityCacheManager().getEntitiesBySuperClassIncluding(this.getResultClass());
+		DynamicEntityPath entityPath = (DynamicEntityPath) this.getEntityPath();
+		DescriptionField tenantId = null;
+		DescriptionField companyId = null;
+		
+		for (EntityCache entityCache : entityCaches) {
+			tenantId = entityCache.getTenantId();
+			if (tenantId != null)
+				break;
+		}
+		for (EntityCache entityCache : entityCaches) {
+			companyId = entityCache.getCompanyId();
+			if (companyId != null)
+				break;
+		}
+
+		if (tenantId != null) {
+			if (getSession().getTenantId() == null) {
+				throw new SQLSessionException("Informe o Tenant Id para consultar  a entidade "
+						+ getSession().getEntityCacheManager().getEntityCache(this.getResultClass()).getEntityClass().getName());
+			}
+			StringPath predicateField = entityPath.createFieldString(tenantId.getName());
+			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, Expressions.constant(getSession().getTenantId()));
+			((BooleanBuilder)predicate).and(expression);
+		}
+		
+		if (companyId != null) {
+			if (this.getSession().getCompanyId() == null) {
+				throw new SQLSessionException("Informe o Company Id para consultar  a entidade "
+						+ this.getSession().getEntityCacheManager().getEntityCache(this.getResultClass()).getEntityClass().getName());
+			}
+			StringPath predicateField = entityPath.createFieldString(companyId.getName());
+			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, Expressions.constant(this.getSession().getCompanyId()));
+			((BooleanBuilder)predicate).and(expression);
+		}
+		return predicate;
+	}
+
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... orders) {
+		
+		predicate = addTenantAndCompanyId(predicate);	
+		
 		OSQLQuery countQuery = createQuery(predicate);
 		Long total = countQuery.count();
 
@@ -463,12 +555,27 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	@Override
 	public long count() {
 		DescriptionField tenantId = getTenantId();
+		DescriptionField companyId = getCompanyId();
 		String sql = getCountQueryString(getEntityCache().getTableName());
+		boolean hasWhere = false;
 		if (tenantId!=null) {
 			if (getSession().getTenantId()==null) {
 				throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
 			}
-			sql = sql + " where "+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+			hasWhere = true;
+			sql = sql + " where x."+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+		}
+		
+		if (companyId!=null) {
+			if (getSession().getCompanyId()==null) {
+				throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+			}
+			if (!hasWhere) {
+				sql = sql + " where ";
+			} else {
+				sql = sql + " and ";
+			}
+			sql = sql + "x."+companyId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getCompanyId().toString()+'"';
 		}
 		
 		return doCount(sql);

@@ -313,5 +313,9 @@ public interface SQLSession {
 	public void setTenantId(Object value);
 	
 	public Object getTenantId();
+	
+	public void setCompanyId(Object value);
+	
+	public Object getCompanyId();
 
 }

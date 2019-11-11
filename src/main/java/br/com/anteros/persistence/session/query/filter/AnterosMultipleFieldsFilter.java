@@ -143,9 +143,16 @@ public class AnterosMultipleFieldsFilter<T> {
 		}
 
 		DescriptionField tenantId = null;
+		DescriptionField companyId = null;
+		
 		for (EntityCache entityCache : entityCaches) {
 			tenantId = entityCache.getTenantId();
 			if (tenantId != null)
+				break;
+		}
+		for (EntityCache entityCache : entityCaches) {
+			companyId = entityCache.getCompanyId();
+			if (companyId != null)
 				break;
 		}
 
@@ -157,6 +164,18 @@ public class AnterosMultipleFieldsFilter<T> {
 			StringPath predicateField = entityPath.createFieldString(tenantId.getName());
 			StringParam param = new StringParam("P" + paramNumber);
 			parameters.put(param, session.getTenantId());
+			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, param);
+			builder.and(expression);
+		}
+		
+		if (companyId != null) {
+			if (session.getCompanyId() == null) {
+				throw new SQLSessionException("Informe o Company Id para consultar  a entidade "
+						+ session.getEntityCacheManager().getEntityCache(resultClass).getEntityClass().getName());
+			}
+			StringPath predicateField = entityPath.createFieldString(companyId.getName());
+			StringParam param = new StringParam("P" + paramNumber);
+			parameters.put(param, session.getCompanyId());
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, param);
 			builder.and(expression);
 		}
