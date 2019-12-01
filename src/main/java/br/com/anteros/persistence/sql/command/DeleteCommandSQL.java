@@ -19,6 +19,7 @@ import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
+import br.com.anteros.persistence.metadata.annotation.EventType;
 import br.com.anteros.persistence.metadata.annotation.type.CallableType;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionSQL;
 import br.com.anteros.persistence.metadata.identifier.IdentifierPostInsert;
@@ -32,76 +33,88 @@ public class DeleteCommandSQL extends CommandSQL {
 
 	private static Logger LOG = LoggerProvider.getInstance().getLogger(DeleteCommandSQL.class.getName());
 
-	public DeleteCommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object targetObject, EntityCache entityCache,
-			String targetTableName, ShowSQLType[] showSql, DescriptionSQL descriptionSQL, boolean inBatchMode) {
-		super(session, sql, namedParameters, targetObject, entityCache, targetTableName, showSql, descriptionSQL, inBatchMode);
+	public DeleteCommandSQL(SQLSession session, String sql, List<NamedParameter> namedParameters, Object newObject,
+			EntityCache entityCache, String targetTableName, ShowSQLType[] showSql, DescriptionSQL descriptionSQL,
+			boolean inBatchMode) {
+		super(session, sql, namedParameters, newObject, entityCache, targetTableName, showSql, descriptionSQL,
+				inBatchMode);
 	}
 
 	@Override
 	public CommandSQLReturn execute() throws Exception {
-		/*
-		 * Troca os parâmetros que aguardam o identificador de outro objeto pelo valor do identificador gerado
-		 */
-		for (NamedParameter parameter : namedParameters) {
-			if (parameter.getValue() instanceof IdentifierPostInsert)
-				parameter.setValue(((IdentifierPostInsert) parameter.getValue()).generate());
-		}
-		/*
-		 * Executa o SQL
-		 */
-		if (StringUtils.isNotEmpty(this.getSql())) {
-			try {
-				if ((descriptionSQL != null) && descriptionSQL.isCallable()) {
-
-					ProcedureResult result = null;
-					try {
-						result = queryRunner.executeProcedure(session, session.getDialect(), descriptionSQL.getCallableType(), descriptionSQL.getSql(),
-								NamedParameter.toArray(namedParameters), showSql, 0, session.clientId());
-						/*
-						 * Verifica se houve sucesso na execução
-						 */
-						Object successValue;
-						if (descriptionSQL.getCallableType() == CallableType.PROCEDURE)
-							successValue = result.getOutPutParameter(descriptionSQL.getSuccessParameter());
-						else
-							successValue = result.getFunctionResult();
-
-						if (ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
-							LOG.debug("RESULT = " + successValue);
-							LOG.debug("");
-						}
-
-						if (!descriptionSQL.getSuccessValue().equals(successValue.toString()))
-							throw new SQLSessionException(successValue.toString());
-					} finally {
-						if (result != null)
-							result.close();
-					}
-				} else {
-					if (descriptionSQL != null)
-						queryRunner.update(session, descriptionSQL.getSql(), descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters), showSql,
-								session.getListeners(), session.clientId());
-					else {
-						if (inBatchMode) {
-							return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
-						} else {
-							queryRunner.update(this.getSession(), sql, NamedParameter.getAllValues(namedParameters), showSql,
-									session.getListeners(), session.clientId());
-						}
-					}
-				}
-				/*
-				 * Se o objeto alvo não for uma entidade for um List<String> ou Map<String,Object> remove da lista de
-				 * entidades gerenciadas
-				 */
-				if (targetObject != null) {
-					session.getPersistenceContext().removeEntityManaged(targetObject);
-				}
-			} catch (SQLException ex) {
-				throw session.getDialect().convertSQLException(ex, "", sql);
+		try {
+			session.notifyListeners(EventType.PreRemove, null, this.targetObject);
+			/*
+			 * Troca os parâmetros que aguardam o identificador de outro objeto pelo valor
+			 * do identificador gerado
+			 */
+			for (NamedParameter parameter : namedParameters) {
+				if (parameter.getValue() instanceof IdentifierPostInsert)
+					parameter.setValue(((IdentifierPostInsert) parameter.getValue()).generate());
 			}
+			/*
+			 * Executa o SQL
+			 */
+			if (StringUtils.isNotEmpty(this.getSql())) {
+				try {
+					if ((descriptionSQL != null) && descriptionSQL.isCallable()) {
+
+						ProcedureResult result = null;
+						try {
+							result = queryRunner.executeProcedure(session, session.getDialect(),
+									descriptionSQL.getCallableType(), descriptionSQL.getSql(),
+									NamedParameter.toArray(namedParameters), showSql, 0, session.clientId());
+							/*
+							 * Verifica se houve sucesso na execução
+							 */
+							Object successValue;
+							if (descriptionSQL.getCallableType() == CallableType.PROCEDURE)
+								successValue = result.getOutPutParameter(descriptionSQL.getSuccessParameter());
+							else
+								successValue = result.getFunctionResult();
+
+							if (ShowSQLType.contains(showSql, ShowSQLType.DELETE)) {
+								LOG.debug("RESULT = " + successValue);
+								LOG.debug("");
+							}
+
+							if (!descriptionSQL.getSuccessValue().equals(successValue.toString()))
+								throw new SQLSessionException(successValue.toString());
+						} finally {
+							if (result != null)
+								result.close();
+						}
+					} else {
+						if (descriptionSQL != null)
+							queryRunner.update(session, descriptionSQL.getSql(),
+									descriptionSQL.processParameters(session.getEntityCacheManager(), namedParameters),
+									showSql, session.getListeners(), session.clientId());
+						else {
+							if (inBatchMode) {
+								return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
+							} else {
+								queryRunner.update(this.getSession(), sql, NamedParameter.getAllValues(namedParameters),
+										showSql, session.getListeners(), session.clientId());
+							}
+						}
+					}
+					/*
+					 * Se o objeto alvo não for uma entidade for um List<String> ou
+					 * Map<String,Object> remove da lista de entidades gerenciadas
+					 */
+					if (targetObject != null) {
+						session.getPersistenceContext().removeEntityManaged(targetObject);
+					}
+					session.notifyListeners(EventType.PostRemove, null, this.targetObject);
+				} catch (SQLException ex) {
+					throw session.getDialect().convertSQLException(ex, "", sql);
+				}
+			}
+		} finally {
+			session.notifyListeners(EventType.PostRemove, null, this.targetObject);
 		}
 		return null;
+
 	}
 
 	@Override

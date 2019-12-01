@@ -36,6 +36,7 @@ import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityManaged;
 import br.com.anteros.persistence.metadata.FieldEntityValue;
+import br.com.anteros.persistence.metadata.annotation.EventType;
 import br.com.anteros.persistence.metadata.annotation.type.CascadeType;
 import br.com.anteros.persistence.metadata.annotation.type.TemporalType;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
@@ -48,6 +49,7 @@ import br.com.anteros.persistence.metadata.identifier.IdentifierPostInsert;
 import br.com.anteros.persistence.metadata.type.EntityStatus;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.parameter.VersionNamedParameter;
+import br.com.anteros.persistence.session.FindParameters;
 import br.com.anteros.persistence.session.SQLPersister;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionValidator;
@@ -97,22 +99,25 @@ public class SQLPersisterImpl implements SQLPersister {
 	@Override
 	public Object save(SQLSession session, Object object, int batchSize) throws Exception {
 		this.currentBatchSize = batchSize;
-		save(session, object);		
+		save(session, object);
 		return object;
 	}
 
 	public Object save(SQLSession session, Object object) throws Exception {
-		if (getValidator() != null && session.validationIsActive())
+		if (getValidator() != null && session.validationIsActive()) {
+			session.notifyListeners(EventType.PreValidate, null, object);
 			getValidator().validateBean(object);
+			session.notifyListeners(EventType.PostValidate, null, object);
+		}
 		this.session = session;
 		Object result = null;
 		try {
-			result = save(mergeIfNeed(object), null);
+			MergeResult mergeResult = mergeIfNeed(object);
+			result = save(mergeResult.getOldObject(), mergeResult.getNewObject(), null);
 		} finally {
 			objectsInSavingProcess.clear();
 			for (Object ob : objectsInSaving) {
-				EntityManaged entityManaged = session.getPersistenceContext().addEntityManaged(ob, false,
-						false,true);
+				EntityManaged entityManaged = session.getPersistenceContext().addEntityManaged(ob, false, false, true);
 				entityManaged.updateLastValues(session, ob);
 			}
 			objectsInSaving.clear();
@@ -120,54 +125,62 @@ public class SQLPersisterImpl implements SQLPersister {
 		return result;
 	}
 
-	private Object mergeIfNeed(Object entity) throws Exception {
-		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(entity.getClass());
+	private MergeResult mergeIfNeed(Object newEntity) throws Exception {
+		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(newEntity.getClass());
 
 		if (entityCache == null) {
-			return entity;
+			return MergeResult.of(null, newEntity);
 		}
 
-		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(entity);
+		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(newEntity);
 		if (entityManaged == null) {
-			if (session.getIdentifier(entity).hasIdentifier()) {
+			if (session.getIdentifier(newEntity).hasIdentifier()) {
 				if (existsRecordInDatabaseTable(entityCache.getTableName(),
-						session.getIdentifier(entity).getDatabaseColumns())) {
-					Object newEntity = session.find(session.getIdentifier(entity), LockOptions.OPTIMISTIC_FORCE_INCREMENT);
-					entityCache.mergeValues(entity, newEntity);
-					return newEntity;
+						session.getIdentifier(newEntity).getDatabaseColumns())) {
+					Object actualEntity = session.find(new FindParameters().identifier(session.getIdentifier(newEntity))
+							.lockOptions(LockOptions.OPTIMISTIC_FORCE_INCREMENT));
+					entityCache.mergeValues(actualEntity, newEntity);
+
+					Object oldEntity = session.find(new FindParameters().identifier(session.getIdentifier(newEntity))
+							.lockOptions(LockOptions.OPTIMISTIC_FORCE_INCREMENT));
+
+					return MergeResult.of(oldEntity, actualEntity);
 				}
 			}
 
 		}
-		return entity;
+		return MergeResult.of(null, newEntity);
 	}
 
 	protected Object save(SQLSession session, Object object, List<CommandSQL> stackCommands) throws Exception {
 		if (getValidator() != null && session.validationIsActive())
 			getValidator().validateBean(object);
 		this.session = session;
-		return save(mergeIfNeed(object), stackCommands);
+		MergeResult mergeResult = mergeIfNeed(object);
+
+		return save(mergeResult.getOldObject(), mergeResult.getNewObject(), stackCommands);
 	}
 
-	public void remove(SQLSession session, Object object) throws Exception {
+	public void remove(SQLSession session, Object newObject) throws Exception {
 		this.session = session;
-		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(object.getClass());
+		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(newObject.getClass());
 
 		if (entityCache == null) {
-			throw new SQLSessionException("Objeto não pode ser removido pois a classe " + object.getClass().getName()
+			throw new SQLSessionException("Objeto não pode ser removido pois a classe " + newObject.getClass().getName()
 					+ " não foi localizada no Cache de Entidades.");
 		}
 
-		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(object);
+		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(newObject);
 		if (entityManaged == null) {
-			if (session.getIdentifier(object).hasIdentifier())
+			if (session.getIdentifier(newObject).hasIdentifier())
 				throw new SQLSessionException(
 						"Objeto não pode ser removido pois o mesmo não foi recuperado pela Sessão ou não possuí Chave(ID) definida."
-								+ object);
+								+ newObject);
 		}
 		if ((entityManaged != null) && (EntityStatus.DELETED.equals(entityManaged.getStatus())))
 			session.flush();
-		List<CommandSQL> commands = getCommandsToDeleteObject(object, entityCache);
+
+		List<CommandSQL> commands = getCommandsToDeleteObject(newObject, entityCache);
 		if (commands != null) {
 			entityManaged.setStatus(EntityStatus.DELETED);
 			session.getCommandQueue().addAll(commands);
@@ -179,20 +192,20 @@ public class SQLPersisterImpl implements SQLPersister {
 			remove(session, obj);
 	}
 
-	protected Object save(Object object, List<CommandSQL> stackCommands) throws Exception {
-		Long hashCodeObject = new Long(System.identityHashCode(object));
+	protected Object save(Object oldObject, Object newObject, List<CommandSQL> stackCommands) throws Exception {
+		Long hashCodeObject = new Long(System.identityHashCode(newObject));
 		if (!objectsInSavingProcess.contains(hashCodeObject)) {
 			objectsInSavingProcess.add(hashCodeObject);
-			objectsInSaving.add(object);
-			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(object.getClass());
+			objectsInSaving.add(newObject);
+			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(newObject.getClass());
 			if (entityCache == null)
-				throw new SQLSessionException("Objeto não pode ser salvo pois a classe " + object.getClass().getName()
-						+ " não foi localizada no cache de Entidades.");
+				throw new SQLSessionException("Objeto não pode ser salvo pois a classe "
+						+ newObject.getClass().getName() + " não foi localizada no cache de Entidades.");
 
 			// System.out.println("Salvando objeto da classe " +
 			// entityCache.getEntityClass().getName());
 
-			EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(object);
+			EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(newObject);
 
 			/*
 			 * Se o objeto estiver sendo gerenciado então faz o update no objeto
@@ -202,27 +215,27 @@ public class SQLPersisterImpl implements SQLPersister {
 				 * Se o objeto foi selecionado parcialmente não permite alteração
 				 */
 				if (entityManaged.getStatus().equals(EntityStatus.READ_ONLY))
-					throw new SQLSessionException("Objeto " + object.getClass().getSuperclass() + " ID "
-							+ session.getIdentifier(object).getDatabaseColumns()
+					throw new SQLSessionException("Objeto " + newObject.getClass().getSuperclass() + " ID "
+							+ session.getIdentifier(newObject).getDatabaseColumns()
 							+ " não pode ser salvo pois é somente para leitura.");
 
-				saveUsingStatement(entityCache, SQLStatementType.UPDATE, object, stackCommands);
+				saveUsingStatement(entityCache, SQLStatementType.UPDATE, oldObject, newObject, stackCommands);
 			} else {
 				/*
 				 * Se o objeto não estiver sendo gerenciado porém já possuí um ID será preciso
 				 * verificar se o ID já existe no banco de dados
 				 */
-				if (session.getIdentifier(object).hasIdentifier()) {
+				if (session.getIdentifier(newObject).hasIdentifier()) {
 					if (!existsRecordInDatabaseTable(entityCache.getTableName(),
-							session.getIdentifier(object).getDatabaseColumns()))
-						saveUsingStatement(entityCache, SQLStatementType.INSERT, object, stackCommands);
+							session.getIdentifier(newObject).getDatabaseColumns()))
+						saveUsingStatement(entityCache, SQLStatementType.INSERT, oldObject, newObject, stackCommands);
 					else
-						saveUsingStatement(entityCache, SQLStatementType.UPDATE, object, stackCommands);
+						saveUsingStatement(entityCache, SQLStatementType.UPDATE, oldObject, newObject, stackCommands);
 				} else
-					saveUsingStatement(entityCache, SQLStatementType.INSERT, object, stackCommands);
+					saveUsingStatement(entityCache, SQLStatementType.INSERT, oldObject, newObject, stackCommands);
 			}
 		}
-		return object;
+		return newObject;
 	}
 
 	protected boolean existsRecordInDatabaseTable(String tableName, Map<String, Object> identifier) throws Exception {
@@ -260,15 +273,15 @@ public class SQLPersisterImpl implements SQLPersister {
 		return false;
 	}
 
-	protected void saveUsingStatement(EntityCache entityCache, SQLStatementType statement, Object object,
-			List<CommandSQL> stackCommands) throws Exception {
+	protected void saveUsingStatement(EntityCache entityCache, SQLStatementType statement, Object oldObject,
+			Object newObject, List<CommandSQL> stackCommands) throws Exception {
 		List<CommandSQL> commands = null;
 		if (statement.equals(SQLStatementType.INSERT))
-			commands = getCommandsToInsertObject(object, entityCache);
+			commands = getCommandsToInsertObject(newObject, entityCache);
 		else if (statement.equals(SQLStatementType.UPDATE))
-			commands = getCommandsToUpdateObject(object, entityCache);
+			commands = getCommandsToUpdateObject(oldObject, newObject, entityCache);
 		else if (statement.equals(SQLStatementType.DELETE))
-			commands = getCommandsToDeleteObject(object, entityCache);
+			commands = getCommandsToDeleteObject(newObject, entityCache);
 
 		if (commands != null) {
 			List<CommandSQL> commandsToAdd = new ArrayList<CommandSQL>();
@@ -287,25 +300,24 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected List<CommandSQL> getCommandsToInsertObject(Object targetObject, EntityCache entityCache)
-			throws Exception {
+	protected List<CommandSQL> getCommandsToInsertObject(Object newObject, EntityCache entityCache) throws Exception {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 		try {
 			LinkedHashMap<String, NamedParameter> namedParameters = new LinkedHashMap<String, NamedParameter>();
-			IdentifierResult identifierResult = insertParametersKey(targetObject, entityCache, namedParameters);
-			insertRelationships(targetObject, entityCache, result);
-			insertCommonsParameters(targetObject, entityCache, namedParameters);
-			insertObject(targetObject, entityCache, result, namedParameters, identifierResult.identifierPostInsert,
+			IdentifierResult identifierResult = insertParametersKey(newObject, entityCache, namedParameters);
+			insertRelationships(newObject, entityCache, result);
+			insertCommonsParameters(newObject, entityCache, namedParameters);
+			insertObject(newObject, entityCache, result, namedParameters, identifierResult.identifierPostInsert,
 					identifierResult.identifyColumn);
-			insertChildrenCollections(targetObject, entityCache, result, identifierResult.identifierPostInsert,
-					identifierResult.identifyColumn, session.getIdentifier(targetObject).getDatabaseColumns());
+			insertChildrenCollections(newObject, entityCache, result, identifierResult.identifierPostInsert,
+					identifierResult.identifyColumn, session.getIdentifier(newObject).getDatabaseColumns());
 		} finally {
-			session.getCacheIdentifier().remove(targetObject);
+			session.getCacheIdentifier().remove(newObject);
 		}
 		return result;
 	}
 
-	protected void insertObject(Object targetObject, EntityCache entityCache, List<CommandSQL> result,
+	protected void insertObject(Object newObject, EntityCache entityCache, List<CommandSQL> result,
 			LinkedHashMap<String, NamedParameter> namedParameters, IdentifierPostInsert identifierPostInsert,
 			DescriptionColumn identifyColumn) throws Exception {
 		/*
@@ -318,7 +330,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		InsertCommandSQL insertCommandSQL = new InsertCommandSQL(session,
 				generateSql(entityCache.getTableName(), SQLStatementType.INSERT,
 						NamedParameter.convertToList(namedParameters.values())),
-				NamedParameter.convertToList(namedParameters.values()), targetObject, entityCache,
+				NamedParameter.convertToList(namedParameters.values()), newObject, entityCache,
 				entityCache.getTableName(), session.getShowSql(), identifierPostInsert, identifyColumn,
 				entityCache.getDescriptionSqlByType(SQLStatementType.INSERT), executeInBatchMode());
 
@@ -393,8 +405,10 @@ public class SQLPersisterImpl implements SQLPersister {
 									}
 									if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 											|| Arrays.asList(descriptionField.getCascadeTypes())
-													.contains(CascadeType.SAVE)))
-										save(value, result);
+													.contains(CascadeType.SAVE))) {
+										MergeResult mergeResult = mergeIfNeed(value);
+										save(mergeResult.getOldObject(), mergeResult.getNewObject(), result);
+									}
 								}
 							}
 						}
@@ -489,15 +503,15 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected List<CommandSQL> getCommandsToUpdateObject(Object targetObject, EntityCache entityCache)
+	protected List<CommandSQL> getCommandsToUpdateObject(Object oldObject, Object newObject, EntityCache entityCache)
 			throws Exception {
 		List<DescriptionField> fieldsModified = entityCache.getDescriptionFieldsExcludingIds();
 		boolean hasFieldsModified = true;
-		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(targetObject);
+		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(newObject);
 
 		if (entityManaged != null) {
 			if (!entityCache.isExistsDescriptionSQL()) {
-				List<DescriptionField> fieldModified = entityCache.getFieldsModified(session, targetObject);
+				List<DescriptionField> fieldModified = entityCache.getFieldsModified(session, newObject);
 				fieldsModified = fieldModified;
 				hasFieldsModified = (fieldsModified != null) && (fieldsModified.size() > 0);
 			}
@@ -506,20 +520,20 @@ public class SQLPersisterImpl implements SQLPersister {
 		ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
 
-		updateRelationships(targetObject, entityCache, result);
+		updateRelationships(newObject, entityCache, result);
 
 		if ((hasFieldsModified)
 				|| ((entityManaged != null) && (entityManaged.containsLockMode(LockMode.OPTIMISTIC_FORCE_INCREMENT,
 						LockMode.PESSIMISTIC_FORCE_INCREMENT, LockMode.WRITE)))) {
 			if (hasFieldsModified)
-				updateCommonsParameters(targetObject, entityCache, fieldsModified, namedParameters);
+				updateCommonsParameters(newObject, entityCache, fieldsModified, namedParameters);
 
-			Object oldVersion = updateVersion(targetObject, entityCache, namedParameters, entityManaged);
-			updateParametersKey(targetObject, entityCache, namedParameters);
-			updateObject(targetObject, entityCache, namedParameters, result, oldVersion);
+			Object oldVersion = updateVersion(newObject, entityCache, namedParameters, entityManaged);
+			updateParametersKey(newObject, entityCache, namedParameters);
+			updateObject(oldObject, newObject, entityCache, namedParameters, result, oldVersion);
 		} else if ((entityManaged != null) && (entityManaged.containsLockMode(LockMode.OPTIMISTIC, LockMode.READ))) {
 			if (entityCache.isVersioned()) {
-				Identifier<Object> identifier = session.getIdentifier(targetObject);
+				Identifier<Object> identifier = session.getIdentifier(newObject);
 				Map<String, Object> params = identifier.getDatabaseColumnsValues();
 				params.put(entityCache.getVersionColumnName(), entityManaged.getOldVersion());
 				if (!existsRecordInDatabaseTable(entityCache.getTableName(), params)) {
@@ -531,8 +545,8 @@ public class SQLPersisterImpl implements SQLPersister {
 			}
 		}
 
-		updateRelationshipsOnCollectionFields(targetObject, entityCache, result, entityManaged,
-				session.getIdentifier(targetObject).getDatabaseColumns());
+		updateRelationshipsOnCollectionFields(newObject, entityCache, result, entityManaged,
+				session.getIdentifier(newObject).getDatabaseColumns());
 
 		return result;
 	}
@@ -663,7 +677,8 @@ public class SQLPersisterImpl implements SQLPersister {
 									if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
 											|| Arrays.asList(descriptionField.getCascadeTypes())
 													.contains(CascadeType.SAVE))) {
-										save(value, result);
+										MergeResult mergeIfNeed = mergeIfNeed(value);
+										save(mergeIfNeed.getOldObject(), mergeIfNeed.getNewObject(), result);
 									}
 								}
 							}
@@ -841,8 +856,8 @@ public class SQLPersisterImpl implements SQLPersister {
 
 	}
 
-	protected void updateObject(Object targetObject, EntityCache entityCache, ArrayList<NamedParameter> namedParameters,
-			List<CommandSQL> result, Object oldVersion) {
+	protected void updateObject(Object oldObject, Object newObject, EntityCache entityCache,
+			ArrayList<NamedParameter> namedParameters, List<CommandSQL> result, Object oldVersion) {
 		/*
 		 * Seta a versão anterior caso o objeto tenha sido anotado com
 		 * 
@@ -854,7 +869,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			}
 		}
 		String sql = generateSql(entityCache.getTableName(), SQLStatementType.UPDATE, namedParameters);
-		result.add(new UpdateCommandSQL(session, sql, namedParameters, targetObject, entityCache,
+		result.add(new UpdateCommandSQL(session, sql, namedParameters, oldObject, newObject, entityCache,
 				entityCache.getTableName(), session.getShowSql(),
 				entityCache.getDescriptionSqlByType(SQLStatementType.UPDATE), executeInBatchMode()));
 	}
@@ -1260,20 +1275,6 @@ public class SQLPersisterImpl implements SQLPersister {
 					executeInBatchMode()));
 		}
 
-		return result;
-	}
-
-	protected List<CommandSQL> getSQLCollectionEntityCommand(Object value, SQLStatementType statement)
-			throws Exception {
-		List<CommandSQL> result = new ArrayList<CommandSQL>();
-		if (value != null) {
-			if (statement.equals(SQLStatementType.INSERT))
-				result.addAll(getCommandsToInsertObject(value,
-						session.getEntityCacheManager().getEntityCache(value.getClass())));
-			else if (statement.equals(SQLStatementType.DELETE))
-				result.addAll(getCommandsToDeleteObject(value,
-						session.getEntityCacheManager().getEntityCache(value.getClass())));
-		}
 		return result;
 	}
 

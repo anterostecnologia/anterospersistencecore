@@ -93,32 +93,33 @@ import br.com.anteros.persistence.util.SQLParserUtil;
 
 @SuppressWarnings("all")
 public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
+	public final int DEFAULT_CACHE_SIZE = 100000;
+	public static int FIRST_RECORD = 0;
+	
 	protected SQLSession session;
-	private List<ResultClassDefinition> resultClassDefinitionsList = new ArrayList<ResultClassDefinition>();
+	protected List<ResultClassDefinition> resultClassDefinitionsList = new ArrayList<ResultClassDefinition>();
 	protected Identifier identifier;
 	protected ShowSQLType[] showSql = { ShowSQLType.NONE };
 	protected boolean formatSql;
 	protected ResultSetHandler customHandler;
 	protected ResultSetTransformer<T> resultTransformer;
-	private String sql;
+	protected String sql;
 	protected Map<Integer, NamedParameter> namedParameters = new TreeMap<Integer, NamedParameter>();
 	protected Map<Integer, Object> parameters = new TreeMap<Integer, Object>();
 	protected Map<Integer, NamedParameter> parsedNamedParameters;
 	protected Map<Integer, Object> parsedParameters;
-	private String parsedSql;
-
-	public final int DEFAULT_CACHE_SIZE = 100000;
-
-	public static int FIRST_RECORD = 0;
+	protected String parsedSql;	
 	protected int timeOut = 0;
-	private String namedQuery;
+	protected String namedQuery;
 	protected LockOptions lockOptions = new LockOptions(LockMode.NONE);
 	protected boolean allowDuplicateObjects = false;
-	private int firstResult;
-	private int maxResults;
-	private boolean readOnly = false;
-	private SelectStatementNode firstStatement;
-	private int nextAliasColumnName;
+	protected int firstResult;
+	protected int maxResults;
+	protected boolean readOnly = false;
+	protected SelectStatementNode firstStatement;
+	protected int nextAliasColumnName;
+	protected String fieldsToForceLazy;
+	
 
 	public SQLQueryImpl(SQLSession session) {
 		this.session = session;
@@ -1262,28 +1263,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	}
 
 	protected Object getObjectFromCache(EntityCache targetEntityCache, String uniqueId, Cache transactionCache) {
-//		Object result = null;
-//		if (transactionCache != null) {
-//
-//			/*
-//			 * Se a classe for abstrata pega todas as implementações não
-//			 * abstratas e verifica se existe um objeto da classe + ID no
-//			 * entityCache
-//			 */
-//			EntityCache[] entitiesCache = session.getEntityCacheManager()
-//					.getEntitiesBySuperClassIncluding(targetEntityCache);
-//			for (EntityCache entityCache : entitiesCache) {
-//				result = transactionCache.get(entityCache.getEntityClass().getName() + "_" + uniqueId);
-//				if (result != null)
-//					break;
-//				result = session.getPersistenceContext()
-//						.getObjectFromCache(entityCache.getEntityClass().getName() + "_" + uniqueId);
-//				if (result != null)
-//					break;
-//			}
-//		}
-//		return result;
-		
+	
 		Object result = null;
 		if (transactionCache != null) {
 
@@ -1439,7 +1419,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 		handler = session.createNewEntityHandler(resultClass, analyzerResult.getExpressionsFieldMapper(),
 				analyzerResult.getColumnAliases(), transactionCache, allowDuplicateObjects, null, firstResult,
-				maxResults, readOnly, lockOptions);
+				maxResults, readOnly, lockOptions, fieldsToForceLazy);
 		/*
 		 * Cria um cópia do LockOptions e adiciona as colunas dos aliases caso o
 		 * usuário tenha informado pegando o nome da colunas do resultado da
@@ -1488,7 +1468,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		}
 		handler = session.createNewEntityHandler(resultClass, analyzerResult.getExpressionsFieldMapper(),
 				analyzerResult.getColumnAliases(), transactionCache, allowDuplicateObjects, null, firstResult,
-				maxResults, readOnly, lockOptions);
+				maxResults, readOnly, lockOptions, fieldsToForceLazy);
 
 		/*
 		 * Cria um cópia do LockOptions e adiciona as colunas dos aliases caso o
@@ -1963,7 +1943,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 		handler = session.createNewEntityHandler(resultClass, analyzerResult.getExpressionsFieldMapper(),
 				analyzerResult.getColumnAliases(), transactionCache, allowDuplicateObjects, objectToRefresh,
-				firstResult, maxResults, readOnly, lockOptions);
+				firstResult, maxResults, readOnly, lockOptions, fieldsToForceLazy);
 
 		return handler;
 
@@ -1993,6 +1973,16 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 				+ allowDuplicateObjects + ", firstResult=" + firstResult + ", maxResults=" + maxResults + ", readOnly="
 				+ readOnly + ", firstStatement=" + firstStatement + ", nextAliasColumnName=" + nextAliasColumnName
 				+ "]";
+	}
+
+	@Override
+	public SQLQuery setFieldsToForceLazy(String fieldsToForceLazy) {
+		this.fieldsToForceLazy = fieldsToForceLazy;
+		return this;
+	}
+
+	public String getFieldsToForceLazy() {
+		return fieldsToForceLazy;
 	}
 
 }

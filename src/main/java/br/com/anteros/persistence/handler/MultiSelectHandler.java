@@ -178,7 +178,7 @@ public class MultiSelectHandler implements ScrollableResultSetHandler {
 		EntityHandler result = cacheHandler.get(rcd);
 		if (result == null) {
 			result = session.createNewEntityHandler(rcd.getResultClass(), analyzerResult.getExpressionsFieldMapper(), analyzerResult.getColumnAliases(),
-					transactionCache, allowDuplicateObjects, null, 0, 0, false, LockOptions.NONE);
+					transactionCache, allowDuplicateObjects, null, 0, 0, false, LockOptions.NONE, null);
 			cacheHandler.put(rcd, result);
 		}
 		return result;

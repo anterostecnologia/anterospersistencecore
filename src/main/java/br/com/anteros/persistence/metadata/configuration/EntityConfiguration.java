@@ -18,32 +18,46 @@ package br.com.anteros.persistence.metadata.configuration;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import br.com.anteros.core.converter.Converter;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
+import br.com.anteros.persistence.metadata.EntityListener;
 import br.com.anteros.persistence.metadata.annotation.Comment;
 import br.com.anteros.persistence.metadata.annotation.Convert;
 import br.com.anteros.persistence.metadata.annotation.Converts;
 import br.com.anteros.persistence.metadata.annotation.DiscriminatorColumn;
 import br.com.anteros.persistence.metadata.annotation.DiscriminatorValue;
 import br.com.anteros.persistence.metadata.annotation.Entity;
+import br.com.anteros.persistence.metadata.annotation.EntityListeners;
 import br.com.anteros.persistence.metadata.annotation.EnumValue;
 import br.com.anteros.persistence.metadata.annotation.EnumValues;
+import br.com.anteros.persistence.metadata.annotation.EventType;
 import br.com.anteros.persistence.metadata.annotation.Index;
 import br.com.anteros.persistence.metadata.annotation.Indexes;
 import br.com.anteros.persistence.metadata.annotation.Inheritance;
 import br.com.anteros.persistence.metadata.annotation.MappedSuperclass;
 import br.com.anteros.persistence.metadata.annotation.NamedQueries;
 import br.com.anteros.persistence.metadata.annotation.NamedQuery;
+import br.com.anteros.persistence.metadata.annotation.PostPersist;
+import br.com.anteros.persistence.metadata.annotation.PostRemove;
+import br.com.anteros.persistence.metadata.annotation.PostUpdate;
+import br.com.anteros.persistence.metadata.annotation.PostValidate;
+import br.com.anteros.persistence.metadata.annotation.PrePersist;
+import br.com.anteros.persistence.metadata.annotation.PreRemove;
+import br.com.anteros.persistence.metadata.annotation.PreUpdate;
+import br.com.anteros.persistence.metadata.annotation.PreValidate;
 import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumn;
 import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumns;
 import br.com.anteros.persistence.metadata.annotation.ReadOnly;
@@ -97,6 +111,8 @@ public class EntityConfiguration {
 	private List<SecondaryTableConfiguration> secondaryTables = new LinkedList<SecondaryTableConfiguration>();
 	private List<PrimaryKeyJoinColumnConfiguration> primaryKeys = new LinkedList<PrimaryKeyJoinColumnConfiguration>();
 	private String foreignKeyName;
+	private List<EntityListener> entityListeners = new ArrayList<EntityListener>();
+	private Map<Method,EventType> methodListeners = new HashMap<Method,EventType>();
 
 	public EntityConfiguration(Class<? extends Serializable> sourceClazz, PersistenceModelConfiguration model) {
 		this.sourceClazz = sourceClazz;
@@ -106,6 +122,34 @@ public class EntityConfiguration {
 
 	public Class<? extends Serializable> getSourceClazz() {
 		return sourceClazz;
+	}
+	
+	public EntityConfiguration entityListeners(Object listener) throws ClassNotFoundException {
+		annotations.add(EntityListeners.class);
+		Set<String> cls = new HashSet<String>();
+		cls.add(listener.getClass().getName());
+		Method[] methods = ReflectionUtils.getAllMethodsAnnotatedWith(cls, new Class[] { PrePersist.class, PostPersist.class,
+				PreUpdate.class, PostUpdate.class, PreRemove.class, PostRemove.class, PreValidate.class, PostValidate.class });
+		for (Method mt : methods) {
+			if (mt.isAnnotationPresent(PrePersist.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PrePersist));
+			} else if (mt.isAnnotationPresent(PostPersist.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PostPersist));
+			} else if (mt.isAnnotationPresent(PreUpdate.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PreUpdate));
+			} else if (mt.isAnnotationPresent(PostUpdate.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PostUpdate));
+			} else if (mt.isAnnotationPresent(PreRemove.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PreRemove));
+			} else if (mt.isAnnotationPresent(PostRemove.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PostRemove));
+			} else if (mt.isAnnotationPresent(PreValidate.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PreValidate));
+			} else if (mt.isAnnotationPresent(PostValidate.class)) {
+				entityListeners.add(EntityListener.of(listener, mt, EventType.PostValidate));
+			}
+		}
+		return this;
 	}
 
 	public FieldConfiguration addField(String fieldName) throws Exception {
@@ -268,11 +312,60 @@ public class EntityConfiguration {
 		return sourceClazz.getName();
 	}
 
-	public void loadAnnotations() {
+	public void loadAnnotations() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		Annotation[] annotations = sourceClazz.getAnnotations();
 		for (Annotation annotation : annotations) {
 			if (annotation instanceof Entity) {
 				this.annotations.add(Entity.class);
+			} else if (annotation instanceof EntityListeners) {
+				this.annotations.add(EntityListeners.class);
+				EntityListeners listeners = ((EntityListeners) annotation);
+				for (Class<?> cl : listeners.value()) {
+					entityListeners(cl.newInstance());
+				}
+				Set<String> cls = new HashSet<String>();
+				cls.add(sourceClazz.getName());
+				try {
+					Method[] methods = ReflectionUtils.getAllMethodsAnnotatedWith(cls,
+							new Class[] { PrePersist.class, PostPersist.class, PreUpdate.class, PostUpdate.class,
+									PreRemove.class, PostRemove.class, PreValidate.class, PostValidate.class });
+					for (Method m : methods) {
+						if (m.isAnnotationPresent(PrePersist.class)) {
+							methodListeners.put(m,EventType.PrePersist);
+							this.annotations.add(PrePersist.class);
+						}
+						if (m.isAnnotationPresent(PostPersist.class)) {
+							methodListeners.put(m,EventType.PostPersist);
+							this.annotations.add(PostPersist.class);
+						}
+						if (m.isAnnotationPresent(PreUpdate.class)) {
+							methodListeners.put(m,EventType.PreUpdate);
+							this.annotations.add(PreUpdate.class);
+						}
+						if (m.isAnnotationPresent(PostUpdate.class)) {
+							methodListeners.put(m,EventType.PostUpdate);
+							this.annotations.add(PostUpdate.class);
+						}
+						if (m.isAnnotationPresent(PreRemove.class)) {
+							methodListeners.put(m,EventType.PreRemove);
+							this.annotations.add(PreRemove.class);
+						}
+						if (m.isAnnotationPresent(PostRemove.class)) {
+							methodListeners.put(m,EventType.PostRemove);
+							this.annotations.add(PostRemove.class);
+						}
+						if (m.isAnnotationPresent(PreValidate.class)) {
+							methodListeners.put(m,EventType.PreValidate);
+							this.annotations.add(PreValidate.class);
+						}
+						if (m.isAnnotationPresent(PostValidate.class)) {
+							methodListeners.put(m,EventType.PostValidate);
+							this.annotations.add(PostValidate.class);
+						}
+					}
+				} catch (ClassNotFoundException e) {
+					new RuntimeException(e);
+				}
 			} else if (annotation instanceof Table) {
 				table(((Table) annotation).catalog(), ((Table) annotation).schema(), ((Table) annotation).name());
 				UniqueConstraint[] constraints = ((Table) annotation).uniqueConstraints();
@@ -311,7 +404,7 @@ public class EntityConfiguration {
 					secondaryTables(secondaryConf);
 				else
 					secondaryTable(secondaryConf);
-				
+
 			} else if ((annotation instanceof Indexes) || (annotation instanceof Index)
 					|| (annotation instanceof Index.List)) {
 				Index[] indexes = null;
@@ -339,21 +432,22 @@ public class EntityConfiguration {
 				if (annotation instanceof PrimaryKeyJoinColumns)
 					primaryKeys = ((PrimaryKeyJoinColumns) annotation).value();
 				else if (annotation instanceof PrimaryKeyJoinColumn)
-					primaryKeys = new PrimaryKeyJoinColumn[] {(PrimaryKeyJoinColumn) annotation};
-				
+					primaryKeys = new PrimaryKeyJoinColumn[] { (PrimaryKeyJoinColumn) annotation };
+
 				PrimaryKeyJoinColumnConfiguration[] pkJoinColumsConf = null;
 				if (primaryKeys != null) {
 					pkJoinColumsConf = new PrimaryKeyJoinColumnConfiguration[primaryKeys.length];
 					for (int i = 0; i < primaryKeys.length; i++) {
-						pkJoinColumsConf[i] = new PrimaryKeyJoinColumnConfiguration(primaryKeys[i].columnDefinition(), primaryKeys[i].name(), primaryKeys[i].referencedColumnName());
+						pkJoinColumsConf[i] = new PrimaryKeyJoinColumnConfiguration(primaryKeys[i].columnDefinition(),
+								primaryKeys[i].name(), primaryKeys[i].referencedColumnName());
 					}
 				}
-				
+
 				if (annotation instanceof PrimaryKeyJoinColumns)
 					primaryKeyJoinColumns(pkJoinColumsConf);
 				else if (annotation instanceof PrimaryKeyJoinColumn)
 					primaryKeyJoinColumn(pkJoinColumsConf);
-				
+
 			} else if (annotation instanceof DiscriminatorColumn) {
 				discriminatorColumn(((DiscriminatorColumn) annotation).name(),
 						((DiscriminatorColumn) annotation).length(),
@@ -522,13 +616,13 @@ public class EntityConfiguration {
 	public void comment(String comment) {
 		this.comment = comment;
 	}
-	
+
 	public EntityConfiguration primaryKeyJoinColumns(PrimaryKeyJoinColumnConfiguration[] pkJoinColumns) {
 		this.annotations.add(PrimaryKeyJoinColumns.class);
 		this.primaryKeys.addAll(Arrays.asList(pkJoinColumns));
 		return this;
 	}
-	
+
 	public EntityConfiguration primaryKeyJoinColumn(PrimaryKeyJoinColumnConfiguration[] pkJoinColumn) {
 		this.annotations.add(PrimaryKeyJoinColumn.class);
 		this.primaryKeys.addAll(Arrays.asList(pkJoinColumn));
@@ -763,16 +857,25 @@ public class EntityConfiguration {
 		this.foreignKeyName = foreignKeyName;
 		return this;
 	}
-	
-	public EntityConfiguration addPrimaryKeyJoinColumn(String columnDefinition, String name, String referencedColumnName) {
+
+	public EntityConfiguration addPrimaryKeyJoinColumn(String columnDefinition, String name,
+			String referencedColumnName) {
 		this.annotations.add(PrimaryKeyJoinColumns.class);
 		primaryKeys.add(new PrimaryKeyJoinColumnConfiguration(columnDefinition, name, referencedColumnName));
 		return this;
 	}
-	
+
 	public EntityConfiguration addPrimaryKeyJoinColumn(PrimaryKeyJoinColumnConfiguration pkJoinColumnConfiguration) {
 		this.annotations.add(PrimaryKeyJoinColumns.class);
 		primaryKeys.add(pkJoinColumnConfiguration);
 		return this;
+	}
+
+	public Map<Method,EventType> getMethodListeners() {
+		return methodListeners;
+	}
+
+	public List<EntityListener> getEntityListeners() {
+		return entityListeners;
 	}
 }

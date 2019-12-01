@@ -57,6 +57,7 @@ public class AnterosMultipleFieldsFilter<T> {
 	private String fieldsSort;
 	private Predicate predicate;
 	private Integer paramNumber;
+	private String fieldsToForceLazy;
 
 	public AnterosMultipleFieldsFilter(DynamicEntityPath entityPath, Predicate predicate) {
 		super();
@@ -127,6 +128,7 @@ public class AnterosMultipleFieldsFilter<T> {
 		}
 
 		query = new OSQLQuery(session).from(entityPath);
+		query.setFieldsToForceLazy(fieldsToForceLazy);
 
 		BooleanBuilder builder = new BooleanBuilder();
 
@@ -162,6 +164,7 @@ public class AnterosMultipleFieldsFilter<T> {
 						+ session.getEntityCacheManager().getEntityCache(resultClass).getEntityClass().getName());
 			}
 			StringPath predicateField = entityPath.createFieldString(tenantId.getName());
+			paramNumber++;
 			StringParam param = new StringParam("P" + paramNumber);
 			parameters.put(param, session.getTenantId());
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, param);
@@ -174,6 +177,7 @@ public class AnterosMultipleFieldsFilter<T> {
 						+ session.getEntityCacheManager().getEntityCache(resultClass).getEntityClass().getName());
 			}
 			StringPath predicateField = entityPath.createFieldString(companyId.getName());
+			paramNumber++;
 			StringParam param = new StringParam("P" + paramNumber);
 			parameters.put(param, session.getCompanyId());
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, param);
@@ -775,6 +779,11 @@ public class AnterosMultipleFieldsFilter<T> {
 				return null;
 			}
 		}
+	}
+
+	public AnterosMultipleFieldsFilter<T> fieldsToForceLazy(String forceLazy) {
+		this.fieldsToForceLazy = forceLazy;
+		return this;
 	}
 
 }

@@ -132,8 +132,9 @@ public class FieldConfiguration {
 		return company;
 	}
 
-	public void externalFile(boolean externalFile) {
-		this.externalFile = externalFile;
+	public void externalFile() {
+		this.externalFile = true;
+		annotations.add(ExternalFile.class);
 	}
 
 	public FieldConfiguration(EntityConfiguration entity) {
@@ -631,7 +632,7 @@ public class FieldConfiguration {
 			} else if (annotation instanceof Comment) {
 				comment(((Comment) annotation).value());
 			} else if (annotation instanceof ExternalFile) {
-				externalFile(true);
+				externalFile();
 			} else if ((annotation instanceof Converts) || (annotation instanceof Convert) || (annotation instanceof Convert.List)) {
 				Convert[] converts = null;
 				if (annotation instanceof Converts)

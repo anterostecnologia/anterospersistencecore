@@ -13,6 +13,8 @@
 package br.com.anteros.persistence.metadata;
 
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
@@ -48,8 +50,11 @@ import br.com.anteros.persistence.metadata.annotation.Convert;
 import br.com.anteros.persistence.metadata.annotation.Converts;
 import br.com.anteros.persistence.metadata.annotation.DiscriminatorColumn;
 import br.com.anteros.persistence.metadata.annotation.DiscriminatorValue;
+import br.com.anteros.persistence.metadata.annotation.EntityListeners;
 import br.com.anteros.persistence.metadata.annotation.EnumValues;
 import br.com.anteros.persistence.metadata.annotation.Enumerated;
+import br.com.anteros.persistence.metadata.annotation.EventType;
+import br.com.anteros.persistence.metadata.annotation.ExternalFile;
 import br.com.anteros.persistence.metadata.annotation.Fetch;
 import br.com.anteros.persistence.metadata.annotation.ForeignKey;
 import br.com.anteros.persistence.metadata.annotation.GeneratedValue;
@@ -66,6 +71,14 @@ import br.com.anteros.persistence.metadata.annotation.MapKeyTemporal;
 import br.com.anteros.persistence.metadata.annotation.NamedQueries;
 import br.com.anteros.persistence.metadata.annotation.NamedQuery;
 import br.com.anteros.persistence.metadata.annotation.OrderBy;
+import br.com.anteros.persistence.metadata.annotation.PostPersist;
+import br.com.anteros.persistence.metadata.annotation.PostRemove;
+import br.com.anteros.persistence.metadata.annotation.PostUpdate;
+import br.com.anteros.persistence.metadata.annotation.PostValidate;
+import br.com.anteros.persistence.metadata.annotation.PrePersist;
+import br.com.anteros.persistence.metadata.annotation.PreRemove;
+import br.com.anteros.persistence.metadata.annotation.PreUpdate;
+import br.com.anteros.persistence.metadata.annotation.PreValidate;
 import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumn;
 import br.com.anteros.persistence.metadata.annotation.PrimaryKeyJoinColumns;
 import br.com.anteros.persistence.metadata.annotation.SQLDelete;
@@ -150,6 +163,7 @@ public class EntityCacheManager {
 	private boolean validate = true;
 	private PropertyAccessorFactory propertyAccessorFactory;
 	private DatabaseDialect databaseDialect;
+	private Map<Object, Class<?>> entityListeners;
 
 	private Set<EntityCache> processedEntities = new HashSet<EntityCache>();
 
@@ -162,17 +176,32 @@ public class EntityCacheManager {
 	 * param clazzes throws Exception
 	 */
 	public void load(List<Class<? extends Serializable>> clazzes, boolean validate,
-			PropertyAccessorFactory propertyAccessorFactory, DatabaseDialect databaseDialect) throws Exception {
+			PropertyAccessorFactory propertyAccessorFactory, DatabaseDialect databaseDialect,
+			Map<Object, Class<?>> entityListeners) throws Exception {
 		this.propertyAccessorFactory = propertyAccessorFactory;
+		this.entityListeners = entityListeners;
 		if (!isLoaded()) {
 			Collections.sort(clazzes, new DependencyComparator());
 			PersistenceModelConfiguration modelConfiguration = new PersistenceModelConfiguration();
 			for (Class<? extends Serializable> sourceClazz : clazzes) {
 				modelConfiguration.loadAnnotationsByClass(sourceClazz);
+
+				if (!ReflectionUtils.isImplementsInterface(sourceClazz, AttributeConverter.class)) {
+					EntityConfiguration configuration = modelConfiguration
+							.getEntityConfigurationBySourceClass(sourceClazz);
+					if (configuration != null) {
+						for (Object listener : entityListeners.keySet()) {
+							Class<?> entity = entityListeners.get(listener);
+							if (entity.equals(sourceClazz)) {
+								configuration.entityListeners(listener);
+							}
+						}
+					}
+				}
 			}
 			modelConfiguration.createOmmitedOrDefaultSettings();
 			this.validate = validate;
-			load(modelConfiguration, propertyAccessorFactory, databaseDialect);
+			load(modelConfiguration, propertyAccessorFactory, databaseDialect, entityListeners);
 		}
 	}
 
@@ -181,7 +210,7 @@ public class EntityCacheManager {
 	 * modelo. param modelConfiguration throws Exception
 	 */
 	public void load(PersistenceModelConfiguration modelConfiguration, PropertyAccessorFactory propertyAccessorFactory,
-			DatabaseDialect databaseDialect) throws Exception {
+			DatabaseDialect databaseDialect, Map<Object, Class<?>> entityListeners) throws Exception {
 		this.propertyAccessorFactory = propertyAccessorFactory;
 		this.databaseDialect = databaseDialect;
 		if (!isLoaded()) {
@@ -245,8 +274,8 @@ public class EntityCacheManager {
 			/*
 			 * Valida se os parâmetros usados nas configurações
 			 * 
-			 * SQLInsert,SQLUpdate,SQLDelete,SQLDeleteAll existem na lista de
-			 * colunas da classe.
+			 * SQLInsert,SQLUpdate,SQLDelete,SQLDeleteAll existem na lista de colunas da
+			 * classe.
 			 */
 			for (DescriptionSQL descriptionSQL : entityCache.getDescriptionSql().values()) {
 				NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache
@@ -271,8 +300,8 @@ public class EntityCacheManager {
 
 			for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
 				/*
-				 * Valida se o campo simples foi marcado como requerido mas está
-				 * numa classe que é uma herança
+				 * Valida se o campo simples foi marcado como requerido mas está numa classe que
+				 * é uma herança
 				 */
 				if (descriptionField.isSimple() && descriptionField.getSimpleColumn().isRequired()) {
 					if ((descriptionField.getEntityCache() == entityCache) && (entityCache.isInheritance())
@@ -287,8 +316,8 @@ public class EntityCacheManager {
 				/*
 				 * Valida se os parâmetros usados nas configurações
 				 * 
-				 * SQLInsert,SQLUpdate,SQLDelete,SQLDeleteAll do campo existem
-				 * na lista de colunas da classe do campo.
+				 * SQLInsert,SQLUpdate,SQLDelete,SQLDeleteAll do campo existem na lista de
+				 * colunas da classe do campo.
 				 */
 				for (DescriptionSQL descriptionSQL : descriptionField.getDescriptionSql().values()) {
 					NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache
@@ -326,8 +355,7 @@ public class EntityCacheManager {
 										+ entityCache.getEntityClass().getName());
 					}
 					/*
-					 * Verifica se as colunas da chave estrangeira estão na
-					 * classe referenciada
+					 * Verifica se as colunas da chave estrangeira estão na classe referenciada
 					 */
 					for (DescriptionColumn column : descriptionField.getDescriptionColumns()) {
 						if (column.isForeignKey()) {
@@ -352,8 +380,7 @@ public class EntityCacheManager {
 					}
 
 					/*
-					 * Verifica se as colunas da chave primária fazem parte da
-					 * chave estrangeira
+					 * Verifica se as colunas da chave primária fazem parte da chave estrangeira
 					 */
 					// if (descriptionField.isRelationShip()) {
 					// List<EntityCache> entitiesCache =
@@ -471,8 +498,7 @@ public class EntityCacheManager {
 	private void loadRemainderConfigurations(EntityCache cache) throws EntityCacheException {
 
 		/*
-		 * Percorre DescriptionFields, se FetchMode.ONE_TO_MANY, seta a
-		 * targetEntity
+		 * Percorre DescriptionFields, se FetchMode.ONE_TO_MANY, seta a targetEntity
 		 */
 		for (DescriptionField descriptionField : cache.getDescriptionFields()) {
 			/*
@@ -623,9 +649,9 @@ public class EntityCacheManager {
 		 * Possui a configuração Inheritance
 		 */
 		if (entityConfiguration.isAnnotationPresent(Inheritance.class)) {
-			
+
 			entityCache.setInheritanceType(entityConfiguration.getInheritanceStrategy());
-			
+
 			/*
 			 * Estratégia de herança SINGLE_TABLE
 			 */
@@ -646,6 +672,21 @@ public class EntityCacheManager {
 		if (entityConfiguration.isAnnotationPresent(Cache.class)) {
 			entityCache.setCacheScope(entityConfiguration.getScope());
 			entityCache.setMaxTimeCache(entityConfiguration.getMaxTimeMemory());
+		}
+
+		/*
+		 * Possui EntityListeners
+		 */
+		if (entityConfiguration.isAnnotationPresent(EntityListeners.class)) {
+			entityCache.setEntityListeners(entityConfiguration.getEntityListeners());
+		}
+
+		/*
+		 * Possui events nos métodos
+		 */
+		if (entityConfiguration.isAnnotationPresent(new Class[] { PrePersist.class, PostPersist.class, PreUpdate.class,
+				PostUpdate.class, PreRemove.class, PostRemove.class, PreValidate.class, PostValidate.class })) {
+			entityCache.getMethodListeners().putAll(entityConfiguration.getMethodListeners());
 		}
 
 		/*
@@ -745,27 +786,28 @@ public class EntityCacheManager {
 							secondaryTable.getCatalog(), secondaryTable.getSchema(), secondaryTable.getTableName());
 					descritionSecondaryTable.setForeignKeyName(secondaryTable.getForeignKeyName());
 					for (PrimaryKeyJoinColumnConfiguration pkConfiguration : secondaryTable.getPkJoinColumns()) {
-						descritionSecondaryTable.addPrimaryKey(
-								new DescriptionPkJoinColumn(pkConfiguration.getName(), pkConfiguration.getReferencedColumnName()));
+						descritionSecondaryTable.addPrimaryKey(new DescriptionPkJoinColumn(pkConfiguration.getName(),
+								pkConfiguration.getReferencedColumnName()));
 					}
 
 					entityCache.getSecondaryTables().add(descritionSecondaryTable);
 				}
 			}
 		}
-		
+
 		/*
 		 * Adiciona as primaryKeyJoinColumns
 		 */
 		if (entityConfiguration.isAnnotationPresent(PrimaryKeyJoinColumns.class)
 				|| entityConfiguration.isAnnotationPresent(PrimaryKeyJoinColumn.class)) {
-			
+
 			List<PrimaryKeyJoinColumnConfiguration> primaryKeys = entityConfiguration.getPrimaryKeys();
 			entityCache.setForeignKeyName(entityConfiguration.getForeignKeyName());
 			if (primaryKeys != null) {
 				for (PrimaryKeyJoinColumnConfiguration pKJoinColumnConfiguration : primaryKeys) {
-					entityCache.getPrimaryKeyJoinColumns().add(new DescriptionPkJoinColumn(pKJoinColumnConfiguration.getName(), pKJoinColumnConfiguration.getReferencedColumnName()));
-				}	
+					entityCache.getPrimaryKeyJoinColumns().add(new DescriptionPkJoinColumn(
+							pKJoinColumnConfiguration.getName(), pKJoinColumnConfiguration.getReferencedColumnName()));
+				}
 			}
 		}
 
@@ -822,8 +864,8 @@ public class EntityCacheManager {
 				readForeignKeyConfiguration(fieldConfiguration, entityCache, entityConfiguration.getModel());
 
 			/*
-			 * Se não possuir ForeignKey, Fetch e CompositeId ou Transient será
-			 * uma coluna normal
+			 * Se não possuir ForeignKey, Fetch e CompositeId ou Transient será uma coluna
+			 * normal
 			 */
 			if (!fieldConfiguration.isAnnotationPresent(ForeignKey.class)
 					&& !fieldConfiguration.isAnnotationPresent(Fetch.class)
@@ -851,8 +893,7 @@ public class EntityCacheManager {
 						+ " possui configuração Remote e deve estar acompanhada da configuração JoinTable ");
 
 			/*
-			 * Se possuir SQLInsert, SQLDelete, SQLDeleteAll ou SQLUpdate no
-			 * field
+			 * Se possuir SQLInsert, SQLDelete, SQLDeleteAll ou SQLUpdate no field
 			 */
 			readConfigurationSQL(sourceClazz, entityCache,
 					new Class[] { SQLInsert.class, SQLUpdate.class, SQLDelete.class, SQLDeleteAll.class },
@@ -1066,9 +1107,8 @@ public class EntityCacheManager {
 						}
 
 						/*
-						 * Se possuir MapKeyColumn deve ser do tipo
-						 * String.class,Integer.class, Long.class, Date.class ou
-						 * Enum
+						 * Se possuir MapKeyColumn deve ser do tipo String.class,Integer.class,
+						 * Long.class, Date.class ou Enum
 						 */
 						if (!ReflectionUtils.containsInTypedMap(fieldConfiguration.getField(),
 								new Class<?>[] { String.class, Integer.class, Long.class, Date.class, Enum.class,
@@ -1210,8 +1250,8 @@ public class EntityCacheManager {
 			}
 
 			/*
-			 * Se possuir Cascade e o field não for uma Collection ou
-			 * ForeignKey, e não possuir Fetch
+			 * Se possuir Cascade e o field não for uma Collection ou ForeignKey, e não
+			 * possuir Fetch
 			 */
 			if (fieldConfiguration.isAnnotationPresent(Cascade.class)) {
 				if (!ReflectionUtils.isCollection(fieldConfiguration.getType())
@@ -1558,8 +1598,7 @@ public class EntityCacheManager {
 		}
 
 		/*
-		 * Se a coluna/colunas forem configuradas como únicas adiciona
-		 * constraint única
+		 * Se a coluna/colunas forem configuradas como únicas adiciona constraint única
 		 */
 		if ((fieldConfiguration.isAnnotationPresent(Column.class))
 				|| (fieldConfiguration.isAnnotationPresent(Columns.class))) {
@@ -1628,14 +1667,14 @@ public class EntityCacheManager {
 
 			descriptionField.add(descriptionJoinColumn);
 		}
-		
+
 		/*
 		 * Se possuir Tenant
 		 */
 		if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
 			descriptionColumn.setTenant(true);
 		}
-		
+
 		/*
 		 * Se possuir Company
 		 */
@@ -1714,8 +1753,7 @@ public class EntityCacheManager {
 		}
 
 		/*
-		 * Se a coluna/colunas forem configuradas como únicas adiciona
-		 * constraint única
+		 * Se a coluna/colunas forem configuradas como únicas adiciona constraint única
 		 */
 		if ((fieldConfiguration.isAnnotationPresent(Column.class))
 				|| (fieldConfiguration.isAnnotationPresent(Columns.class))) {
@@ -1758,7 +1796,8 @@ public class EntityCacheManager {
 			descriptionColumn.setForeignKey(true);
 			descriptionColumn.setReferencedColumnName(
 					((joinColumn.getReferencedColumnName() == null || joinColumn.getReferencedColumnName().equals("")))
-							? joinColumn.getName() : joinColumn.getReferencedColumnName());
+							? joinColumn.getName()
+							: joinColumn.getReferencedColumnName());
 			descriptionColumn.setJoinColumn(true);
 			descriptionColumn.setColumnDefinition(joinColumn.getColumnDefinition());
 			descriptionField.add(descriptionColumn);
@@ -1773,7 +1812,8 @@ public class EntityCacheManager {
 			descriptionColumn.setForeignKey(true);
 			descriptionColumn.setReferencedColumnName(
 					(joinColumn.getReferencedColumnName() == null || joinColumn.getReferencedColumnName().equals(""))
-							? joinColumn.getName() : joinColumn.getReferencedColumnName());
+							? joinColumn.getName()
+							: joinColumn.getReferencedColumnName());
 			descriptionColumn.setInversedJoinColumn(true);
 			descriptionColumn.setColumnDefinition(joinColumn.getColumnDefinition());
 			descriptionField.add(descriptionColumn);
@@ -1813,13 +1853,14 @@ public class EntityCacheManager {
 			descriptionColumn.setColumnName(columnName);
 			descriptionColumn.setCompositeId(fieldConfiguration.isAnnotationPresent(CompositeId.class));
 			descriptionColumn.setExpression(fieldConfiguration.getName());
-			descriptionColumn.setReferencedColumnName(columnConfiguration.getInversedColumn().equals("")
-					? columnConfiguration.getName() : columnConfiguration.getInversedColumn());
+			descriptionColumn.setReferencedColumnName(
+					columnConfiguration.getInversedColumn().equals("") ? columnConfiguration.getName()
+							: columnConfiguration.getInversedColumn());
 			descriptionColumn.setLength(columnConfiguration.getLength());
 			descriptionColumn.setPrecision(columnConfiguration.getPrecision());
 			descriptionColumn.setScale(columnConfiguration.getScale());
 			descriptionColumn.setColumnDefinition(columnConfiguration.getColumnDefinition());
-			
+
 			if (fieldConfiguration.isAnnotationPresent(CompositeId.class)) {
 				descriptionColumn.setColumnType(ColumnType.PRIMARY_KEY);
 				descriptionColumn.setRequired(true);
@@ -1841,7 +1882,7 @@ public class EntityCacheManager {
 			if (fieldConfiguration.isAnnotationPresent(Enumerated.class)) {
 				readEnumeratedConfiguration(fieldConfiguration, entityCache, model, descriptionColumn);
 			}
-			
+
 			/*
 			 * Se for Temporal
 			 */
@@ -1851,14 +1892,14 @@ public class EntityCacheManager {
 				descriptionColumn.setDateTimePattern(fieldConfiguration.getSimpleColumn().getDateTimePattern());
 				descriptionColumn.setTimePattern(fieldConfiguration.getSimpleColumn().getTimePattern());
 			}
-			
+
 			/*
 			 * Se possuir Tenant
 			 */
 			if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
 				descriptionColumn.setTenant(true);
 			}
-			
+
 			/*
 			 * Se possuir Company
 			 */
@@ -1890,8 +1931,8 @@ public class EntityCacheManager {
 					.toArray(new ColumnConfiguration[] {});
 			DescriptionColumn descComposite;
 			/*
-			 * Se possuir Columns e ForeignKey Adiciona na Coleção de
-			 * ForeignKeys foreignColumns
+			 * Se possuir Columns e ForeignKey Adiciona na Coleção de ForeignKeys
+			 * foreignColumns
 			 */
 			if (fieldConfiguration.isAnnotationPresent(ForeignKey.class)) {
 				descriptionField = new DescriptionField(entityCache, fieldConfiguration.getField());
@@ -1913,8 +1954,9 @@ public class EntityCacheManager {
 			for (ColumnConfiguration columnConfiguration : columnsConfiguration) {
 				descComposite = new DescriptionColumn(entityCache, fieldConfiguration.getField());
 				descComposite.setColumnName(columnConfiguration.getName());
-				descComposite.setReferencedColumnName(columnConfiguration.getInversedColumn().equals("")
-						? columnConfiguration.getName() : columnConfiguration.getInversedColumn());
+				descComposite.setReferencedColumnName(
+						columnConfiguration.getInversedColumn().equals("") ? columnConfiguration.getName()
+								: columnConfiguration.getInversedColumn());
 				descComposite.setRequired(fieldConfiguration.isAnnotationPresent(CompositeId.class));
 				descComposite.setCompositeId(fieldConfiguration.isAnnotationPresent(CompositeId.class));
 				descComposite.setColumnDefinition(columnConfiguration.getColumnDefinition());
@@ -1954,10 +1996,9 @@ public class EntityCacheManager {
 
 		DescriptionColumn descriptionColumn = new DescriptionColumn(entityCache, fieldConfiguration.getField());
 		descriptionColumn.setExternalFile(fieldConfiguration.isExternalFile());
-		if (fieldConfiguration.getSimpleColumn()!=null){
+		if (fieldConfiguration.getSimpleColumn() != null) {
 			descriptionColumn.setTableName(fieldConfiguration.getSimpleColumn().getTableName());
 		}
-		
 
 		if (fieldConfiguration.isAnnotationPresent(Column.class)) {
 			ColumnConfiguration column = fieldConfiguration.getSimpleColumn();
@@ -2012,19 +2053,26 @@ public class EntityCacheManager {
 		if (fieldConfiguration.isAnnotationPresent(Version.class)) {
 			descriptionColumn.setVersioned(true);
 		}
-		
+
 		/*
 		 * Se possuir Tenant
 		 */
 		if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
 			descriptionColumn.setTenant(true);
 		}
-		
+
 		/*
 		 * Se possuir Company
 		 */
 		if (fieldConfiguration.isAnnotationPresent(CompanyId.class)) {
 			descriptionColumn.setCompany(true);
+		}
+
+		/*
+		 * Se possuir ExternalFile
+		 */
+		if (fieldConfiguration.isAnnotationPresent(ExternalFile.class)) {
+			descriptionColumn.setExternalFile(true);
 		}
 
 		/*
@@ -2054,8 +2102,8 @@ public class EntityCacheManager {
 		}
 
 		/*
-		 * Se possuir Id ou CompositeId. define como PrimaryKey e adiciona na
-		 * coleção de descriptioncolumns
+		 * Se possuir Id ou CompositeId. define como PrimaryKey e adiciona na coleção de
+		 * descriptioncolumns
 		 */
 		if (fieldConfiguration.isAnnotationPresent(Id.class)
 				|| (fieldConfiguration.isAnnotationPresent(CompositeId.class)
@@ -2087,8 +2135,7 @@ public class EntityCacheManager {
 		}
 
 		/*
-		 * Se a coluna/colunas forem configuradas como únicas adiciona
-		 * constraint única
+		 * Se a coluna/colunas forem configuradas como únicas adiciona constraint única
 		 */
 		if ((fieldConfiguration.isAnnotationPresent(Column.class))
 				|| (fieldConfiguration.isAnnotationPresent(Columns.class))) {
@@ -2126,15 +2173,15 @@ public class EntityCacheManager {
 					EnumValueConfiguration[] enumValuesConfiguration = enumConfiguration.getEnumValues();
 
 					/*
-					 * Se quantidade de constantes da Classe de Enum difere da
-					 * quantidade de EnumValue.
+					 * Se quantidade de constantes da Classe de Enum difere da quantidade de
+					 * EnumValue.
 					 */
 					if (enumValuesConfiguration.length != enumClass.getEnumConstants().length)
-						throw new EntityCacheException(
-								"A quantidade de valores definidos no Enum " + enumClass.getName()
-										+ " difere da quantidade de valores definidos na configuração EnumValues.\nEnumValues->"
-										+ Arrays.toString(enumValuesConfiguration) + "\n" + enumClass.getName() + "->"
-										+ Arrays.toString(enumClass.getEnumConstants()));
+						throw new EntityCacheException("A quantidade de valores definidos no Enum "
+								+ enumClass.getName()
+								+ " difere da quantidade de valores definidos na configuração EnumValues.\nEnumValues->"
+								+ Arrays.toString(enumValuesConfiguration) + "\n" + enumClass.getName() + "->"
+								+ Arrays.toString(enumClass.getEnumConstants()));
 
 					for (EnumValueConfiguration value : enumValuesConfiguration)
 						enumValues.put(value.getEnumValue(), value.getValue());
@@ -2213,8 +2260,7 @@ public class EntityCacheManager {
 		if (fieldConfiguration.isAnnotationPresent(GeneratedValue.class)) {
 
 			/*
-			 * Se possuir GeneratedValue, adiciona um sequence na
-			 * DescriptionColumn
+			 * Se possuir GeneratedValue, adiciona um sequence na DescriptionColumn
 			 */
 			if (fieldConfiguration.isAnnotationPresent(GeneratedValue.class)) {
 				descriptionColumn.setGeneratedType(fieldConfiguration.getGeneratedType());
@@ -2313,8 +2359,8 @@ public class EntityCacheManager {
 			}
 
 			/*
-			 * Adiciona o generator referenciado no field no generatedValue caso
-			 * exista na entidade.
+			 * Adiciona o generator referenciado no field no generatedValue caso exista na
+			 * entidade.
 			 */
 			if (StringUtils.isNotEmpty(fieldConfiguration.getGenerator())) {
 				DescriptionGenerator descriptionGenerator = entityCache
@@ -2329,10 +2375,10 @@ public class EntityCacheManager {
 	}
 
 	/**
-	 * Se possuir ForeignKey Cria um DescriptionField. Verifica de possui Fetch
-	 * e seta suas propiedades no DescriptionField. Se não possuir CompositeId
-	 * cria um DescriptionColumn e adiciona na coleção de ForeignKeys. Por fim,
-	 * faz a união das coleções de DescriptionField com ForeignKeys
+	 * Se possuir ForeignKey Cria um DescriptionField. Verifica de possui Fetch e
+	 * seta suas propiedades no DescriptionField. Se não possuir CompositeId cria um
+	 * DescriptionColumn e adiciona na coleção de ForeignKeys. Por fim, faz a união
+	 * das coleções de DescriptionField com ForeignKeys
 	 * 
 	 * throws Exception
 	 */
@@ -2342,21 +2388,21 @@ public class EntityCacheManager {
 			DescriptionColumn descriptionColumn = new DescriptionColumn(entityCache, fieldConfiguration.getField());
 			descriptionColumn.setColumnName(fieldConfiguration.getName().toLowerCase());
 			descriptionColumn.setForeignKey(true);
-			
+
 			/*
 			 * Se possuir Tenant
 			 */
 			if (fieldConfiguration.isAnnotationPresent(TenantId.class)) {
 				descriptionColumn.setTenant(true);
 			}
-			
+
 			/*
 			 * Se possuir Company
 			 */
 			if (fieldConfiguration.isAnnotationPresent(CompanyId.class)) {
 				descriptionColumn.setCompany(true);
 			}
-			
+
 			FieldConfiguration foreingKeyField = getIdFieldConfiguration(fieldConfiguration.getType(), model);
 			if (foreingKeyField == null)
 				throw new EntityCacheException("Campo " + fieldConfiguration.getName() + " da classe "
@@ -2371,8 +2417,9 @@ public class EntityCacheManager {
 				descriptionColumn.setPrecision(simpleColumn.getPrecision());
 				descriptionColumn.setScale(simpleColumn.getScale());
 				descriptionColumn.setRequired(simpleColumn.isRequired());
-				descriptionColumn.setReferencedColumnName("".equals(simpleColumn.getInversedColumn())
-						? simpleColumn.getName() : simpleColumn.getInversedColumn());
+				descriptionColumn
+						.setReferencedColumnName("".equals(simpleColumn.getInversedColumn()) ? simpleColumn.getName()
+								: simpleColumn.getInversedColumn());
 			} else {
 				if (foreingKeyField.isAnnotationPresent(Column.class)) {
 
@@ -2455,8 +2502,8 @@ public class EntityCacheManager {
 
 		readRemoteConfiguration(descriptionField, fieldConfiguration, entityCache);
 		/*
-		 * Verifica se é uma coleção. Se não estiver tipada recupera o tipo e
-		 * seta no TargetEntity
+		 * Verifica se é uma coleção. Se não estiver tipada recupera o tipo e seta no
+		 * TargetEntity
 		 */
 		if (ReflectionUtils.isCollection(fieldConfiguration.getType())) {
 			descriptionField.setFieldType(FieldType.COLLECTION_ENTITY);
@@ -2650,9 +2697,9 @@ public class EntityCacheManager {
 		int count = countEntityCacheByTableName(tableName);
 		if (countEntityCacheByTableName(tableName) > 1) {
 			List<EntityCache> tables = getEntityCachesByTableName(tableName);
-			
-			throw new EntityCacheManagerException(
-					"Foram encontradas " + count + " classes com o mesmo nome de tabela. "+Arrays.toString(tables.toArray(new EntityCache[] {})) );
+
+			throw new EntityCacheManagerException("Foram encontradas " + count + " classes com o mesmo nome de tabela. "
+					+ Arrays.toString(tables.toArray(new EntityCache[] {})));
 		}
 
 		if ((tableName != null) && (!"".equals(tableName))) {
@@ -2802,8 +2849,8 @@ public class EntityCacheManager {
 	/*
 	 * Necessário usar o split porque se o valor '$' não existir ele retorna a
 	 * String completa getCanonicalName() retorna nulo para objetos anonimos; Se
-	 * usasse substring com indexOf, poderia retornar indice -1; Verificar
-	 * melhor forma de implementar.
+	 * usasse substring com indexOf, poderia retornar indice -1; Verificar melhor
+	 * forma de implementar.
 	 */
 	public String convertEnumToValue(Enum<?> en) {
 		if (en != null) {

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import br.com.anteros.persistence.handler.EntityHandler;
 import br.com.anteros.persistence.metadata.EntityCacheManager;
+import br.com.anteros.persistence.metadata.annotation.EventType;
 import br.com.anteros.persistence.metadata.annotation.type.CallableType;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionColumn;
 import br.com.anteros.persistence.metadata.identifier.Identifier;
@@ -44,42 +45,8 @@ import br.com.anteros.persistence.transaction.Transaction;
 
 public interface SQLSession {
 
-	/*
-	 * Localiza um objeto pela sua chave
-	 */
-	public <T> T find(Class<T> entityClass, Object primaryKey) throws Exception;
-
-	public <T> T find(Class<T> entityClass, Object primaryKey, Map<String, Object> properties) throws Exception;
-
-	public <T> T find(Class<T> entityClass, Object primaryKey, LockOptions lockOptions) throws Exception;
-
-	public <T> T find(Class<T> entityClass, Object primaryKey, LockOptions lockOptions, Map<String, Object> properties) throws Exception;
-
-	public <T> T find(Identifier<T> id) throws Exception;
-
-	public <T> T find(Identifier<T> id, LockOptions lockOptions) throws Exception;
-
-	public <T> T find(Identifier<T> id, Map<String, Object> properties) throws Exception;
-
-	public <T> T find(Identifier<T> id, Map<String, Object> properties, LockOptions lockOptions) throws Exception;
-
-	public <T> T find(Class<T> entityClass, Object primaryKey, boolean readOnly) throws Exception;
-
-	public <T> T find(Class<T> entityClass, Object primaryKey, Map<String, Object> properties, boolean readOnly) throws Exception;
-
-	public <T> T find(Class<T> entityClass, Object primaryKey, LockOptions lockOptions, boolean readOnly) throws Exception;
-
-	public <T> T find(Class<T> entityClass, Object primaryKey, LockOptions lockOptions, Map<String, Object> properties, boolean readOnly)
-			throws Exception;
-
-	public <T> T find(Identifier<T> id, boolean readOnly) throws Exception;
-
-	public <T> T find(Identifier<T> id, LockOptions lockOptions, boolean readOnly) throws Exception;
-
-	public <T> T find(Identifier<T> id, Map<String, Object> properties, boolean readOnly) throws Exception;
-
-	public <T> T find(Identifier<T> id, Map<String, Object> properties, LockOptions lockOptions, boolean readOnly) throws Exception;
-
+	public <T> T find(FindParameters<T> params) throws Exception;
+	
 	/*
 	 * Atualiza o objeto com dados do banco descartando alterações na transação atual
 	 */
@@ -264,7 +231,7 @@ public interface SQLSession {
 
 	public EntityHandler createNewEntityHandler(Class<?> resultClass, Set<ExpressionFieldMapper> expressionsFieldMapper,
 			Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases, Cache transactionCache, boolean allowDuplicateObjects,
-			Object objectToRefresh, int firstResult, int maxResults, boolean readOnly, LockOptions lockOptions) throws Exception;
+			Object objectToRefresh, int firstResult, int maxResults, boolean readOnly, LockOptions lockOptions, String fieldsToForceLazy) throws Exception;
 
 	public boolean isProxyObject(Object object) throws Exception;
 
@@ -317,5 +284,9 @@ public interface SQLSession {
 	public void setCompanyId(Object value);
 	
 	public Object getCompanyId();
+	
+	public ExternalFileManager getExternalFileManager();
+
+	public void notifyListeners(EventType postvalidate, Object oldObject, Object newObject) throws Exception;
 
 }

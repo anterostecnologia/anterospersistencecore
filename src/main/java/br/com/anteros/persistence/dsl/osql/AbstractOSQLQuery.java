@@ -94,6 +94,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	private long offset;
 
 	private boolean allowDuplicateObjects = false;
+	
+	protected String fieldsToForceLazy;
 
 	public AbstractOSQLQuery(Configuration configuration) {
 		this(null, configuration, new DefaultQueryMetadata().noValidate());
@@ -195,6 +197,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 		try {
 			validateExpressions(expr);
 			SQLQuery query = createQuery(expr);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 			return (List<RT>) getResultList(query);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -251,6 +254,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 		validateSession();
 		try {
 			SQLQuery query = createQuery(expr);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 			return (RT) getSingleResult(query);
 		} catch (SQLQueryNoResultException se) {
 			return null;

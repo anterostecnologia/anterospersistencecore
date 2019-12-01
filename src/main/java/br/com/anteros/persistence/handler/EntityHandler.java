@@ -72,11 +72,13 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	private boolean isIncompleteKey;
 	private Set<ExpressionFieldMapper> expressionsFieldMapper;
 	private LockOptions lockOptions;
+	private String fieldsToForceLazy;
 
 	public EntityHandler(LazyLoadFactory proxyFactory, Class<?> targetClass, EntityCacheManager entityCacheManager,
 			Set<ExpressionFieldMapper> expressionsFieldMapper,
 			Map<SQLQueryAnalyserAlias, Map<String, String[]>> columnAliases, SQLSession session, Cache transactionCache,
-			boolean allowDuplicateObjects, int firstResult, int maxResults, boolean readOnly, LockOptions lockOptions) {
+			boolean allowDuplicateObjects, int firstResult, int maxResults, boolean readOnly, LockOptions lockOptions,
+			String fieldsToForceLazy) {
 		this.resultClass = targetClass;
 		this.session = session;
 		this.entityCacheManager = entityCacheManager;
@@ -88,14 +90,15 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		this.readOnly = readOnly;
 		this.expressionsFieldMapper = expressionsFieldMapper;
 		this.lockOptions = lockOptions;
+		this.fieldsToForceLazy = fieldsToForceLazy;
 	}
 
 	public EntityHandler(LazyLoadFactory proxyFactory, Class<?> targetClazz, EntityCacheManager entityCacheManager,
 			SQLSession session, Cache transactionCache, boolean allowDuplicateObjects, int firstResult,
-			int maxResults) {
+			int maxResults, String fieldsToForceLazy) {
 		this(proxyFactory, targetClazz, entityCacheManager, new LinkedHashSet<ExpressionFieldMapper>(),
 				new LinkedHashMap<SQLQueryAnalyserAlias, Map<String, String[]>>(), session, transactionCache,
-				allowDuplicateObjects, firstResult, maxResults, false, LockOptions.NONE);
+				allowDuplicateObjects, firstResult, maxResults, false, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	/**
@@ -578,6 +581,10 @@ public class EntityHandler implements ScrollableResultSetHandler {
 						 */
 						if (descriptionField.isLob())
 							fetchType = descriptionField.getFetchType();
+						
+						
+						
+						fetchType = this.checkForceFetchTypeByField(descriptionField.getField().getName(), fetchType);
 
 						/*
 						 * Somente busca relacionamentos pois LOB já é criado
@@ -588,7 +595,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 							if (!descriptionField.isLob()) {
 								Object result = null;
 								/*
-								 * Se a chave estiver incompleta, carrega o
+								 * Se a chave estiver incompleta, carrega o 
 								 * objeto completo novamente.
 								 */
 								if (isIncompleteKey) {
@@ -691,6 +698,19 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		}
 	}
 
+	private FetchType checkForceFetchTypeByField(String fieldName, FetchType current) {
+		if (StringUtils.isEmpty(fieldsToForceLazy)) {
+			return current;
+		}
+		String[] spNames = fieldsToForceLazy.split("/,");
+		for (String name : spNames) {
+			if (fieldName.equals(name)) {
+				return FetchType.EAGER;
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Verifica se um determinado campo em uma entidade tem necessidade de ser
 	 * processado para criar o objeto. No caso de chaves estrangeiras que não
@@ -709,9 +729,6 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	 */
 	private boolean checkNeedsProcessDescriptionField(EntityCache entityCache, DescriptionField descriptionField,
 			Object assignedValue) throws Exception {
-//		if (firstResult > 0 || maxResults > 0)
-//			return true;
-
 		Boolean process = (assignedValue == null);
 		Boolean existsExpression = existsExpressionForProcessing(entityCache, descriptionField.getField().getName());
 

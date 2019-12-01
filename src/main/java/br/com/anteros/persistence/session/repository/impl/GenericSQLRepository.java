@@ -40,6 +40,7 @@ import br.com.anteros.persistence.metadata.descriptor.DescriptionNamedQuery;
 import br.com.anteros.persistence.metadata.identifier.Identifier;
 import br.com.anteros.persistence.parameter.InClauseSubstitutedParameter;
 import br.com.anteros.persistence.parameter.NamedParameter;
+import br.com.anteros.persistence.session.FindParameters;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionFactory;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
@@ -133,30 +134,30 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public T findOne(ID id, LockOptions lockOptions, boolean readOnly) {
+	public T findOne(ID id, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		Assert.notNull(id, "O id não pode ser nulo.");
 
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
-
 		try {
-			return (T) getSession().find(persistentClass, id, lockOptions, readOnly);
+			return (T) getSession().find(new FindParameters().entityClass(persistentClass).id(id)
+					.lockOptions(lockOptions).readOnly(readOnly));
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}
 	}
 
 	@Override
-	public T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly) {
-		List<T> result = find(sql, readOnly);
+	public T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+		List<T> result = find(sql, readOnly, fieldsToForceLazy);
 		if ((result != null) && (result.size() > 0))
 			return result.get(0);
 		return null;
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
-		List<T> result = find(sql, parameters, readOnly);
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+		List<T> result = find(sql, parameters, readOnly, fieldsToForceLazy);
 		if ((result != null) && (result.size() > 0))
 			return result.get(0);
 		return null;
@@ -167,47 +168,51 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		Assert.notNull(id, "O id não pode ser nulo.");
 
 		try {
-			return (findOne(id, true) != null);
+			return (findOne(id, true, "") != null);
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}
 	}
 
 	@Override
-	public List<T> findAll(LockOptions lockOptions, boolean readOnly) {
+	public List<T> findAll(LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		try {
 			DescriptionField tenantId = getTenantId();
 			DescriptionField companyId = getCompanyId();
-			
-			String sql = "select * from " + getEntityCache().getTableName()+" P ";
+
+			String sql = "select * from " + getEntityCache().getTableName() + " P ";
 			boolean hasWhere = false;
-			if (tenantId!=null) {
-				if (getSession().getTenantId()==null) {
-					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+			if (tenantId != null) {
+				if (getSession().getTenantId() == null) {
+					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "
+							+ getEntityCache().getEntityClass().getName());
 				}
 				hasWhere = true;
-				sql = sql + " where P."+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+				sql = sql + " where P." + tenantId.getSimpleColumn().getColumnName() + " = " + '"'
+						+ getSession().getTenantId().toString() + '"';
 			}
-			
-			if (companyId!=null) {
-				if (getSession().getCompanyId()==null) {
-					throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+
+			if (companyId != null) {
+				if (getSession().getCompanyId() == null) {
+					throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "
+							+ getEntityCache().getEntityClass().getName());
 				}
 				if (!hasWhere) {
 					sql = sql + " where ";
 				} else {
 					sql = sql + " and ";
 				}
-				sql = sql + "P."+companyId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getCompanyId().toString()+'"';
+				sql = sql + "P." + companyId.getSimpleColumn().getColumnName() + " = " + '"'
+						+ getSession().getCompanyId().toString() + '"';
 			}
-			
-			TypedSQLQuery<?> query = getSession().createQuery(sql,
-					persistentClass);
+
+			TypedSQLQuery<?> query = getSession().createQuery(sql, persistentClass);
 			query.setLockOptions(lockOptions);
 			query.setReadOnly(readOnly);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 			return (List<T>) query.getResultList();
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
@@ -220,21 +225,23 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		return getSession().getEntityCacheManager().getEntityCache(persistentClass);
 	}
-	
+
 	protected DescriptionField getTenantId() {
-		List<EntityCache> entityCaches = getSession().getEntityCacheManager().getEntityCachesByTableName(getEntityCache().getTableName());
+		List<EntityCache> entityCaches = getSession().getEntityCacheManager()
+				.getEntityCachesByTableName(getEntityCache().getTableName());
 		for (EntityCache entityCache : entityCaches) {
-			if (entityCache.getTenantId()!=null) {
+			if (entityCache.getTenantId() != null) {
 				return entityCache.getTenantId();
 			}
 		}
 		return null;
 	}
-	
+
 	protected DescriptionField getCompanyId() {
-		List<EntityCache> entityCaches = getSession().getEntityCacheManager().getEntityCachesByTableName(getEntityCache().getTableName());
+		List<EntityCache> entityCaches = getSession().getEntityCacheManager()
+				.getEntityCachesByTableName(getEntityCache().getTableName());
 		for (EntityCache entityCache : entityCaches) {
-			if (entityCache.getCompanyId()!=null) {
+			if (entityCache.getCompanyId() != null) {
 				return entityCache.getCompanyId();
 			}
 		}
@@ -242,10 +249,10 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly) {
+	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 
 		if (null == pageable) {
-			List<T> result = findAll();
+			List<T> result = findAll(fieldsToForceLazy);
 			return new PageImpl<T>(result);
 		}
 
@@ -253,26 +260,30 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		try {
 			DescriptionField tenantId = getTenantId();
 			DescriptionField companyId = getCompanyId();
-			
-			String sql = "select * from " + getEntityCache().getTableName()+" P ";
+
+			String sql = "select * from " + getEntityCache().getTableName() + " P ";
 			boolean hasWhere = false;
-			if (tenantId!=null) {
-				if (getSession().getTenantId()==null) {
-					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+			if (tenantId != null) {
+				if (getSession().getTenantId() == null) {
+					throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "
+							+ getEntityCache().getEntityClass().getName());
 				}
 				hasWhere = true;
-				sql = sql + " where P."+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+				sql = sql + " where P." + tenantId.getSimpleColumn().getColumnName() + " = " + '"'
+						+ getSession().getTenantId().toString() + '"';
 			}
-			if (companyId!=null) {
-				if (getSession().getCompanyId()==null) {
-					throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+			if (companyId != null) {
+				if (getSession().getCompanyId() == null) {
+					throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "
+							+ getEntityCache().getEntityClass().getName());
 				}
 				if (!hasWhere) {
 					sql = sql + " where ";
 				} else {
 					sql = sql + " and ";
 				}
-				sql = sql + "P."+companyId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getCompanyId().toString()+'"';
+				sql = sql + "P." + companyId.getSimpleColumn().getColumnName() + " = " + '"'
+						+ getSession().getCompanyId().toString() + '"';
 			}
 			query = getSession().createQuery(sql, persistentClass);
 
@@ -280,6 +291,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			query.setMaxResults(pageable.getPageSize());
 			query.setReadOnly(readOnly);
 			query.setLockOptions(lockOptions);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 
 			Long total = count();
 			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
@@ -291,13 +303,13 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		}
 	}
 
-
 	@Override
-	public List<T> find(String sql, LockOptions lockOptions, boolean readOnly) {
+	public List<T> find(String sql, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		try {
 			TypedSQLQuery<?> query = getSession().createQuery(sql, persistentClass);
 			query.setReadOnly(readOnly);
 			query.setLockOptions(lockOptions);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 			return (List<T>) query.getResultList();
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
@@ -305,9 +317,9 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly) {
+	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		if (null == pageable) {
-			return new PageImpl<T>(this.find(sql));
+			return new PageImpl<T>(this.find(sql, fieldsToForceLazy));
 		}
 
 		TypedSQLQuery<?> query;
@@ -317,6 +329,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			query.setMaxResults(pageable.getPageSize());
 			query.setReadOnly(readOnly);
 			query.setLockOptions(lockOptions);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 
 			Long total = doCount(getCountQueryString("(" + sql + ")"));
 			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
@@ -329,11 +342,12 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
+	public List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		try {
 			TypedSQLQuery<?> query = getSession().createQuery(sql, persistentClass, parameters);
 			query.setReadOnly(readOnly);
 			query.setLockOptions(lockOptions);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 			return (List<T>) query.getResultList();
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
@@ -341,9 +355,9 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly) {
+	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		if (null == pageable) {
-			return new PageImpl<T>(find(sql, parameters));
+			return new PageImpl<T>(find(sql, parameters, fieldsToForceLazy));
 		}
 
 		TypedSQLQuery<?> query;
@@ -354,6 +368,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			query.setParameters(parameters);
 			query.setReadOnly(readOnly);
 			query.setLockOptions(lockOptions);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 			Long total = doCount(getCountQueryString("(" + sql + ")"), parameters);
 			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
 					: Collections.<T>emptyList());
@@ -365,7 +380,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName, boolean readOnly) {
+	public List<T> findByNamedQuery(String queryName, boolean readOnly, String fieldsToForceLazy) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
@@ -374,11 +389,11 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
-		return find(namedQuery.getQuery(), namedQuery.getLockOptions(), readOnly);
+		return find(namedQuery.getQuery(), namedQuery.getLockOptions(), readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Pageable pageable, boolean readOnly) {
+	public Page<T> findByNamedQuery(String queryName, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
@@ -387,12 +402,12 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
-		return find(namedQuery.getQuery(), pageable, namedQuery.getLockOptions(), readOnly);
+		return find(namedQuery.getQuery(), pageable, namedQuery.getLockOptions(), readOnly, fieldsToForceLazy);
 
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName, Object parameters, boolean readOnly) {
+	public List<T> findByNamedQuery(String queryName, Object parameters, boolean readOnly, String fieldsToForceLazy) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
@@ -401,11 +416,11 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
-		return find(namedQuery.getQuery(), parameters, namedQuery.getLockOptions(), readOnly);
+		return find(namedQuery.getQuery(), parameters, namedQuery.getLockOptions(), readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly) {
+	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
@@ -414,12 +429,12 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
-		return find(namedQuery.getQuery(), parameters, pageable, namedQuery.getLockOptions(), readOnly);
+		return find(namedQuery.getQuery(), parameters, pageable, namedQuery.getLockOptions(), readOnly, fieldsToForceLazy);
 
 	}
 
 	@Override
-	public T findOne(Predicate predicate) {
+	public T findOne(Predicate predicate, String fieldsToForceLazy) {
 		return createQuery(predicate).uniqueResult(getEntityPath());
 	}
 
@@ -428,7 +443,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
 		if (path == null) {
-			//this.path = (EntityPath<T>) DEFAULT_ENTITY_PATH_RESOLVER.createPath(persistentClass);
+			// this.path = (EntityPath<T>)
+			// DEFAULT_ENTITY_PATH_RESOLVER.createPath(persistentClass);
 			this.path = new DynamicEntityPath(persistentClass, persistentClass.getSimpleName());
 		}
 		return path;
@@ -441,20 +457,20 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public List<T> findAll(Predicate predicate) {
+	public List<T> findAll(Predicate predicate, String fieldsToForceLazy) {
 		return createQuery(predicate).list(getEntityPath());
 	}
 
 	@Override
-	public Iterable<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
+	public Iterable<T> findAll(Predicate predicate, String fieldsToForceLazy, OrderSpecifier<?>... orders) {
 		OSQLQuery query = createQuery(predicate).orderBy(orders);
 		return query.list(getEntityPath());
 	}
 
 	@Override
-	public Page<T> findAll(Predicate predicate, Pageable pageable) {
-		
-		predicate = addTenantAndCompanyId(predicate);	
+	public Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy) {
+
+		predicate = addTenantAndCompanyId(predicate);
 
 		OSQLQuery countQuery = createQuery(predicate);
 		Long total = countQuery.count();
@@ -469,14 +485,15 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	protected Predicate addTenantAndCompanyId(Predicate predicate) {
-		if (predicate==null) {
+		if (predicate == null) {
 			predicate = new BooleanBuilder();
 		}
-		EntityCache[] entityCaches = getSession().getEntityCacheManager().getEntitiesBySuperClassIncluding(this.getResultClass());
+		EntityCache[] entityCaches = getSession().getEntityCacheManager()
+				.getEntitiesBySuperClassIncluding(this.getResultClass());
 		DynamicEntityPath entityPath = (DynamicEntityPath) this.getEntityPath();
 		DescriptionField tenantId = null;
 		DescriptionField companyId = null;
-		
+
 		for (EntityCache entityCache : entityCaches) {
 			tenantId = entityCache.getTenantId();
 			if (tenantId != null)
@@ -490,31 +507,33 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		if (tenantId != null) {
 			if (getSession().getTenantId() == null) {
-				throw new SQLSessionException("Informe o Tenant Id para consultar  a entidade "
-						+ getSession().getEntityCacheManager().getEntityCache(this.getResultClass()).getEntityClass().getName());
+				throw new SQLSessionException("Informe o Tenant Id para consultar  a entidade " + getSession()
+						.getEntityCacheManager().getEntityCache(this.getResultClass()).getEntityClass().getName());
 			}
 			StringPath predicateField = entityPath.createFieldString(tenantId.getName());
-			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, Expressions.constant(getSession().getTenantId()));
-			((BooleanBuilder)predicate).and(expression);
+			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField,
+					Expressions.constant(getSession().getTenantId().toString()));
+			((BooleanBuilder) predicate).and(expression);
 		}
-		
+
 		if (companyId != null) {
 			if (this.getSession().getCompanyId() == null) {
-				throw new SQLSessionException("Informe o Company Id para consultar  a entidade "
-						+ this.getSession().getEntityCacheManager().getEntityCache(this.getResultClass()).getEntityClass().getName());
+				throw new SQLSessionException("Informe o Company Id para consultar  a entidade " + this.getSession()
+						.getEntityCacheManager().getEntityCache(this.getResultClass()).getEntityClass().getName());
 			}
 			StringPath predicateField = entityPath.createFieldString(companyId.getName());
-			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, Expressions.constant(this.getSession().getCompanyId()));
-			((BooleanBuilder)predicate).and(expression);
+			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField,
+					Expressions.constant(this.getSession().getCompanyId().toString()));
+			((BooleanBuilder) predicate).and(expression);
 		}
 		return predicate;
 	}
 
 	@Override
-	public Page<T> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... orders) {
-		
-		predicate = addTenantAndCompanyId(predicate);	
-		
+	public Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders) {
+
+		predicate = addTenantAndCompanyId(predicate);
+
 		OSQLQuery countQuery = createQuery(predicate);
 		Long total = countQuery.count();
 
@@ -544,7 +563,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public void refresh(T entity, LockOptions lockOptions) {
+	public void refresh(T entity, LockOptions lockOptions, String fieldsToForceLazy) {
 		try {
 			getSession().refresh(entity);
 		} catch (Exception e) {
@@ -558,26 +577,30 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		DescriptionField companyId = getCompanyId();
 		String sql = getCountQueryString(getEntityCache().getTableName());
 		boolean hasWhere = false;
-		if (tenantId!=null) {
-			if (getSession().getTenantId()==null) {
-				throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+		if (tenantId != null) {
+			if (getSession().getTenantId() == null) {
+				throw new SQLQueryException("Informe o Tenant ID para realizar consulta na entidade "
+						+ getEntityCache().getEntityClass().getName());
 			}
 			hasWhere = true;
-			sql = sql + " where x."+tenantId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getTenantId().toString()+'"';
+			sql = sql + " where x." + tenantId.getSimpleColumn().getColumnName() + " = " + '"'
+					+ getSession().getTenantId().toString() + '"';
 		}
-		
-		if (companyId!=null) {
-			if (getSession().getCompanyId()==null) {
-				throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "+getEntityCache().getEntityClass().getName());
+
+		if (companyId != null) {
+			if (getSession().getCompanyId() == null) {
+				throw new SQLQueryException("Informe o Company ID para realizar consulta na entidade "
+						+ getEntityCache().getEntityClass().getName());
 			}
 			if (!hasWhere) {
 				sql = sql + " where ";
 			} else {
 				sql = sql + " and ";
 			}
-			sql = sql + "x."+companyId.getSimpleColumn().getColumnName()+" = "+'"'+getSession().getCompanyId().toString()+'"';
+			sql = sql + "x." + companyId.getSimpleColumn().getColumnName() + " = " + '"'
+					+ getSession().getCompanyId().toString() + '"';
 		}
-		
+
 		return doCount(sql);
 	}
 
@@ -617,7 +640,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			Assert.notNull(persistentClass,
 					"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
-			T entity = findOne(id);
+			T entity = findOne(id, "");
 			if (entity == null) {
 				throw new SQLRepositoryException(
 						String.format("Não foi encontrada nenhuma entidade %s com o id %s.", persistentClass, id));
@@ -648,7 +671,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	@Override
 	public void removeAll() {
-		for (T element : findAll()) {
+		for (T element : findAll("")) {
 			remove(element);
 		}
 	}
@@ -667,7 +690,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	protected OSQLQuery createQuery(Predicate... predicate) {
 		OSQLQuery query = new OSQLQuery(getSession()).from(getEntityPath());
-		if (predicate == null || predicate.length==0)
+		if (predicate == null || predicate.length == 0)
 			return query;
 		query.where(predicate);
 		return query;
@@ -714,163 +737,163 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public List<T> find(String sql, LockOptions lockOptions) {
-		return find(sql, false);
+	public List<T> find(String sql, LockOptions lockOptions, String fieldsToForceLazy) {
+		return find(sql, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions) {
-		return find(sql, pageable, false);
+	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy) {
+		return find(sql, pageable, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters, LockOptions lockOptions) {
-		return find(sql, parameters, false);
+	public List<T> find(String sql, Object parameters, LockOptions lockOptions, String fieldsToForceLazy) {
+		return find(sql, parameters, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions) {
-		return find(sql, parameters, pageable, false);
+	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy) {
+		return find(sql, parameters, pageable, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOne(ID id, LockOptions lockOptions) {
-		return findOne(id, lockOptions, false);
+	public T findOne(ID id, LockOptions lockOptions, String fieldsToForceLazy) {
+		return findOne(id, lockOptions, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, LockOptions lockOptions) {
-		return findOneBySql(sql, lockOptions, false);
+	public T findOneBySql(String sql, LockOptions lockOptions, String fieldsToForceLazy) {
+		return findOneBySql(sql, lockOptions, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions) {
-		return findOneBySql(sql, parameters, lockOptions, false);
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, String fieldsToForceLazy) {
+		return findOneBySql(sql, parameters, lockOptions, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(LockOptions lockOptions) {
-		return findAll(lockOptions, false);
+	public List<T> findAll(LockOptions lockOptions, String fieldsToForceLazy) {
+		return findAll(lockOptions, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable, LockOptions lockOptions) {
-		return findAll(pageable, lockOptions, false);
+	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy) {
+		return findAll(pageable, lockOptions, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOne(ID id) {
-		return findOne(id, LockOptions.NONE);
+	public T findOne(ID id, String fieldsToForceLazy) {
+		return findOne(id, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql) {
-		return findOneBySql(sql, LockOptions.NONE);
+	public T findOneBySql(String sql, String fieldsToForceLazy) {
+		return findOneBySql(sql, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters) {
-		return findOneBySql(sql, parameters, LockOptions.NONE);
+	public T findOneBySql(String sql, Object parameters, String fieldsToForceLazy) {
+		return findOneBySql(sql, parameters, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOne(ID id, boolean readOnly) {
-		return findOne(id, LockOptions.NONE, readOnly);
+	public T findOne(ID id, boolean readOnly, String fieldsToForceLazy) {
+		return findOne(id, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, boolean readOnly) {
-		return findOneBySql(sql, LockOptions.NONE, readOnly);
+	public T findOneBySql(String sql, boolean readOnly, String fieldsToForceLazy) {
+		return findOneBySql(sql, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters, boolean readOnly) {
-		return findOneBySql(sql, parameters, LockOptions.NONE, readOnly);
+	public T findOneBySql(String sql, Object parameters, boolean readOnly, String fieldsToForceLazy) {
+		return findOneBySql(sql, parameters, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll() {
-		return findAll(LockOptions.NONE);
+	public List<T> findAll(String fieldsToForceLazy) {
+		return findAll(LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable) {
-		return findAll(pageable, LockOptions.NONE);
+	public Page<T> findAll(Pageable pageable, String fieldsToForceLazy) {
+		return findAll(pageable, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(boolean readOnly) {
-		return findAll(LockOptions.NONE, readOnly);
+	public List<T> findAll(boolean readOnly, String fieldsToForceLazy) {
+		return findAll(LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable, boolean readOnly) {
-		return findAll(pageable, LockOptions.NONE, readOnly);
+	public Page<T> findAll(Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
+		return findAll(pageable, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql) {
-		return find(sql, LockOptions.NONE);
+	public List<T> find(String sql, String fieldsToForceLazy) {
+		return find(sql, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable) {
-		return find(sql, pageable, LockOptions.NONE);
+	public Page<T> find(String sql, Pageable pageable, String fieldsToForceLazy) {
+		return find(sql, pageable, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters) {
-		return find(sql, parameters, LockOptions.NONE);
+	public List<T> find(String sql, Object parameters, String fieldsToForceLazy) {
+		return find(sql, parameters, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable) {
-		return find(sql, parameters, pageable, LockOptions.NONE);
+	public Page<T> find(String sql, Object parameters, Pageable pageable, String fieldsToForceLazy) {
+		return find(sql, parameters, pageable, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, boolean readOnly) {
-		return find(sql, LockOptions.NONE, readOnly);
+	public List<T> find(String sql, boolean readOnly, String fieldsToForceLazy) {
+		return find(sql, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable, boolean readOnly) {
-		return find(sql, pageable, LockOptions.NONE, readOnly);
+	public Page<T> find(String sql, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
+		return find(sql, pageable, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters, boolean readOnly) {
-		return find(sql, parameters, LockOptions.NONE, readOnly);
+	public List<T> find(String sql, Object parameters, boolean readOnly, String fieldsToForceLazy) {
+		return find(sql, parameters, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, boolean readOnly) {
-		return find(sql, parameters, pageable, LockOptions.NONE, readOnly);
+	public Page<T> find(String sql, Object parameters, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
+		return find(sql, parameters, pageable, LockOptions.NONE, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public void refresh(T entity) {
-		refresh(entity, LockOptions.NONE);
+	public void refresh(T entity, String fieldsToForceLazy) {
+		refresh(entity, LockOptions.NONE, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName) {
-		return findByNamedQuery(queryName, false);
+	public List<T> findByNamedQuery(String queryName, String fieldsToForceLazy) {
+		return findByNamedQuery(queryName, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Pageable pageable) {
-		return findByNamedQuery(queryName, pageable, false);
+	public Page<T> findByNamedQuery(String queryName, Pageable pageable, String fieldsToForceLazy) {
+		return findByNamedQuery(queryName, pageable, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName, Object parameters) {
-		return findByNamedQuery(queryName, parameters, false);
+	public List<T> findByNamedQuery(String queryName, Object parameters, String fieldsToForceLazy) {
+		return findByNamedQuery(queryName, parameters, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable) {
-		return findByNamedQuery(queryName, parameters, pageable, false);
+	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, String fieldsToForceLazy) {
+		return findByNamedQuery(queryName, parameters, pageable, false, fieldsToForceLazy);
 	}
 
 	@Override
@@ -880,21 +903,21 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	@Override
 	public boolean exists(List<ID> ids) {
-		return (findAll(ids) != Collections.EMPTY_LIST);
+		return (findAll(ids, "") != Collections.EMPTY_LIST);
 	}
 
 	@Override
-	public List<T> findAll(List<ID> ids) {
-		return findAll(ids,LockOptions.NONE,false);
-	}
-	
-	@Override
-	public List<T> findAll(List<ID> ids, LockOptions lockOptions) {
-		return findAll(ids,lockOptions,false);
+	public List<T> findAll(List<ID> ids, String fieldsToForceLazy) {
+		return findAll(ids, LockOptions.NONE, false, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly) {
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions, String fieldsToForceLazy) {
+		return findAll(ids, lockOptions, false, fieldsToForceLazy);
+	}
+
+	@Override
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 
@@ -909,6 +932,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 					+ " where " + idDescriptionColumn.getColumnName() + " in (:pids) ", persistentClass);
 			query.setLockOptions(lockOptions);
 			query.setReadOnly(readOnly);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
 			query.setParameters(new NamedParameter[] { new InClauseSubstitutedParameter("pids", ids.toArray()) });
 			return (List<T>) query.getResultList();
 		} catch (Exception e) {
@@ -928,8 +952,10 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		try {
 			DescriptionColumn idDescriptionColumn = getEntityCache().getPrimaryKeyColumns().iterator().next();
-			return (getSession().update("delete from " + getEntityCache().getTableName()
-					+ " where " + idDescriptionColumn.getColumnName() + " in (:pids) ", new NamedParameter[] { new InClauseSubstitutedParameter("pids",ids.toArray()) })>0);
+			return (getSession().update(
+					"delete from " + getEntityCache().getTableName() + " where " + idDescriptionColumn.getColumnName()
+							+ " in (:pids) ",
+					new NamedParameter[] { new InClauseSubstitutedParameter("pids", ids.toArray()) }) > 0);
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}
@@ -959,8 +985,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		if (!getSession().validationIsActive()) {
 			throw new SQLQueryException("A validação está desativada no servidor.");
 		}
-		
-		getSession().validate(entity);		
+
+		getSession().validate(entity);
 	}
 
 	@Override
@@ -968,13 +994,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		if (!getSession().validationIsActive()) {
 			throw new SQLQueryException("A validação está desativada no servidor.");
 		}
-		
-		getSession().validate(entity, groups);		
-	}	
-	
-	
 
-
-	
+		getSession().validate(entity, groups);
+	}
 
 }

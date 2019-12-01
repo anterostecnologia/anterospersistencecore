@@ -192,4 +192,8 @@ public interface SQLQuery {
 
 	public SQLQuery addResultClassDefinition(ResultClassDefinition... resultClassDefinition);
 
+	public SQLQuery setFieldsToForceLazy(String fieldsToForceLazy);
+	
+	public String getFieldsToForceLazy();
+
 }

@@ -28,6 +28,7 @@ import br.com.anteros.core.utils.ResourceUtils;
 import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
 import br.com.anteros.persistence.resource.messages.AnterosPersistenceCoreMessages;
+import br.com.anteros.persistence.session.ExternalFileManager;
 import br.com.anteros.persistence.session.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.persistence.sql.datasource.JDBCDataSource;
 import br.com.anteros.persistence.sql.datasource.JNDIDataSourceFactory;
@@ -40,16 +41,16 @@ public abstract class AnterosPersistenceConfigurationBase extends AbstractPersis
 		super();
 	}
 
-	public AnterosPersistenceConfigurationBase(DataSource dataSource) {
-		super(dataSource);
+	public AnterosPersistenceConfigurationBase(DataSource dataSource, ExternalFileManager externalFileManager) {
+		super(dataSource, externalFileManager);
 	}
 
-	public AnterosPersistenceConfigurationBase(PersistenceModelConfiguration modelConfiguration) {
-		super(modelConfiguration);
+	public AnterosPersistenceConfigurationBase(PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
+		super(modelConfiguration, externalFileManager);
 	}
 
-	public AnterosPersistenceConfigurationBase(DataSource dataSource, PersistenceModelConfiguration modelConfiguration) {
-		super(dataSource, modelConfiguration);
+	public AnterosPersistenceConfigurationBase(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
+		super(dataSource, modelConfiguration, externalFileManager);
 	}
 
 	@Override

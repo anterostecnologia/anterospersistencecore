@@ -12,6 +12,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.metadata;
 
+import java.lang.reflect.Method;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import br.com.anteros.core.converter.ConversionHelper;
 import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
+import br.com.anteros.persistence.metadata.annotation.EventType;
 import br.com.anteros.persistence.metadata.annotation.type.FetchType;
 import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
 import br.com.anteros.persistence.metadata.annotation.type.InheritanceType;
@@ -85,6 +87,8 @@ public class EntityCache {
 	private List<DescriptionPkJoinColumn> primaryKeyJoinColumns = new LinkedList<DescriptionPkJoinColumn>();
 	private String foreignKeyName = "";
 	private InheritanceType inheritanceType;
+	private List<EntityListener> entityListeners = new ArrayList<EntityListener>();
+	private Map<Method,EventType> methodListeners = new HashMap<Method,EventType>();
 
 	public List<DescritionSecondaryTable> getSecondaryTables() {
 		return secondaryTables;
@@ -1085,21 +1089,21 @@ public class EntityCache {
 		this.inheritanceType = inheritanceType;
 	}
 
-	public void mergeValues(Object entity, Object newEntity) throws Exception {
+	public void mergeValues(Object actualEntity, Object newEntity) throws Exception {
 		for (DescriptionField descriptionField : getDescriptionFields()) {
 			if (descriptionField.isAnyCollectionOrMap()) {
 				if (descriptionField.getFetchType() != null && descriptionField.getFetchType().equals(FetchType.LAZY)) {
-					if (descriptionField.getObjectValue(entity) != null) {
-						Object value = descriptionField.getObjectValue(newEntity);
+					if (descriptionField.getObjectValue(newEntity) != null) {
+						Object value = descriptionField.getObjectValue(actualEntity);
 						if (value instanceof AnterosPersistentCollection)
 							((AnterosPersistentCollection) value).initialize();
-						descriptionField.setValue(newEntity, descriptionField.getObjectValue(entity));
+						descriptionField.setValue(actualEntity, descriptionField.getObjectValue(newEntity));
 					}
 				} else {
-					descriptionField.setValue(newEntity, descriptionField.getObjectValue(entity));
+					descriptionField.setValue(actualEntity, descriptionField.getObjectValue(newEntity));
 				}
 			} else {
-				descriptionField.setValue(newEntity, descriptionField.getObjectValue(entity));
+				descriptionField.setValue(actualEntity, descriptionField.getObjectValue(newEntity));
 			}
 		}
 	}
@@ -1144,6 +1148,22 @@ public class EntityCache {
 		} else if (!entityClass.equals(other.entityClass))
 			return false;
 		return true;
+	}
+
+	public List<EntityListener> getEntityListeners() {
+		return entityListeners;
+	}
+
+	public void setEntityListeners(List<EntityListener> entityListeners) {
+		this.entityListeners = entityListeners;
+	}
+
+	public Map<Method, EventType> getMethodListeners() {
+		return methodListeners;
+	}
+
+	public void setMethodListeners(Map<Method, EventType> methodListeners) {
+		this.methodListeners = methodListeners;
 	}
 
 }

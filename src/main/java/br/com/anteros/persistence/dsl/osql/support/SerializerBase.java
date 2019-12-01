@@ -54,7 +54,7 @@ public abstract class SerializerBase<S extends SerializerBase<S>> implements Vis
 
     private final char escape;
 
-    private boolean normalize = true;
+    private boolean normalize = false;
     
     protected boolean strict = true;
     

@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -39,6 +40,7 @@ import br.com.anteros.persistence.metadata.annotation.Entity;
 import br.com.anteros.persistence.metadata.annotation.EnumValues;
 import br.com.anteros.persistence.metadata.comparator.DependencyComparator;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
+import br.com.anteros.persistence.session.ExternalFileManager;
 import br.com.anteros.persistence.session.SQLSessionFactory;
 import br.com.anteros.persistence.session.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
@@ -86,25 +88,30 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	protected EntityCacheManager entityCacheManager;
 	protected DataSource dataSource;
 	protected PersistenceModelConfiguration modelConfiguration;
+	protected ExternalFileManager externalFileManager;
+	protected Map<Object,Class<?>> entityListeners = new LinkedHashMap<Object,Class<?>>();
 
 	public AbstractPersistenceConfiguration() {
 		entityCacheManager = new EntityCacheManager();
 	}
 
-	public AbstractPersistenceConfiguration(DataSource dataSource) {
+	public AbstractPersistenceConfiguration(DataSource dataSource, ExternalFileManager externalFileManager) {
 		this();
 		this.dataSource = dataSource;
+		this.externalFileManager = externalFileManager;
 	}
 
-	public AbstractPersistenceConfiguration(PersistenceModelConfiguration modelConfiguration) {
+	public AbstractPersistenceConfiguration(PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
 		this();
 		this.modelConfiguration = modelConfiguration;
+		this.externalFileManager = externalFileManager;
 	}
 
-	public AbstractPersistenceConfiguration(DataSource dataSource, PersistenceModelConfiguration modelConfiguration) {
+	public AbstractPersistenceConfiguration(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
 		super();
 		this.dataSource = dataSource;
 		this.modelConfiguration = modelConfiguration;
+		this.externalFileManager = externalFileManager;
 	}
 
 	public SessionFactoryConfiguration getSessionFactoryConfiguration() { 
@@ -197,6 +204,11 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 		addProperty(new PropertyConfiguration().setName(name).setValue(value));
 		return this;
 	}
+	
+	public AbstractPersistenceConfiguration addEntityListener(Class<?> entity, Object listener) {
+		entityListeners.put(listener, entity);
+		return this;
+	}
 
 	protected void prepareClassesToLoad() throws ClassNotFoundException {
 		LOG.debug("Preparando classes para ler entidades.");
@@ -229,9 +241,9 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 		Collections.sort(classes, new DependencyComparator());
 
 		if (modelConfiguration != null)
-			this.entityCacheManager.load(modelConfiguration, getPropertyAccessorFactory(), databaseDialect);
+			this.entityCacheManager.load(modelConfiguration, getPropertyAccessorFactory(), databaseDialect, entityListeners);
 		else
-			this.entityCacheManager.load(classes, true, getPropertyAccessorFactory(), databaseDialect);
+			this.entityCacheManager.load(classes, true, getPropertyAccessorFactory(), databaseDialect, entityListeners);
 		return this.entityCacheManager;
 	}
 

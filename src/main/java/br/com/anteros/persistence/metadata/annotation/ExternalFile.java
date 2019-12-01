@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Especifica que uma propriedade persistente ou campo é o caminho para um arquivo externo.
+ * Especifica que uma propriedade persistente ou campo é o caminho para um arquivo externo ou remoto
  * 
  */
 @Retention(RetentionPolicy.RUNTIME)

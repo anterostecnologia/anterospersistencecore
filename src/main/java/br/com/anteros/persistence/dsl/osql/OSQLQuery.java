@@ -21,6 +21,8 @@ import br.com.anteros.persistence.session.SQLSession;
  */
 public class OSQLQuery extends AbstractOSQLQuery<OSQLQuery> {
 
+	
+
 	/**
 	 * Create a detached OSQLQuery instance The query can be attached via the clone method
 	 * 
@@ -70,6 +72,10 @@ public class OSQLQuery extends AbstractOSQLQuery<OSQLQuery> {
 		OSQLQuery q = new OSQLQuery(session, configuration, getMetadata().clone());
 		q.clone(this);
 		return q;
+	}
+
+	public void setFieldsToForceLazy(String fieldsToForceLazy) {
+		this.fieldsToForceLazy = fieldsToForceLazy;
 	}
 
 }

@@ -64,14 +64,14 @@ public class PersistenceModelConfiguration {
 	private Map<Class<? extends Serializable>, EntityConfiguration> entities = new LinkedHashMap<Class<? extends Serializable>, EntityConfiguration>();
 	private Set<ConverterConfiguration> converters = new CompactHashSet<ConverterConfiguration>();
 
-	public EntityConfiguration addEntity(Class<? extends Serializable> sourceClazz) {
+	public EntityConfiguration addEntity(Class<? extends Serializable> sourceClazz) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		EntityConfiguration entity = new EntityConfiguration(sourceClazz, this);
 		entity.loadAnnotations();
 		entities.put(sourceClazz, entity);
 		return entity;
 	}
 
-	public EnumConfiguration addEnum(Class<? extends Serializable> sourceClazz) {
+	public EnumConfiguration addEnum(Class<? extends Serializable> sourceClazz) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		EnumConfiguration enumConfiguration = new EnumConfiguration(sourceClazz, this);
 		enumConfiguration.loadAnnotations();
 		entities.put(sourceClazz, enumConfiguration);
@@ -91,7 +91,7 @@ public class PersistenceModelConfiguration {
 	}
 
 	public void loadAnnotationsByClass(Class<? extends Serializable> sourceClazz)
-			throws InstantiationException, IllegalAccessException {
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		if ((sourceClazz.isAnnotationPresent(Converter.class))
 				&& (!ReflectionUtils.isImplementsInterface(sourceClazz, AttributeConverter.class))) {
 			throw new EntityCacheManagerException("A classe " + sourceClazz

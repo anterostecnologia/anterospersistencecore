@@ -42,113 +42,113 @@ public interface SQLService<T, ID extends Serializable> {
 
 	void flush();
 
-	T findOne(ID id);
+	T findOne(ID id, String fieldsToForceLazy);
 
-	T findOneBySql(String sql);
+	T findOneBySql(String sql, String fieldsToForceLazy);
 
-	T findOneBySql(String sql, Object parameters);
+	T findOneBySql(String sql, Object parameters, String fieldsToForceLazy);
 
-	T findOne(ID id, boolean readOnly);
+	T findOne(ID id, boolean readOnly, String fieldsToForceLazy);
 
-	T findOneBySql(String sql, boolean readOnly);
+	T findOneBySql(String sql, boolean readOnly, String fieldsToForceLazy);
 
-	T findOneBySql(String sql, Object parameters, boolean readOnly);
+	T findOneBySql(String sql, Object parameters, boolean readOnly, String fieldsToForceLazy);
 
-	T findOne(ID id, LockOptions lockOptions);
+	T findOne(ID id, LockOptions lockOptions, String fieldsToForceLazy);
 
-	T findOneBySql(String sql, LockOptions lockOptions);
+	T findOneBySql(String sql, LockOptions lockOptions, String fieldsToForceLazy);
 
-	T findOneBySql(String sql, Object parameters, LockOptions lockOptions);
+	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, String fieldsToForceLazy);
 
-	T findOne(ID id, LockOptions lockOptions, boolean readOnly);
+	T findOne(ID id, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly);
+	T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly);
+	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
 	boolean exists(ID id);
 	
 	boolean exists(List<ID> ids);
 
-	List<T> findAll();
+	List<T> findAll(String fieldsToForceLazy);
 
-	Page<T> findAll(Pageable pageable);
+	Page<T> findAll(Pageable pageable, String fieldsToForceLazy);
 
-	List<T> findAll(boolean readOnly);
+	List<T> findAll(boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> findAll(Pageable pageable, boolean readOnly);
+	Page<T> findAll(Pageable pageable, boolean readOnly, String fieldsToForceLazy);
 
-	List<T> find(String sql);
+	List<T> find(String sql, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Pageable pageable);
+	Page<T> find(String sql, Pageable pageable, String fieldsToForceLazy);
 
-	List<T> find(String sql, Object parameters);
+	List<T> find(String sql, Object parameters, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Object parameters, Pageable pageable);
+	Page<T> find(String sql, Object parameters, Pageable pageable, String fieldsToForceLazy);
 
-	List<T> find(String sql, boolean readOnly);
+	List<T> find(String sql, boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Pageable pageable, boolean readOnly);
+	Page<T> find(String sql, Pageable pageable, boolean readOnly, String fieldsToForceLazy);
 
-	List<T> find(String sql, Object parameters, boolean readOnly);
+	List<T> find(String sql, Object parameters, boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Object parameters, Pageable pageable, boolean readOnly);
+	Page<T> find(String sql, Object parameters, Pageable pageable, boolean readOnly, String fieldsToForceLazy);
 
-	List<T> findByNamedQuery(String queryName);
+	List<T> findByNamedQuery(String queryName, String fieldsToForceLazy);
 
-	Page<T> findByNamedQuery(String queryName, Pageable pageable);
+	Page<T> findByNamedQuery(String queryName, Pageable pageable, String fieldsToForceLazy);
 
-	List<T> findByNamedQuery(String queryName, Object parameters);
+	List<T> findByNamedQuery(String queryName, Object parameters, String fieldsToForceLazy);
 
-	Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable);
+	Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, String fieldsToForceLazy);
 
-	List<T> findByNamedQuery(String queryName, boolean readOnly);
+	List<T> findByNamedQuery(String queryName, boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> findByNamedQuery(String queryName, Pageable pageable, boolean readOnly);
+	Page<T> findByNamedQuery(String queryName, Pageable pageable, boolean readOnly, String fieldsToForceLazy);
 
-	List<T> findByNamedQuery(String queryName, Object parameters, boolean readOnly);
+	List<T> findByNamedQuery(String queryName, Object parameters, boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly);
+	Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly, String fieldsToForceLazy);
 
-	List<T> findAll(LockOptions lockOptions);
+	List<T> findAll(LockOptions lockOptions, String fieldsToForceLazy);
 
-	Page<T> findAll(Pageable pageable, LockOptions lockOptions);
+	Page<T> findAll(Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy);
 
-	List<T> findAll(LockOptions lockOptions, boolean readOnly);
+	List<T> findAll(LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly);
+	Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	List<T> find(String sql, LockOptions lockOptions);
+	List<T> find(String sql, LockOptions lockOptions, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Pageable pageable, LockOptions lockOptions);
+	Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy);
 
-	List<T> find(String sql, Object parameters, LockOptions lockOptions);
+	List<T> find(String sql, Object parameters, LockOptions lockOptions, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions);
+	Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy);
 
-	List<T> find(String sql, LockOptions lockOptions, boolean readOnly);
+	List<T> find(String sql, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly);
+	Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly);
+	List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly);
+	Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	T findOne(Predicate predicate);
+	T findOne(Predicate predicate, String fieldsToForceLazy);
 
-	List<T> findAll(Predicate predicate);
+	List<T> findAll(Predicate predicate, String fieldsToForceLazy);
 	
-	List<T> findAll(List<ID> ids);
+	List<T> findAll(List<ID> ids, String fieldsToForceLazy);
 	
-	List<T> findAll(List<ID> ids, LockOptions lockOptions);
+	List<T> findAll(List<ID> ids, LockOptions lockOptions, String fieldsToForceLazy);
 	
-	List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly);
+	List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
-	Iterable<T> findAll(Predicate predicate, OrderSpecifier<?>... orders);
+	Iterable<T> findAll(Predicate predicate, String fieldsToForceLazy, OrderSpecifier<?>... orders);
 
-	Page<T> findAll(Predicate predicate, Pageable pageable);
+	Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy);
 
-	Page<T> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... orders);
+	Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders);
 	
 	
 	Class<T> getResultClass();
@@ -161,9 +161,9 @@ public interface SQLService<T, ID extends Serializable> {
 
 	SQLSessionFactory getSQLSessionFactory() throws Exception;
 
-	void refresh(T entity);
+	void refresh(T entity, String fieldsToForceLazy);
 
-	void refresh(T entity, LockOptions lockOptions);
+	void refresh(T entity, LockOptions lockOptions, String fieldsToForceLazy);
 
 	long count();
 

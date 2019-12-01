@@ -81,9 +81,9 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public T findOne(ID id) {
+	public T findOne(ID id, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOne(id);
+		return repository.findOne(id, fieldsToForceLazy);
 	}
 
 	@Override
@@ -93,99 +93,99 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public List<T> findAll() {
+	public List<T> findAll(String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll();
+		return repository.findAll(fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable) {
+	public Page<T> findAll(Pageable pageable, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(pageable);
+		return repository.findAll(pageable, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql) {
+	public List<T> find(String sql, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql);
+		return repository.find(sql, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable) {
+	public Page<T> find(String sql, Pageable pageable, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, pageable);
+		return repository.find(sql, pageable, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters) {
+	public List<T> find(String sql, Object parameters, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, parameters);
+		return repository.find(sql, parameters, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable) {
+	public Page<T> find(String sql, Object parameters, Pageable pageable, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, parameters, pageable);
+		return repository.find(sql, parameters, pageable, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName) {
+	public List<T> findByNamedQuery(String queryName, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName);
+		return repository.findByNamedQuery(queryName, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Pageable pageable) {
+	public Page<T> findByNamedQuery(String queryName, Pageable pageable, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName, pageable);
+		return repository.findByNamedQuery(queryName, pageable, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName, Object parameters) {
+	public List<T> findByNamedQuery(String queryName, Object parameters, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName, parameters);
+		return repository.findByNamedQuery(queryName, parameters, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable) {
+	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName, parameters, pageable);
+		return repository.findByNamedQuery(queryName, parameters, pageable, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOne(Predicate predicate) {
+	public T findOne(Predicate predicate, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOne(predicate);
+		return repository.findOne(predicate, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(Predicate predicate) {
+	public List<T> findAll(Predicate predicate, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(predicate);
+		return repository.findAll(predicate, fieldsToForceLazy);
 	}
 
 	@Override
-	public Iterable<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
+	public Iterable<T> findAll(Predicate predicate, String fieldsToForceLazy, OrderSpecifier<?>... orders) {
 		checkRepository();
-		return repository.findAll(predicate, orders);
+		return repository.findAll(predicate, fieldsToForceLazy, orders);
 	}
 
 	@Override
-	public Page<T> findAll(Predicate predicate, Pageable pageable) {
+	public Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(predicate, pageable);
+		return repository.findAll(predicate, pageable, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... orders) {
+	public Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders) {
 		checkRepository();
-		return repository.findAll(predicate, pageable, orders);
+		return repository.findAll(predicate, pageable, fieldsToForceLazy, orders);
 	}
 
 	@Override
-	public void refresh(T entity) {
+	public void refresh(T entity, String fieldsToForceLazy) {
 		checkRepository();
-		repository.refresh(entity);
+		repository.refresh(entity, fieldsToForceLazy);
 	}
 
 	@Override
@@ -237,15 +237,15 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public T findOneBySql(String sql) {
+	public T findOneBySql(String sql, String fieldsToForceLazy) {
 		checkRepository();
-		return this.repository.findOneBySql(sql);
+		return this.repository.findOneBySql(sql, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters) {
+	public T findOneBySql(String sql, Object parameters, String fieldsToForceLazy) {
 		checkRepository();
-		return this.repository.findOneBySql(sql, parameters);
+		return this.repository.findOneBySql(sql, parameters, fieldsToForceLazy);
 	}
 
 	@Override
@@ -260,189 +260,189 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public T findOne(ID id, boolean readOnly) {
+	public T findOne(ID id, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOne(id, readOnly);
+		return repository.findOne(id, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, boolean readOnly) {
+	public T findOneBySql(String sql, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOneBySql(sql,readOnly);
+		return repository.findOneBySql(sql,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters, boolean readOnly) {
+	public T findOneBySql(String sql, Object parameters, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOneBySql(sql,parameters,readOnly);
+		return repository.findOneBySql(sql,parameters,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOne(ID id, LockOptions lockOptions) {
+	public T findOne(ID id, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOne(id,lockOptions);
+		return repository.findOne(id,lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, LockOptions lockOptions) {
+	public T findOneBySql(String sql, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOneBySql(sql,lockOptions);
+		return repository.findOneBySql(sql,lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions) {
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOneBySql(sql,parameters,lockOptions);
+		return repository.findOneBySql(sql,parameters,lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOne(ID id, LockOptions lockOptions, boolean readOnly) {
+	public T findOne(ID id, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOne(id,lockOptions,readOnly);
+		return repository.findOne(id,lockOptions,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly) {
+	public T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOneBySql(sql,lockOptions,readOnly);
+		return repository.findOneBySql(sql,lockOptions,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findOneBySql(sql,parameters,lockOptions,readOnly);
+		return repository.findOneBySql(sql,parameters,lockOptions,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(boolean readOnly) {
+	public List<T> findAll(boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(readOnly);
+		return repository.findAll(readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable, boolean readOnly) {
+	public Page<T> findAll(Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(pageable, readOnly);
+		return repository.findAll(pageable, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, boolean readOnly) {
+	public List<T> find(String sql, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql,readOnly);
+		return repository.find(sql,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable, boolean readOnly) {
+	public Page<T> find(String sql, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql,pageable,readOnly);
+		return repository.find(sql,pageable,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters, boolean readOnly) {
+	public List<T> find(String sql, Object parameters, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql,parameters,readOnly);
+		return repository.find(sql,parameters,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, boolean readOnly) {
+	public Page<T> find(String sql, Object parameters, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql,parameters,pageable,readOnly);
+		return repository.find(sql,parameters,pageable,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName, boolean readOnly) {
+	public List<T> findByNamedQuery(String queryName, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName, readOnly);
+		return repository.findByNamedQuery(queryName, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Pageable pageable, boolean readOnly) {
+	public Page<T> findByNamedQuery(String queryName, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName, pageable, readOnly);
+		return repository.findByNamedQuery(queryName, pageable, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findByNamedQuery(String queryName, Object parameters, boolean readOnly) {
+	public List<T> findByNamedQuery(String queryName, Object parameters, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName, parameters, readOnly);
+		return repository.findByNamedQuery(queryName, parameters, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly) {
+	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findByNamedQuery(queryName, parameters,pageable,readOnly);
+		return repository.findByNamedQuery(queryName, parameters,pageable,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(LockOptions lockOptions) {
+	public List<T> findAll(LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(lockOptions);
+		return repository.findAll(lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable, LockOptions lockOptions) {
+	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(pageable, lockOptions);
+		return repository.findAll(pageable, lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(LockOptions lockOptions, boolean readOnly) {
+	public List<T> findAll(LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(lockOptions, readOnly);
+		return repository.findAll(lockOptions, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly) {
+	public Page<T> findAll(Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.findAll(pageable, lockOptions, readOnly);
+		return repository.findAll(pageable, lockOptions, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, LockOptions lockOptions) {
+	public List<T> find(String sql, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, lockOptions);
+		return repository.find(sql, lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions) {
+	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, pageable, lockOptions);
+		return repository.find(sql, pageable, lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters, LockOptions lockOptions) {
+	public List<T> find(String sql, Object parameters, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql,parameters,lockOptions);
+		return repository.find(sql,parameters,lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions) {
+	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql,parameters,pageable,lockOptions);
+		return repository.find(sql,parameters,pageable,lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, LockOptions lockOptions, boolean readOnly) {
+	public List<T> find(String sql, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql,lockOptions,readOnly);
+		return repository.find(sql,lockOptions,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly) {
+	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, pageable, lockOptions, readOnly);
+		return repository.find(sql, pageable, lockOptions, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly) {
+	public List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, parameters, lockOptions, readOnly);
+		return repository.find(sql, parameters, lockOptions, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly) {
+	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
 		checkRepository();
-		return repository.find(sql, parameters, pageable, lockOptions, readOnly);
+		return repository.find(sql, parameters, pageable, lockOptions, readOnly, fieldsToForceLazy);
 	}
 
 
@@ -471,9 +471,9 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public void refresh(T entity, LockOptions lockOptions) {
+	public void refresh(T entity, LockOptions lockOptions, String fieldsToForceLazy) {
 		checkRepository();
-		repository.refresh(entity, lockOptions);
+		repository.refresh(entity, lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
@@ -493,18 +493,18 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	}
 
 	@Override
-	public List<T> findAll(List<ID> ids) {
-		return repository.findAll(ids);
+	public List<T> findAll(List<ID> ids, String fieldsToForceLazy) {
+		return repository.findAll(ids, fieldsToForceLazy);
 	}
 	
 	@Override
-	public List<T> findAll(List<ID> ids, LockOptions lockOptions) {
-		return repository.findAll(ids,lockOptions);
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions, String fieldsToForceLazy) {
+		return repository.findAll(ids,lockOptions, fieldsToForceLazy);
 	}
 
 	@Override
-	public List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly) {
-		return findAll(ids,lockOptions,readOnly);
+	public List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+		return findAll(ids,lockOptions,readOnly, fieldsToForceLazy);
 	}
 
 	@Override
