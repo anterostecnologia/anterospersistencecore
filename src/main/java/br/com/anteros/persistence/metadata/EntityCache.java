@@ -1091,7 +1091,7 @@ public class EntityCache {
 
 	public void mergeValues(Object actualEntity, Object newEntity) throws Exception {
 		for (DescriptionField descriptionField : getDescriptionFields()) {
-			if (descriptionField.isAnyCollectionOrMap()) {
+			if (descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable()) {
 				if (descriptionField.getFetchType() != null && descriptionField.getFetchType().equals(FetchType.LAZY)) {
 					if (descriptionField.getObjectValue(newEntity) != null) {
 						Object value = descriptionField.getObjectValue(actualEntity);

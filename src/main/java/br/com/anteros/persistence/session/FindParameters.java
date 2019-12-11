@@ -17,9 +17,9 @@ public class FindParameters<T> {
 	private Class<T> entityClass;
 	private Object primaryKey;
 	private Map<String, Object> properties;
-	private LockOptions lockOptions;
+	private LockOptions lockOptions = LockOptions.OPTIMISTIC_FORCE_INCREMENT;
 	private Identifier<T> identifier;
-	private T id;
+	private Object id;
 	private boolean readOnly = false;
 	private String fieldsToForceLazy;
 	private String sql;
@@ -87,7 +87,7 @@ public class FindParameters<T> {
 		return id;
 	}
 
-	public FindParameters<T> id(T id) {
+	public FindParameters<T> id(Object id) {
 		this.id = id;
 		return this;
 	}

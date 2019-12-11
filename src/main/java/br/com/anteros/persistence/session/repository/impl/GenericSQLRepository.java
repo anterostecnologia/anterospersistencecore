@@ -31,6 +31,7 @@ import br.com.anteros.persistence.dsl.osql.types.Ops;
 import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
+import br.com.anteros.persistence.dsl.osql.types.expr.BooleanOperation;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
 import br.com.anteros.persistence.dsl.osql.types.path.StringPath;
 import br.com.anteros.persistence.metadata.EntityCache;
@@ -141,7 +142,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
 		try {
 			return (T) getSession().find(new FindParameters().entityClass(persistentClass).id(id)
-					.lockOptions(lockOptions).readOnly(readOnly));
+					.lockOptions(lockOptions).readOnly(readOnly).fieldsToForceLazy(fieldsToForceLazy));
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}
@@ -445,7 +446,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		if (path == null) {
 			// this.path = (EntityPath<T>)
 			// DEFAULT_ENTITY_PATH_RESOLVER.createPath(persistentClass);
-			this.path = new DynamicEntityPath(persistentClass, persistentClass.getSimpleName());
+			this.path = new DynamicEntityPath(persistentClass, persistentClass.getSimpleName()+"_P");
 		}
 		return path;
 	}
@@ -513,7 +514,12 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			StringPath predicateField = entityPath.createFieldString(tenantId.getName());
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField,
 					Expressions.constant(getSession().getTenantId().toString()));
-			((BooleanBuilder) predicate).and(expression);
+			
+			if (predicate instanceof BooleanOperation) {
+				((BooleanOperation)predicate).and(expression);
+			} else {
+				((BooleanBuilder) predicate).and(expression);
+			}
 		}
 
 		if (companyId != null) {
@@ -524,7 +530,11 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			StringPath predicateField = entityPath.createFieldString(companyId.getName());
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField,
 					Expressions.constant(this.getSession().getCompanyId().toString()));
-			((BooleanBuilder) predicate).and(expression);
+			if (predicate instanceof BooleanOperation) {
+				((BooleanOperation)predicate).and(expression);
+			} else {
+				((BooleanBuilder) predicate).and(expression);
+			}
 		}
 		return predicate;
 	}

@@ -104,15 +104,17 @@ public class SQLPersisterImpl implements SQLPersister {
 	}
 
 	public Object save(SQLSession session, Object object) throws Exception {
-		if (getValidator() != null && session.validationIsActive()) {
-			session.notifyListeners(EventType.PreValidate, null, object);
-			getValidator().validateBean(object);
-			session.notifyListeners(EventType.PostValidate, null, object);
-		}
 		this.session = session;
 		Object result = null;
 		try {
 			MergeResult mergeResult = mergeIfNeed(object);
+
+			if (getValidator() != null && session.validationIsActive()) {
+				session.notifyListeners(EventType.PreValidate, null, mergeResult.getNewObject());
+				getValidator().validateBean(mergeResult.getNewObject());
+				session.notifyListeners(EventType.PostValidate, null, mergeResult.getNewObject());
+			}
+
 			result = save(mergeResult.getOldObject(), mergeResult.getNewObject(), null);
 		} finally {
 			objectsInSavingProcess.clear();
@@ -736,42 +738,39 @@ public class SQLPersisterImpl implements SQLPersister {
 		/*
 		 * Se existe em B(new) e não existe em A(old) gera insert se Cascade=ALL ou SAVE
 		 */
-		if (Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
-				|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)) {
-			if (targetList != null) {
-				for (FieldEntityValue targetValue : targetList) {
-					boolean found = false;
-					if (sourceList != null) {
-						for (FieldEntityValue sourceValue : sourceList) {
-							if (sourceValue.compareTo(targetValue) == 0) {
-								found = true;
-								break;
-							}
+		if (targetList != null) {
+			for (FieldEntityValue targetValue : targetList) {
+				boolean found = false;
+				if (sourceList != null) {
+					for (FieldEntityValue sourceValue : sourceList) {
+						if (sourceValue.compareTo(targetValue) == 0) {
+							found = true;
+							break;
 						}
 					}
-					/*
-					 * não existe B(new) em A(old) gera insert
-					 */
-					if (!found) {
-						if (descriptionField.isMapTable()) {
-							Object key = targetValue.getSource();
-							Object value = ((Map<?, ?>) targetValue.getValue()).get(key);
-							result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT, descriptionField,
-									null, null, primaryKeyOwner));
-						} else if (descriptionField.isCollectionTable())
-							result.addAll(getSQLCollectionTableCommands(targetValue.getSource(),
-									SQLStatementType.INSERT, descriptionField, null, null, primaryKeyOwner));
-						else if (descriptionField.isCollectionEntity()) {
-							if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
-									|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)))
-								save(session, targetValue.getSource(), result);
-						} else if (descriptionField.isJoinTable())
-							result.addAll(getSQLJoinTableCommands(targetValue.getSource(), SQLStatementType.INSERT,
-									descriptionField, null, null, primaryKeyOwner));
-
-					}
+				}
+				/*
+				 * não existe B(new) em A(old) gera insert
+				 */
+				if (!found) {
+					if (descriptionField.isMapTable()) {
+						Object key = targetValue.getSource();
+						Object value = ((Map<?, ?>) targetValue.getValue()).get(key);
+						result.addAll(getSQLMapTableCommands(key, value, SQLStatementType.INSERT, descriptionField,
+								null, null, primaryKeyOwner));
+					} else if (descriptionField.isCollectionTable())
+						result.addAll(getSQLCollectionTableCommands(targetValue.getSource(), SQLStatementType.INSERT,
+								descriptionField, null, null, primaryKeyOwner));
+					else if (descriptionField.isCollectionEntity()) {
+						if ((Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.ALL)
+								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.SAVE)))
+							save(session, targetValue.getSource(), result);
+					} else if (descriptionField.isJoinTable())
+						result.addAll(getSQLJoinTableCommands(targetValue.getSource(), SQLStatementType.INSERT,
+								descriptionField, null, null, primaryKeyOwner));
 
 				}
+
 			}
 		}
 	}
@@ -936,7 +935,7 @@ public class SQLPersisterImpl implements SQLPersister {
 				newVersion = Versioning.incrementVersion(oldVersion,
 						entityCache.getVersionColumn().getField().getType());
 			}
-			namedParameters.add(new VersionNamedParameter(entityCache.getVersionColumn().getColumnName(), newVersion));
+ 			namedParameters.add(new VersionNamedParameter(entityCache.getVersionColumn().getColumnName(), newVersion));
 		}
 		return oldVersion;
 	}

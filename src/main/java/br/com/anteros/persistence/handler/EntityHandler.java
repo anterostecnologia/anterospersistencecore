@@ -702,13 +702,13 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		if (StringUtils.isEmpty(fieldsToForceLazy)) {
 			return current;
 		}
-		String[] spNames = fieldsToForceLazy.split("/,");
+		String[] spNames = fieldsToForceLazy.split(",");
 		for (String name : spNames) {
 			if (fieldName.equals(name)) {
 				return FetchType.EAGER;
 			}
 		}
-		return null;
+		return current;
 	}
 
 	/**
