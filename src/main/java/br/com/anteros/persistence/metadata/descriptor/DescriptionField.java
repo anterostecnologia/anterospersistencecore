@@ -13,6 +13,7 @@
 package br.com.anteros.persistence.metadata.descriptor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +27,7 @@ import java.util.Map;
 import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
+import br.com.anteros.persistence.asm.FieldAccess;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityCacheException;
 import br.com.anteros.persistence.metadata.EntityManaged;
@@ -233,11 +235,19 @@ public class DescriptionField {
 	}
 
 	public Object getObjectValue(Object object) throws Exception {
-		if (propertyAccessor != null) {
-			return propertyAccessor.get(object);
-		} else {
-			return field.get(object);
+		Method method = ReflectionUtils.getGetterAccessor(entityCache.getEntityClass(), field);
+		
+		try {
+			return entityCache.getMethodAccess().invoke(object, method.getName());
+		} catch (NullPointerException e) {
+			return null;
 		}
+		
+//		if (propertyAccessor != null) {
+//			return propertyAccessor.get(object);
+//		} else {
+//			return field.get(object);
+//		}
 	}
 
 	public Object setObjectValue(Object object, Object value) throws Exception {
@@ -284,11 +294,13 @@ public class DescriptionField {
 	}
 
 	public void setValue(Object source, Object value) throws Exception {
-		if (propertyAccessor != null) {
-			propertyAccessor.set(source, value);
-		} else {
-			field.set(source, value);
-		}
+		Method method = ReflectionUtils.getSetterAccessor(entityCache.getEntityClass(), field);
+		entityCache.getMethodAccess().invoke(source, method.getName(), value);
+//		if (propertyAccessor != null) {
+//			propertyAccessor.set(source, value);
+//		} else {
+//			field.set(source, value);
+//		}
 	}
 
 	public Object convertStringValueToDateSQL(String value) throws Exception {

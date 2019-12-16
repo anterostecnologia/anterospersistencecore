@@ -29,6 +29,9 @@ import br.com.anteros.core.converter.ConversionHelper;
 import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
+import br.com.anteros.persistence.asm.ConstructorAccess;
+import br.com.anteros.persistence.asm.FieldAccess;
+import br.com.anteros.persistence.asm.MethodAccess;
 import br.com.anteros.persistence.metadata.annotation.EventType;
 import br.com.anteros.persistence.metadata.annotation.type.FetchType;
 import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
@@ -89,6 +92,9 @@ public class EntityCache {
 	private InheritanceType inheritanceType;
 	private List<EntityListener> entityListeners = new ArrayList<EntityListener>();
 	private Map<Method,EventType> methodListeners = new HashMap<Method,EventType>();
+	private FieldAccess fieldAccess;
+	private MethodAccess methodAccess;
+	private ConstructorAccess constructorAccess;
 
 	public List<DescritionSecondaryTable> getSecondaryTables() {
 		return secondaryTables;
@@ -111,6 +117,8 @@ public class EntityCache {
 
 	public EntityCache(Class<?> sourceClazz) {
 		this.entityClass = sourceClazz;
+		methodAccess = MethodAccess.get(this.entityClass);
+		fieldAccess = FieldAccess.get(this.entityClass);
 	}
 
 	/**
@@ -1164,6 +1172,28 @@ public class EntityCache {
 
 	public void setMethodListeners(Map<Method, EventType> methodListeners) {
 		this.methodListeners = methodListeners;
+	}
+	
+	public MethodAccess getMethodAccess() {
+		if (methodAccess == null) {
+			methodAccess = MethodAccess.get(this.getEntityClass());
+		}
+		return methodAccess;
+	}
+
+	
+	public FieldAccess getFieldAccess() {
+		if (fieldAccess == null) {
+			fieldAccess = FieldAccess.get(this.getEntityClass());
+		}
+		return fieldAccess;
+	}
+
+	public ConstructorAccess getConstructorAccess() {
+		if (constructorAccess == null) {
+			constructorAccess = ConstructorAccess.get(this.getEntityClass());
+		}
+		return constructorAccess;
 	}
 
 }

@@ -262,7 +262,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 				/*
 				 * Se não encontrou no cache cria uma nova instância
 				 */
-				mainObject = targetClass.newInstance();
+				
+				mainObject = entityCache.getConstructorAccess().newInstance();
 				createdNewObject = true;
 			}
 		}
