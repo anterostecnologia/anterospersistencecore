@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.0.67</version>
+	<version>1.0.68</version>
 
 	<properties>
 		<java.versao>1.6</java.versao>
@@ -76,6 +76,11 @@
 			<artifactId>asm</artifactId>
 			<version>6.2.1</version>
 		</dependency>
+		<dependency>
+    <groupId>org.apache.tika</groupId>
+    <artifactId>tika-core</artifactId>
+    <version>1.18</version>
+</dependency>
 	</dependencies>
 
 	<profiles>

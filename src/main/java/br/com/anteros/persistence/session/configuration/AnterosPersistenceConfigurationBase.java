@@ -41,16 +41,16 @@ public abstract class AnterosPersistenceConfigurationBase extends AbstractPersis
 		super();
 	}
 
-	public AnterosPersistenceConfigurationBase(DataSource dataSource, ExternalFileManager externalFileManager) {
-		super(dataSource, externalFileManager);
+	public AnterosPersistenceConfigurationBase(DataSource dataSource, ExternalFileManager externalFileManager, boolean enableImageCompression) {
+		super(dataSource, externalFileManager,enableImageCompression);
 	}
 
-	public AnterosPersistenceConfigurationBase(PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
-		super(modelConfiguration, externalFileManager);
+	public AnterosPersistenceConfigurationBase(PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager, boolean enableImageCompression) {
+		super(modelConfiguration, externalFileManager,enableImageCompression);
 	}
 
-	public AnterosPersistenceConfigurationBase(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
-		super(dataSource, modelConfiguration, externalFileManager);
+	public AnterosPersistenceConfigurationBase(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager, boolean enableImageCompression) {
+		super(dataSource, modelConfiguration, externalFileManager,enableImageCompression);
 	}
 
 	@Override

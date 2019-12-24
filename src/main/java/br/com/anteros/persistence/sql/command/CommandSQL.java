@@ -32,7 +32,7 @@ import br.com.anteros.persistence.session.configuration.AnterosPersistenceProper
 import br.com.anteros.persistence.session.impl.SQLQueryRunner;
 import br.com.anteros.persistence.session.query.ShowSQLType;
 
-public abstract class CommandSQL {
+public abstract class CommandSQL implements PersisterCommand {
 
 	private static AnterosBundle MESSAGES = AnterosResourceBundle.getBundle(AnterosPersistenceProperties.ANTEROS_PERSISTENCE_CORE,AnterosPersistenceCoreMessages.class);
 	protected String sql;
@@ -59,8 +59,6 @@ public abstract class CommandSQL {
 		this.descriptionSQL = descriptionSQL;
 		this.inBatchMode = inBatchMode;
 	}
-
-	public abstract CommandSQLReturn execute() throws Exception;
 
 	public String getSql() {
 		return sql;

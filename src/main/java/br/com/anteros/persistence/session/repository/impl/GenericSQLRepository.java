@@ -550,6 +550,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		OSQLQuery query = createQuery(predicate);
 		query.offset(pageable.getOffset());
 		query.limit(pageable.getPageSize());
+		query.setFieldsToForceLazy(fieldsToForceLazy);
 		query.orderBy(orders);
 
 		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T>emptyList();

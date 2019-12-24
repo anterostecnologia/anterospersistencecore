@@ -7,6 +7,7 @@ import br.com.anteros.persistence.dsl.osql.types.path.ArrayPath;
 import br.com.anteros.persistence.dsl.osql.types.path.DatePath;
 import br.com.anteros.persistence.dsl.osql.types.path.DateTimePath;
 import br.com.anteros.persistence.dsl.osql.types.path.EntityPathBase;
+import br.com.anteros.persistence.dsl.osql.types.path.EnumPath;
 import br.com.anteros.persistence.dsl.osql.types.path.NumberPath;
 import br.com.anteros.persistence.dsl.osql.types.path.PathInits;
 import br.com.anteros.persistence.dsl.osql.types.path.StringPath;
@@ -34,6 +35,10 @@ public class DynamicEntityPath extends EntityPathBase {
 	
 	public StringPath createFieldString(String property) {
 		return super.createString(property);
+	}
+	
+	public <A extends Enum<A>> EnumPath<A> createFieldEnum(String property, Class<? super A> type) {
+		return super.createEnum(property, type);
 	}
 	
 	public <A extends Comparable> DatePath<A> createFieldDate(String property, Class<? super A> type) {

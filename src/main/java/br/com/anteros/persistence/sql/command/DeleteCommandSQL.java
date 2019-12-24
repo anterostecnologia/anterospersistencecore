@@ -41,7 +41,7 @@ public class DeleteCommandSQL extends CommandSQL {
 	}
 
 	@Override
-	public CommandSQLReturn execute() throws Exception {
+	public CommandReturn execute() throws Exception {
 		try {
 			session.notifyListeners(EventType.PreRemove, null, this.targetObject);
 			/*
@@ -91,7 +91,7 @@ public class DeleteCommandSQL extends CommandSQL {
 									showSql, session.getListeners(), session.clientId());
 						else {
 							if (inBatchMode) {
-								return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
+								return new CommandReturn(sql, NamedParameter.getAllValues(namedParameters));
 							} else {
 								queryRunner.update(this.getSession(), sql, NamedParameter.getAllValues(namedParameters),
 										showSql, session.getListeners(), session.clientId());

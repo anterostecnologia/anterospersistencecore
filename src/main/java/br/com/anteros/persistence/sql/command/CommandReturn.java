@@ -1,11 +1,11 @@
 package br.com.anteros.persistence.sql.command;
 
-public class CommandSQLReturn {
+public class CommandReturn {
 	
 	private String sql;
 	private Object[] parameters;
 	
-	public CommandSQLReturn(String sql, Object[] parameters){
+	public CommandReturn(String sql, Object[] parameters){
 		this.sql = sql;
 		this.parameters = parameters;
 	}

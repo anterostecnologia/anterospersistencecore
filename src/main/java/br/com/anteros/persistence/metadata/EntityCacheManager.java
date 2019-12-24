@@ -2869,4 +2869,8 @@ public class EntityCacheManager {
 		return en.toString();
 	}
 
+	public Map<Object, Class<?>> getEntityListeners() {
+		return entityListeners;
+	}
+
 }

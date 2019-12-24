@@ -45,7 +45,7 @@ public class UpdateCommandSQL extends CommandSQL {
 	}
 
 	@Override
-	public CommandSQLReturn execute() throws Exception {
+	public CommandReturn execute() throws Exception {
 		try {
 			session.notifyListeners(EventType.PreUpdate, oldObject, targetObject);
 			/*
@@ -95,7 +95,7 @@ public class UpdateCommandSQL extends CommandSQL {
 									showSql, session.getListeners(), session.clientId());
 						else {
 							if (inBatchMode) {
-								return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
+								return new CommandReturn(sql, NamedParameter.getAllValues(namedParameters));
 							} else {
 								rowsUpdated = queryRunner.update(this.getSession(), sql,
 										NamedParameter.getAllValues(namedParameters), showSql, session.getListeners(),

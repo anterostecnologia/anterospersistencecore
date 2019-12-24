@@ -54,9 +54,6 @@ public class BlobLazyLoadProxy implements InvocationHandler {
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		if (target==null)
-			return null;
-		
 		if ("isInitialized".equals(method.getName())) {
 			return isInitialized();
 		}

@@ -20,7 +20,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,6 +56,7 @@ public abstract class AbstractSQLRunner {
 	protected volatile boolean pmdKnownBroken = false;
 	protected DataSource dataSource;
 	protected Map<String, int[]> cacheOutputTypes = new HashMap<String, int[]>();
+	protected static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
 	public AbstractSQLRunner() {
 		super();
@@ -109,7 +112,12 @@ public abstract class AbstractSQLRunner {
 		} else {
 			if (parameter instanceof Date) {
 				java.sql.Date newParameter = new java.sql.Date(((Date) parameter).getTime());
-				statement.setDate(parameterIndex, newParameter);
+				if (sdf.format((Date) parameter).equals("00:00:00")) {
+					statement.setDate(parameterIndex, newParameter);
+				} else {
+					Timestamp ts = new Timestamp(((Date) parameter).getTime());
+					statement.setTimestamp(parameterIndex, ts);
+				}
 			} else {
 				statement.setObject(parameterIndex, parameter);
 			}

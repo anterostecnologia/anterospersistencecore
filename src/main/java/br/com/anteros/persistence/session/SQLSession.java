@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import br.com.anteros.persistence.handler.EntityHandler;
 import br.com.anteros.persistence.metadata.EntityCacheManager;
@@ -39,7 +40,7 @@ import br.com.anteros.persistence.session.query.SQLQuery;
 import br.com.anteros.persistence.session.query.SQLQueryAnalyserAlias;
 import br.com.anteros.persistence.session.query.ShowSQLType;
 import br.com.anteros.persistence.session.query.TypedSQLQuery;
-import br.com.anteros.persistence.sql.command.CommandSQL;
+import br.com.anteros.persistence.sql.command.PersisterCommand;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
 import br.com.anteros.persistence.transaction.Transaction;
 
@@ -209,7 +210,7 @@ public interface SQLSession {
 
 	public List<SQLSessionListener> getListeners();
 
-	public List<CommandSQL> getCommandQueue();
+	public ConcurrentLinkedQueue<PersisterCommand> getCommandQueue();
 
 	public Map<Object, Map<DescriptionColumn, IdentifierPostInsert>> getCacheIdentifier();
 
@@ -286,7 +287,19 @@ public interface SQLSession {
 	public Object getCompanyId();
 	
 	public ExternalFileManager getExternalFileManager();
+	
+	public void disableNotifyListeners();
+	
+	public void enableNotifyListeners();
+	
+	public void registerEventListener(Object listener, Class<?>... entities) throws Exception;
+	
+	public void removeEventListener(Object listener);
 
 	public void notifyListeners(EventType postvalidate, Object oldObject, Object newObject) throws Exception;
+	
+	public boolean isEnableImageCompression();
+
+	public void setEnableImageCompression(boolean enableImageCompression);
 
 }

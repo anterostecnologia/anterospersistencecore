@@ -89,29 +89,33 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	protected DataSource dataSource;
 	protected PersistenceModelConfiguration modelConfiguration;
 	protected ExternalFileManager externalFileManager;
+	protected boolean enableImageCompression = false;
 	protected Map<Object,Class<?>> entityListeners = new LinkedHashMap<Object,Class<?>>();
 
 	public AbstractPersistenceConfiguration() {
 		entityCacheManager = new EntityCacheManager();
 	}
 
-	public AbstractPersistenceConfiguration(DataSource dataSource, ExternalFileManager externalFileManager) {
+	public AbstractPersistenceConfiguration(DataSource dataSource, ExternalFileManager externalFileManager, boolean enableImageCompression) {
 		this();
 		this.dataSource = dataSource;
 		this.externalFileManager = externalFileManager;
+		this.enableImageCompression = enableImageCompression;
 	}
 
-	public AbstractPersistenceConfiguration(PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
+	public AbstractPersistenceConfiguration(PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager, boolean enableImageCompression) {
 		this();
 		this.modelConfiguration = modelConfiguration;
 		this.externalFileManager = externalFileManager;
+		this.enableImageCompression = enableImageCompression;
 	}
 
-	public AbstractPersistenceConfiguration(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager) {
+	public AbstractPersistenceConfiguration(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager, boolean enableImageCompression) {
 		super();
 		this.dataSource = dataSource;
 		this.modelConfiguration = modelConfiguration;
 		this.externalFileManager = externalFileManager;
+		this.enableImageCompression = enableImageCompression;
 	}
 
 	public SessionFactoryConfiguration getSessionFactoryConfiguration() { 
@@ -342,5 +346,13 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	}
 
 	public abstract PropertyAccessorFactory getPropertyAccessorFactory();
+
+	public boolean isEnableImageCompression() {
+		return enableImageCompression;
+	}
+
+	public void setEnableImageCompression(boolean enableImageCompression) {
+		this.enableImageCompression = enableImageCompression;
+	}
 
 }

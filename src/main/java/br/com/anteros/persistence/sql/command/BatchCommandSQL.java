@@ -27,12 +27,12 @@ public class BatchCommandSQL extends CommandSQL {
 	}
 
 	@Override
-	public CommandSQLReturn execute() throws Exception {
+	public CommandReturn execute() throws Exception {
 
-		List<CommandSQLReturn> returns = new ArrayList<CommandSQLReturn>();
+		List<CommandReturn> returns = new ArrayList<CommandReturn>();
 
 		for (CommandSQL command : commands) {
-			CommandSQLReturn sqlReturn = command.execute();
+			CommandReturn sqlReturn = command.execute();
 			if (sqlReturn != null) {
 				returns.add(sqlReturn);
 			}
@@ -41,7 +41,7 @@ public class BatchCommandSQL extends CommandSQL {
 		List<Object[]> batchParameters = new ArrayList<Object[]>();
 		String sql = null;
 		int batchCount = 0;
-		for (CommandSQLReturn ret : returns) {
+		for (CommandReturn ret : returns) {
 			if ((ret.getSql().equals(sql) || (sql == null)) && (batchCount < batchSize)) {
 				batchParameters.add(ret.getParameters());
 				sql = ret.getSql();

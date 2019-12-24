@@ -18,6 +18,7 @@ package br.com.anteros.persistence.metadata.identifier;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -56,8 +57,9 @@ public class Identifier<T> implements Serializable {
 		if (ReflectionUtils.isAbstractClass(sourceClass)) {
 			anyClass = (Class<T>) session.getEntityCacheManager().getAnyConcreteClass(sourceClass);
 			if (anyClass == null) {
-				throw new IdentifierException("Não é possível criar um identificador para a classe abstrata " + sourceClass.getName()
-						+ " pois não foi localizado nenhuma classe concreta que implemente a mesma.");
+				throw new IdentifierException(
+						"Não é possível criar um identificador para a classe abstrata " + sourceClass.getName()
+								+ " pois não foi localizado nenhuma classe concreta que implemente a mesma.");
 			}
 		}
 		entityCache = session.getEntityCacheManager().getEntityCache(sourceClass);
@@ -93,7 +95,8 @@ public class Identifier<T> implements Serializable {
 			throw new IdentifierException("Campo " + fieldName + " não encontrado na classe " + clazz.getName()
 					+ ". Não foi possível atribuir o valor.");
 
-		if ((value == null) || (value.getClass() == descriptionField.getField().getType()) || (descriptionField.getTargetEntity() == null)) {
+		if ((value == null) || (value.getClass() == descriptionField.getField().getType())
+				|| (descriptionField.getTargetEntity() == null)) {
 			if (value instanceof IdentifierColumn[])
 				descriptionField.setObjectValue(owner, ((IdentifierColumn[]) value)[0].getValue());
 			else
@@ -131,19 +134,44 @@ public class Identifier<T> implements Serializable {
 			for (DescriptionColumn descriptionColumn : descriptionField.getDescriptionColumns()) {
 				if (append)
 					select.and();
-				select.addCondition("" + descriptionColumn.getColumnName(), "=", ":P" + descriptionColumn.getColumnName());
+				select.addCondition("" + descriptionColumn.getColumnName(), "=",
+						":P" + descriptionColumn.getColumnName());
 				params.add(new NamedParameter("P" + descriptionColumn.getColumnName(), ((Object[]) value)[index]));
 				append = true;
 				index++;
 			}
 		} else {
-			throw new IdentifierException("Tipo de parâmetro incorreto " + value.getClass() + ". Não foi possível atribuir o valor para o campo "
-					+ descriptionField.getName() + " da classe " + entityCache.getEntityClass().getName());
+			throw new IdentifierException("Tipo de parâmetro incorreto " + value.getClass()
+					+ ". Não foi possível atribuir o valor para o campo " + descriptionField.getName() + " da classe "
+					+ entityCache.getEntityClass().getName());
 		}
-		descriptionField.setObjectValue(owner,
-				session.createQuery(select.toStatementString(), descriptionField.getField().getType(), params.toArray(new NamedParameter[] {}))
-						.getSingleResult());
+		descriptionField.setObjectValue(owner, session.createQuery(select.toStatementString(),
+				descriptionField.getField().getType(), params.toArray(new NamedParameter[] {})).getSingleResult());
 		return this;
+	}
+
+	public Map<DescriptionField, Object> getFieldsValues() throws Exception {
+		Map<DescriptionField, Object> result = new LinkedHashMap<DescriptionField, Object>();
+		DescriptionField[] primaryKeyFields = entityCache.getPrimaryKeyFields();
+		for (DescriptionField pkField : primaryKeyFields) {
+			if (pkField.isSimple()) {
+				result.put(pkField, pkField.getObjectValue(owner));
+			} else if (pkField.isRelationShip()) {
+				Object value = pkField.getObjectValue(owner);
+				if (value == null) {
+					result.put(pkField, null);
+				} else {
+					EntityCache rsEntityCache = session.getEntityCacheManager().getEntityCache(value.getClass());
+					if (rsEntityCache != null) {
+						Identifier<Object> rsIdentifier = session.getIdentifier(value);
+						result.put(pkField, rsIdentifier.getFieldsValues());
+					} else {
+						result.put(pkField, null);
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	public Object getFieldValue(String fieldName) throws Exception {
@@ -164,7 +192,7 @@ public class Identifier<T> implements Serializable {
 	public Map<String, Object> getColumns() throws Exception {
 		return entityCache.getPrimaryKeysAndValues(owner);
 	}
-	
+
 	public Map<String, Object> getDatabaseColumns() throws Exception {
 		return entityCache.getPrimaryKeysAndDatabaseValues(owner);
 	}
@@ -172,17 +200,17 @@ public class Identifier<T> implements Serializable {
 	public Collection<Object> getValues() throws Exception {
 		return getColumns().values();
 	}
-	
+
 	public Collection<Object> getDatabaseValues() throws Exception {
 		Map<String, Object> primaryKeysAndValues = entityCache.getPrimaryKeysAndDatabaseValues(owner);
 		return primaryKeysAndValues.values();
 	}
-	
-	public Map<String,Object> getColumnsValues() throws Exception {
+
+	public Map<String, Object> getColumnsValues() throws Exception {
 		return entityCache.getPrimaryKeysAndValues(owner);
 	}
-	
-	public Map<String,Object> getDatabaseColumnsValues() throws Exception {
+
+	public Map<String, Object> getDatabaseColumnsValues() throws Exception {
 		return entityCache.getPrimaryKeysAndDatabaseValues(owner);
 	}
 
@@ -207,7 +235,7 @@ public class Identifier<T> implements Serializable {
 		}
 		return sb.toString();
 	}
-	
+
 	public String getDatabaseUniqueId() throws Exception {
 		StringBuilder sb = new StringBuilder("");
 		Map<String, Object> primaryKey = new TreeMap<String, Object>(this.getDatabaseColumns());
@@ -274,27 +302,28 @@ public class Identifier<T> implements Serializable {
 			for (Object fieldName : ((Map) id).keySet()) {
 				DescriptionField descriptionField = entityCache.getDescriptionField(fieldName.toString());
 				if (descriptionField == null) {
-					throw new IdentifierException("Campo " + fieldName + " não encontrado na classe " + entityCache.getEntityClass().getName()
-							+ ". Não foi possível atribuir o id para o Identificador.");
+					throw new IdentifierException(
+							"Campo " + fieldName + " não encontrado na classe " + entityCache.getEntityClass().getName()
+									+ ". Não foi possível atribuir o id para o Identificador.");
 				}
 				descriptionField.setObjectValue(owner, ((Map) id).get(fieldName));
 			}
 		} else {
 			if (entityCache.getPrimaryKeyFields().length == 1) {
 				Class<?> fieldClass = entityCache.getPrimaryKeyFields()[0].getFieldClass();
-				if ((id.getClass() != fieldClass) && (!ReflectionUtils.isStrictlyAssignableFrom(id.getClass(), fieldClass))) {
-					throw new IdentifierException("Objeto ID passado como parâmetro é do tipo " + id.getClass().getName() + " diferente do tipo ID ("
-							+ fieldClass + ") do campo " + entityCache.getPrimaryKeyFields()[0].getField().getName() + "  encontrado na classe "
-							+ entityCache.getEntityClass().getName() + ". Não foi possível atribuir o id para o Identificador.");
+				if ((id.getClass() != fieldClass)
+						&& (!ReflectionUtils.isStrictlyAssignableFrom(id.getClass(), fieldClass))) {
+					throw new IdentifierException("Objeto ID passado como parâmetro é do tipo "
+							+ id.getClass().getName() + " diferente do tipo ID (" + fieldClass + ") do campo "
+							+ entityCache.getPrimaryKeyFields()[0].getField().getName() + "  encontrado na classe "
+							+ entityCache.getEntityClass().getName()
+							+ ". Não foi possível atribuir o id para o Identificador.");
 				}
 				entityCache.getPrimaryKeyFields()[0].setObjectValue(owner, id);
 			} else {
-				throw new IdentifierException(
-						"Objeto ID passado como parâmetro é do tipo "
-								+ id.getClass().getName()
-								+ " diferente do tipo ID  encontrado na classe "
-								+ entityCache.getEntityClass().getName()
-								+ ". Não foi possível atribuir o id para o Identificador. Use mapas de <Campo,Valor> ou um objeto compatível com o ID para criar um identificar. ");
+				throw new IdentifierException("Objeto ID passado como parâmetro é do tipo " + id.getClass().getName()
+						+ " diferente do tipo ID  encontrado na classe " + entityCache.getEntityClass().getName()
+						+ ". Não foi possível atribuir o id para o Identificador. Use mapas de <Campo,Valor> ou um objeto compatível com o ID para criar um identificar. ");
 			}
 
 		}

@@ -54,7 +54,7 @@ public class InsertCommandSQL extends CommandSQL {
 	}
 
 	@Override
-	public CommandSQLReturn execute() throws Exception {
+	public CommandReturn execute() throws Exception {
 		try {
 			session.notifyListeners(EventType.PrePersist, null, this.targetObject);
 			/*
@@ -149,7 +149,7 @@ public class InsertCommandSQL extends CommandSQL {
 										showSql, session.getListeners(), session.clientId());
 							} else {
 								if (inBatchMode) {
-									return new CommandSQLReturn(sql, NamedParameter.getAllValues(namedParameters));
+									return new CommandReturn(sql, NamedParameter.getAllValues(namedParameters));
 								} else {
 									queryRunner.update(session, sql, NamedParameter.getAllValues(namedParameters),
 											showSql, session.getListeners(), session.clientId());
