@@ -103,6 +103,13 @@ public class AnterosMultipleFieldsFilter<T> {
 		this.fieldsSort = fieldsSort;
 		return this;
 	}
+	
+	public DynamicEntityPath getEntityPath() {
+		if (entityPath == null) {
+			this.entityPath = new DynamicEntityPath(resultClass, "P");
+		}
+		return this.entityPath;
+	}
 
 	protected void buildQuery() {
 
@@ -146,7 +153,7 @@ public class AnterosMultipleFieldsFilter<T> {
 
 		DescriptionField tenantId = null;
 		DescriptionField companyId = null;
-		
+
 		for (EntityCache entityCache : entityCaches) {
 			tenantId = entityCache.getTenantId();
 			if (tenantId != null)
@@ -170,7 +177,7 @@ public class AnterosMultipleFieldsFilter<T> {
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField, param);
 			builder.and(expression);
 		}
-		
+
 		if (companyId != null) {
 			if (session.getCompanyId() == null) {
 				throw new SQLSessionException("Informe o Company Id para consultar  a entidade "
@@ -352,270 +359,280 @@ public class AnterosMultipleFieldsFilter<T> {
 
 		for (String vl : values) {
 
-			String value1 = vl;
-			String value2 = null;
-			if (vl.contains(":")) {
-				String[] v = StringUtils.tokenizeToStringArray(vl, ":");
-				value1 = v[0];
-				value2 = v[1];
-			}
-
 			if (descriptionField.isSimple()) {
+				BooleanBuilder builderAND = new BooleanBuilder();
+				
 				BooleanExpression predicate = null;
 
-				if (ReflectionUtils.isExtendsClass(String.class, descriptionField.getField().getType())) {
-					if (!isDate(value1) && (!isDateTime(value1))) {
-						if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-							StringPath predicateField = entityPath.createFieldString(descriptionField.getName());
-							paramNumber++;
-							StringParam param1 = new StringParam("P" + paramNumber);
-							parameters.put(param1, value1);
+				String[] andValues = StringUtils.tokenizeToStringArray(vl, "&");
+				for (String andValue : andValues) {
 
-							paramNumber++;
-							StringParam param2 = new StringParam("P" + paramNumber);
-							parameters.put(param2, value2);
-
-							predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
-						} else {
-							StringPath predicateField = entityPath.createFieldString(descriptionField.getName());
-							paramNumber++;
-							StringParam param = new StringParam("P" + paramNumber);
-							parameters.put(param, "%" + value1 + "%");
-							predicate = Expressions.predicate(Ops.LIKE, predicateField, param);
-						}
+					String value1 = andValue;
+					String value2 = null;
+					if (andValue.contains(":")) {
+						String[] v = StringUtils.tokenizeToStringArray(andValue, ":");
+						value1 = v[0];
+						value2 = v[1];
 					}
-				}
 
-				if (ReflectionUtils.isExtendsClass(Number.class, descriptionField.getField().getType())) {
-					if (ReflectionUtils.isExtendsClass(Double.class, descriptionField.getField().getType())) {
-						if (StringUtils.isNumber(value1)) {
+					if (ReflectionUtils.isExtendsClass(String.class, descriptionField.getField().getType())) {
+						if (!isDate(value1) && (!isDateTime(value1))) {
 							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-								NumberPath<Double> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), Double.class);
+								StringPath predicateField = entityPath.createFieldString(descriptionField.getName());
 								paramNumber++;
-								DoubleParam param1 = new DoubleParam("P" + paramNumber);
-								parameters.put(param1, Double.parseDouble(value1));
+								StringParam param1 = new StringParam("P" + paramNumber);
+								parameters.put(param1, value1);
 
 								paramNumber++;
-								DoubleParam param2 = new DoubleParam("P" + paramNumber);
-								parameters.put(param2, Double.parseDouble(value2));
+								StringParam param2 = new StringParam("P" + paramNumber);
+								parameters.put(param2, value2);
 
 								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
 							} else {
-								NumberPath<Double> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), Double.class);
+								StringPath predicateField = entityPath.createFieldString(descriptionField.getName());
 								paramNumber++;
-								DoubleParam param = new DoubleParam("P" + paramNumber);
-								parameters.put(param, Double.parseDouble(value1));
-								predicate = Expressions.predicate(Ops.EQ, predicateField, param);
-							}
-						}
-					} else if (ReflectionUtils.isExtendsClass(Float.class, descriptionField.getField().getType())) {
-						if (StringUtils.isNumber(value1)) {
-							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-
-								NumberPath<Float> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), Float.class);
-								paramNumber++;
-								FloatParam param1 = new FloatParam("P" + paramNumber);
-								parameters.put(param1, Float.parseFloat(value1));
-
-								paramNumber++;
-								FloatParam param2 = new FloatParam("P" + paramNumber);
-								parameters.put(param2, Float.parseFloat(value2));
-
-								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
-
-							} else {
-								NumberPath<Float> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), Float.class);
-								paramNumber++;
-								FloatParam param = new FloatParam("P" + paramNumber);
-								parameters.put(param, Float.parseFloat(value));
-								predicate = Expressions.predicate(Ops.EQ, predicateField, param);
-							}
-						}
-					} else if (ReflectionUtils.isExtendsClass(BigDecimal.class,
-							descriptionField.getField().getType())) {
-						if (StringUtils.isNumber(value1)) {
-							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-								NumberPath<BigDecimal> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), BigDecimal.class);
-
-								paramNumber++;
-								BigDecimalParam param1 = new BigDecimalParam("P" + paramNumber);
-								parameters.put(param1, new BigDecimal(value1));
-
-								paramNumber++;
-								BigDecimalParam param2 = new BigDecimalParam("P" + paramNumber);
-								parameters.put(param2, new BigDecimal(value2));
-
-								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
-							} else {
-								NumberPath<BigDecimal> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), BigDecimal.class);
-
-								paramNumber++;
-								BigDecimalParam param = new BigDecimalParam("P" + paramNumber);
-								parameters.put(param, new BigDecimal(value1));
-								predicate = Expressions.predicate(Ops.EQ, predicateField, param);
-							}
-						}
-					} else if (ReflectionUtils.isExtendsClass(BigInteger.class,
-							descriptionField.getField().getType())) {
-						if (StringUtils.isInteger(value1)) {
-							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-								NumberPath<BigInteger> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), BigInteger.class);
-
-								paramNumber++;
-								BigIntegerParam param1 = new BigIntegerParam("P" + paramNumber);
-								parameters.put(param1, new BigInteger(value1));
-
-								paramNumber++;
-								BigIntegerParam param2 = new BigIntegerParam("P" + paramNumber);
-								parameters.put(param2, new BigInteger(value2));
-
-								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
-							} else {
-								NumberPath<BigInteger> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), BigInteger.class);
-								paramNumber++;
-								BigIntegerParam param = new BigIntegerParam("P" + paramNumber);
-								parameters.put(param, new BigInteger(value1));
-								predicate = Expressions.predicate(Ops.EQ, predicateField, param);
-							}
-						}
-					} else {
-						if (StringUtils.isInteger(value1)) {
-							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-								NumberPath<Long> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), Long.class);
-								paramNumber++;
-								LongParam param1 = new LongParam("P" + paramNumber);
-								parameters.put(param1, Long.parseLong(value1));
-
-								paramNumber++;
-								LongParam param2 = new LongParam("P" + paramNumber);
-								parameters.put(param2, Long.parseLong(value2));
-
-								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
-							} else {
-								NumberPath<Long> predicateField = entityPath
-										.createFieldNumber(descriptionField.getName(), Long.class);
-								paramNumber++;
-								LongParam param = new LongParam("P" + paramNumber);
-								parameters.put(param, Long.parseLong(value1));
-								predicate = Expressions.predicate(Ops.EQ, predicateField, param);
+								StringParam param = new StringParam("P" + paramNumber);
+								parameters.put(param, "%" + value1 + "%");
+								predicate = Expressions.predicate(Ops.LIKE, predicateField, param);
 							}
 						}
 					}
 
-				}
+					if (ReflectionUtils.isExtendsClass(Number.class, descriptionField.getField().getType())) {
+						if (ReflectionUtils.isExtendsClass(Double.class, descriptionField.getField().getType())) {
+							if (StringUtils.isNumber(value1)) {
+								if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
+									NumberPath<Double> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), Double.class);
+									paramNumber++;
+									DoubleParam param1 = new DoubleParam("P" + paramNumber);
+									parameters.put(param1, Double.parseDouble(value1));
 
-				if (ReflectionUtils.isExtendsClass(Date.class, descriptionField.getField().getType())) {
-					if (isDate(value1)) {
-						if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-							if (descriptionField.isTemporalDate()) {
-								DatePath<Date> predicateField = entityPath.createFieldDate(descriptionField.getName(),
-										Date.class);
+									paramNumber++;
+									DoubleParam param2 = new DoubleParam("P" + paramNumber);
+									parameters.put(param2, Double.parseDouble(value2));
 
-								Date dt1 = getDate(value1);
-								paramNumber++;
-								DateParam dtParam1 = new DateParam("P" + paramNumber);
-								parameters.put(dtParam1, dt1);
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
+								} else {
+									NumberPath<Double> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), Double.class);
+									paramNumber++;
+									DoubleParam param = new DoubleParam("P" + paramNumber);
+									parameters.put(param, Double.parseDouble(value1));
+									predicate = Expressions.predicate(Ops.EQ, predicateField, param);
+								}
+							}
+						} else if (ReflectionUtils.isExtendsClass(Float.class, descriptionField.getField().getType())) {
+							if (StringUtils.isNumber(value1)) {
+								if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
 
-								Date dt2 = getDate(value2);
-								paramNumber++;
-								DateParam dtParam2 = new DateParam("P" + paramNumber);
-								parameters.put(dtParam2, dt2);
+									NumberPath<Float> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), Float.class);
+									paramNumber++;
+									FloatParam param1 = new FloatParam("P" + paramNumber);
+									parameters.put(param1, Float.parseFloat(value1));
 
-								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, dtParam1, dtParam2);
+									paramNumber++;
+									FloatParam param2 = new FloatParam("P" + paramNumber);
+									parameters.put(param2, Float.parseFloat(value2));
+
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
+
+								} else {
+									NumberPath<Float> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), Float.class);
+									paramNumber++;
+									FloatParam param = new FloatParam("P" + paramNumber);
+									parameters.put(param, Float.parseFloat(value));
+									predicate = Expressions.predicate(Ops.EQ, predicateField, param);
+								}
+							}
+						} else if (ReflectionUtils.isExtendsClass(BigDecimal.class,
+								descriptionField.getField().getType())) {
+							if (StringUtils.isNumber(value1)) {
+								if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
+									NumberPath<BigDecimal> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), BigDecimal.class);
+
+									paramNumber++;
+									BigDecimalParam param1 = new BigDecimalParam("P" + paramNumber);
+									parameters.put(param1, new BigDecimal(value1));
+
+									paramNumber++;
+									BigDecimalParam param2 = new BigDecimalParam("P" + paramNumber);
+									parameters.put(param2, new BigDecimal(value2));
+
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
+								} else {
+									NumberPath<BigDecimal> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), BigDecimal.class);
+
+									paramNumber++;
+									BigDecimalParam param = new BigDecimalParam("P" + paramNumber);
+									parameters.put(param, new BigDecimal(value1));
+									predicate = Expressions.predicate(Ops.EQ, predicateField, param);
+								}
+							}
+						} else if (ReflectionUtils.isExtendsClass(BigInteger.class,
+								descriptionField.getField().getType())) {
+							if (StringUtils.isInteger(value1)) {
+								if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
+									NumberPath<BigInteger> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), BigInteger.class);
+
+									paramNumber++;
+									BigIntegerParam param1 = new BigIntegerParam("P" + paramNumber);
+									parameters.put(param1, new BigInteger(value1));
+
+									paramNumber++;
+									BigIntegerParam param2 = new BigIntegerParam("P" + paramNumber);
+									parameters.put(param2, new BigInteger(value2));
+
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
+								} else {
+									NumberPath<BigInteger> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), BigInteger.class);
+									paramNumber++;
+									BigIntegerParam param = new BigIntegerParam("P" + paramNumber);
+									parameters.put(param, new BigInteger(value1));
+									predicate = Expressions.predicate(Ops.EQ, predicateField, param);
+								}
 							}
 						} else {
-							Date dt = getDate(value1);
-							if (descriptionField.isTemporalDate()) {
-								DatePath<Date> predicateField = entityPath.createFieldDate(descriptionField.getName(),
-										Date.class);
-								paramNumber++;
-								DateParam dtParam = new DateParam("P" + paramNumber);
-								parameters.put(dtParam, dt);
-								predicate = Expressions.predicate(Ops.EQ, predicateField, dtParam);
+							if (StringUtils.isInteger(value1)) {
+								if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
+									NumberPath<Long> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), Long.class);
+									paramNumber++;
+									LongParam param1 = new LongParam("P" + paramNumber);
+									parameters.put(param1, Long.parseLong(value1));
+
+									paramNumber++;
+									LongParam param2 = new LongParam("P" + paramNumber);
+									parameters.put(param2, Long.parseLong(value2));
+
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, param1, param2);
+								} else {
+									NumberPath<Long> predicateField = entityPath
+											.createFieldNumber(descriptionField.getName(), Long.class);
+									paramNumber++;
+									LongParam param = new LongParam("P" + paramNumber);
+									parameters.put(param, Long.parseLong(value1));
+									predicate = Expressions.predicate(Ops.EQ, predicateField, param);
+								}
 							}
 						}
-					} else if (isDateTime(value1)) {
 
-						if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
-							if (descriptionField.isTemporalDateTime()) {
-								DateTimePath<Date> predicateField = entityPath
-										.createFieldDateTime(descriptionField.getName(), Date.class);
-								paramNumber++;
+					}
 
-								Date dt1 = getDateTime(value1);
-								DateTimeParam dtTimeParam1 = new DateTimeParam("P" + paramNumber);
-								parameters.put(dtTimeParam1, dt1);
+					if (ReflectionUtils.isExtendsClass(Date.class, descriptionField.getField().getType())) {
+						if (isDate(value1)) {
+							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
+								if (descriptionField.isTemporalDate()) {
+									DatePath<Date> predicateField = entityPath
+											.createFieldDate(descriptionField.getName(), Date.class);
 
-								paramNumber++;
+									Date dt1 = getDate(value1);
+									paramNumber++;
+									DateParam dtParam1 = new DateParam("P" + paramNumber);
+									parameters.put(dtParam1, dt1);
 
-								Date dt2 = getDateTime(value2);
-								DateTimeParam dtTimeParam2 = new DateTimeParam("P" + paramNumber);
-								parameters.put(dtTimeParam2, dt2);
+									Date dt2 = getDate(value2);
+									paramNumber++;
+									DateParam dtParam2 = new DateParam("P" + paramNumber);
+									parameters.put(dtParam2, dt2);
 
-								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, dtTimeParam1,
-										dtTimeParam2);
-							} else if (descriptionField.isTemporalTime()) {
-								TimePath<Date> predicateField = entityPath.createFieldTime(descriptionField.getName(),
-										Date.class);
-
-								Date dt1 = getDateTime(value1);
-								Calendar calendar = Calendar.getInstance();
-								calendar.set(Calendar.HOUR, dt1.getHours());
-								calendar.set(Calendar.MINUTE, dt1.getMinutes());
-								calendar.set(Calendar.SECOND, dt1.getSeconds());
-								paramNumber++;
-								DateTimeParam dtTimeParam1 = new DateTimeParam("P" + paramNumber);
-								parameters.put(dtTimeParam1, calendar.getTime());
-
-								Date dt2 = getDateTime(value2);
-								paramNumber++;
-								calendar.set(Calendar.HOUR, dt2.getHours());
-								calendar.set(Calendar.MINUTE, dt2.getMinutes());
-								calendar.set(Calendar.SECOND, dt2.getSeconds());
-								DateTimeParam dtTimeParam2 = new DateTimeParam("P" + paramNumber);
-								parameters.put(dtTimeParam2, calendar.getTime());
-
-								predicate = Expressions.predicate(Ops.BETWEEN, predicateField, dtTimeParam1,
-										dtTimeParam2);
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, dtParam1, dtParam2);
+								}
+							} else {
+								Date dt = getDate(value1);
+								if (descriptionField.isTemporalDate()) {
+									DatePath<Date> predicateField = entityPath
+											.createFieldDate(descriptionField.getName(), Date.class);
+									paramNumber++;
+									DateParam dtParam = new DateParam("P" + paramNumber);
+									parameters.put(dtParam, dt);
+									predicate = Expressions.predicate(Ops.EQ, predicateField, dtParam);
+								}
 							}
-						} else {
-							Date dt = getDateTime(value1);
-							if (descriptionField.isTemporalDateTime()) {
-								DateTimePath<Date> predicateField = entityPath
-										.createFieldDateTime(descriptionField.getName(), Date.class);
-								paramNumber++;
-								DateTimeParam dtTimeParam = new DateTimeParam("P" + paramNumber);
-								parameters.put(dtTimeParam, dt);
-								predicate = Expressions.predicate(Ops.EQ, predicateField, dtTimeParam);
-							} else if (descriptionField.isTemporalTime()) {
-								TimePath<Date> predicateField = entityPath.createFieldTime(descriptionField.getName(),
-										Date.class);
+						} else if (isDateTime(value1)) {
 
-								Calendar calendar = Calendar.getInstance();
-								calendar.set(Calendar.HOUR, dt.getHours());
-								calendar.set(Calendar.MINUTE, dt.getMinutes());
-								calendar.set(Calendar.SECOND, dt.getSeconds());
+							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
+								if (descriptionField.isTemporalDateTime()) {
+									DateTimePath<Date> predicateField = entityPath
+											.createFieldDateTime(descriptionField.getName(), Date.class);
+									paramNumber++;
 
-								paramNumber++;
-								DateTimeParam dtTimeParam = new DateTimeParam("P" + paramNumber);
-								parameters.put(dtTimeParam, calendar.getTime());
-								predicate = Expressions.predicate(Ops.EQ, predicateField, dtTimeParam);
+									Date dt1 = getDateTime(value1);
+									DateTimeParam dtTimeParam1 = new DateTimeParam("P" + paramNumber);
+									parameters.put(dtTimeParam1, dt1);
+
+									paramNumber++;
+
+									Date dt2 = getDateTime(value2);
+									DateTimeParam dtTimeParam2 = new DateTimeParam("P" + paramNumber);
+									parameters.put(dtTimeParam2, dt2);
+
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, dtTimeParam1,
+											dtTimeParam2);
+								} else if (descriptionField.isTemporalTime()) {
+									TimePath<Date> predicateField = entityPath
+											.createFieldTime(descriptionField.getName(), Date.class);
+
+									Date dt1 = getDateTime(value1);
+									Calendar calendar = Calendar.getInstance();
+									calendar.set(Calendar.HOUR, dt1.getHours());
+									calendar.set(Calendar.MINUTE, dt1.getMinutes());
+									calendar.set(Calendar.SECOND, dt1.getSeconds());
+									paramNumber++;
+									DateTimeParam dtTimeParam1 = new DateTimeParam("P" + paramNumber);
+									parameters.put(dtTimeParam1, calendar.getTime());
+
+									Date dt2 = getDateTime(value2);
+									paramNumber++;
+									calendar.set(Calendar.HOUR, dt2.getHours());
+									calendar.set(Calendar.MINUTE, dt2.getMinutes());
+									calendar.set(Calendar.SECOND, dt2.getSeconds());
+									DateTimeParam dtTimeParam2 = new DateTimeParam("P" + paramNumber);
+									parameters.put(dtTimeParam2, calendar.getTime());
+
+									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, dtTimeParam1,
+											dtTimeParam2);
+								}
+							} else {
+								Date dt = getDateTime(value1);
+								if (descriptionField.isTemporalDateTime()) {
+									DateTimePath<Date> predicateField = entityPath
+											.createFieldDateTime(descriptionField.getName(), Date.class);
+									paramNumber++;
+									DateTimeParam dtTimeParam = new DateTimeParam("P" + paramNumber);
+									parameters.put(dtTimeParam, dt);
+									predicate = Expressions.predicate(Ops.EQ, predicateField, dtTimeParam);
+								} else if (descriptionField.isTemporalTime()) {
+									TimePath<Date> predicateField = entityPath
+											.createFieldTime(descriptionField.getName(), Date.class);
+
+									Calendar calendar = Calendar.getInstance();
+									calendar.set(Calendar.HOUR, dt.getHours());
+									calendar.set(Calendar.MINUTE, dt.getMinutes());
+									calendar.set(Calendar.SECOND, dt.getSeconds());
+
+									paramNumber++;
+									DateTimeParam dtTimeParam = new DateTimeParam("P" + paramNumber);
+									parameters.put(dtTimeParam, calendar.getTime());
+									predicate = Expressions.predicate(Ops.EQ, predicateField, dtTimeParam);
+								}
 							}
 						}
+					}
+					
+					if (predicate!=null) {
+						builderAND.and(predicate);
 					}
 				}
 
 				if (predicate != null) {
-					builder.or(predicate);
+					builder.or(builderAND);
 				}
 
 			}

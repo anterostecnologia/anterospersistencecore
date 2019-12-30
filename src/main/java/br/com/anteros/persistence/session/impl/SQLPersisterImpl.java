@@ -33,15 +33,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.activation.MimeType;
-
 import org.apache.tika.Tika;
 
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
-import br.com.anteros.core.utils.Base64;
 import br.com.anteros.core.utils.MimeTypes;
-import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.core.utils.PNGUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.persistence.metadata.EntityCache;
@@ -62,7 +58,6 @@ import br.com.anteros.persistence.parameter.ExternalFileNamedParameter;
 import br.com.anteros.persistence.parameter.NamedParameter;
 import br.com.anteros.persistence.parameter.VersionNamedParameter;
 import br.com.anteros.persistence.session.FindParameters;
-import br.com.anteros.persistence.session.ResultInfo;
 import br.com.anteros.persistence.session.SQLPersister;
 import br.com.anteros.persistence.session.SQLSession;
 import br.com.anteros.persistence.session.SQLSessionValidator;
@@ -513,7 +508,7 @@ public class SQLPersisterImpl implements SQLPersister {
 														targetObject, columnModified));
 									} else {
 										Tika tika = new Tika();
-										String mimeType = tika.detect((byte[])columnValue);
+										String mimeType = tika.detect((byte[]) columnValue);
 										if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType)
 												|| MimeTypes.MIME_APPLICATION_OCTET_STREAM.equals(mimeType)) {
 											namedParameters.put(columnModified.getColumnName(),
@@ -521,7 +516,8 @@ public class SQLPersisterImpl implements SQLPersister {
 															targetObject, columnModified));
 										} else {
 											byte[] data = (byte[]) columnValue;
-											if (session.isEnableImageCompression() && MimeTypes.MIME_IMAGE_PNG.equals(mimeType)) {
+											if (session.isEnableImageCompression()
+													&& MimeTypes.MIME_IMAGE_PNG.equals(mimeType)) {
 												data = PNGUtils.compressPNG(data);
 											}
 											String fileName = UUID.randomUUID().toString() + "."
@@ -1170,8 +1166,8 @@ public class SQLPersisterImpl implements SQLPersister {
 						}
 					} else
 						result.add(new DeleteCommandSQL(session,
-								generateSql(tableName, SQLStatementType.DELETE, keyChildParameters), keyChildParameters, null,
-								null, tableName, session.getShowSql(),
+								generateSql(tableName, SQLStatementType.DELETE, keyChildParameters), keyChildParameters,
+								null, null, tableName, session.getShowSql(),
 								descriptionField.getDescriptionSqlByType(SQLStatementType.DELETE),
 								executeInBatchMode()));
 				}
@@ -1194,23 +1190,29 @@ public class SQLPersisterImpl implements SQLPersister {
 
 		for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
 			if (descriptionField.isLob() && session.getExternalFileManager() != null) {
-				String columnValue = (String) descriptionField.getObjectValue(targetObject);
-				byte[] decoded = Base64.decode(columnValue.getBytes());
-				ByteArrayInputStream bais = new ByteArrayInputStream(decoded);
-				Tika tika = new Tika();
-				String mimeType = tika.detect(bais);
-				if ("text/plain".equals(mimeType)) {
-					if (isURL(columnValue)) {
-						String folderName = "";
-						if (session.getTenantId() != null) {
-							folderName = session.getTenantId().toString();
-							if (session.getCompanyId() != null) {
-								folderName += "/" + session.getCompanyId().toString();
-							}
-						}
+				Object columnValue = descriptionField.getObjectValue(targetObject);
+				String oldColumnValue = null;
+				if (columnValue != null) {
+					oldColumnValue = new String((byte[]) columnValue);
+				}
 
-						String fileName = columnValue.split("\\#")[1];
-						result.add(new ExternalFileRemoveCommand(session, folderName, fileName));
+				if (oldColumnValue != null) {
+					ByteArrayInputStream bais = new ByteArrayInputStream(oldColumnValue.getBytes());
+					Tika tika = new Tika();
+					String mimeType = tika.detect(bais);
+					if ("text/plain".equals(mimeType)) {
+						if (isURL(oldColumnValue)) {
+							String folderName = "";
+							if (session.getTenantId() != null) {
+								folderName = session.getTenantId().toString();
+								if (session.getCompanyId() != null) {
+									folderName += "/" + session.getCompanyId().toString();
+								}
+							}
+
+							String fileName = oldColumnValue.split("\\#")[1];
+							result.add(new ExternalFileRemoveCommand(session, folderName, fileName));
+						}
 					}
 				}
 			}

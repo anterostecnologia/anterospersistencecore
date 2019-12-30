@@ -585,14 +585,14 @@ public class EntityHandler implements ScrollableResultSetHandler {
 						
 						
 						
-						fetchType = this.checkForceFetchTypeByField(descriptionField.getField().getName(), fetchType);
+						CheckForceResult checkForceResult = this.checkForceFetchTypeByField(descriptionField.getField().getName(), fetchType);
 
 						/*
 						 * Somente busca relacionamentos pois LOB já é criado
 						 * junto com os demais campos. Somente cria o LOB se for
 						 * LAZY. Ai cria como um proxy.
 						 */
-						if (fetchType == FetchType.EAGER) {
+						if (checkForceResult.getFetchType() == FetchType.EAGER) {
 							if (!descriptionField.isLob()) {
 								Object result = null;
 								/*
@@ -619,6 +619,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 									 */
 									SQLQuery query = session.createQuery("");
 									query.allowDuplicateObjects(true);
+									query.setFieldsToForceLazy(checkForceResult.getContinueFieldsToForceLazy());
 									/*
 									 * Extende o lock para as coleções e tabelas
 									 * de junção
@@ -645,6 +646,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 									 */
 									SQLQuery query = session.createQuery("");
 									query.allowDuplicateObjects(true);
+									query.setFieldsToForceLazy(checkForceResult.getContinueFieldsToForceLazy());
 
 									/*
 									 * Extende o lock para as coleções e tabelas
@@ -699,17 +701,29 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		}
 	}
 
-	private FetchType checkForceFetchTypeByField(String fieldName, FetchType current) {
+	private CheckForceResult checkForceFetchTypeByField(String fieldName, FetchType current) {
 		if (StringUtils.isEmpty(fieldsToForceLazy)) {
-			return current;
+			return new CheckForceResult(current, null);
 		}
 		String[] spNames = fieldsToForceLazy.split(",");
 		for (String name : spNames) {
-			if (fieldName.equals(name)) {
-				return FetchType.EAGER;
+			String[] spSub = name.split("\\.");
+			if (fieldName.equals(spSub[0])) {
+				String continueForceFieldsToLazy = "";
+				if (spSub.length>1) {
+					boolean appendDelimiter = false;
+					for (int i = 1; i < spSub.length; i++) {
+						if (appendDelimiter) {
+							continueForceFieldsToLazy += ".";
+						}
+						continueForceFieldsToLazy += spSub[i];
+						appendDelimiter = true;
+					}
+				}
+				return new CheckForceResult(FetchType.EAGER,continueForceFieldsToLazy);
 			}
 		}
-		return current;
+		return new CheckForceResult(current, null);
 	}
 
 	/**

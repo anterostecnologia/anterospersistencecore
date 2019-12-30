@@ -27,7 +27,7 @@ import br.com.anteros.persistence.metadata.EntityCacheManager;
  * 
  */
 public interface SQLSessionFactory {
-
+   
 	/**
 	 * Retorna a SQLSession da thread corrente
 	 */

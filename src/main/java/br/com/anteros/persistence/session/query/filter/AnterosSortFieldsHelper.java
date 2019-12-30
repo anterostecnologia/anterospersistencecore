@@ -23,10 +23,10 @@ import br.com.anteros.persistence.session.exception.SQLSessionException;
 
 public class AnterosSortFieldsHelper {
 
-	public static List<OrderSpecifier> convertFieldsToOrderby(SQLSession session, DynamicEntityPath entityPath, EntityCache[] entityCaches,
-			String fieldsSort) {
+	public static List<OrderSpecifier> convertFieldsToOrderby(SQLSession session, DynamicEntityPath entityPath,
+			EntityCache[] entityCaches, String fieldsSort) {
 		List<OrderSpecifier> result = new ArrayList<OrderSpecifier>();
-		
+
 		String[] arrFieldsSort = StringUtils.tokenizeToStringArray(fieldsSort, ",");
 		if (arrFieldsSort == null) {
 			arrFieldsSort = new String[] { fieldsSort };
@@ -37,11 +37,12 @@ public class AnterosSortFieldsHelper {
 			processSortField(session, entityPath, entityCaches, fieldArr, result);
 
 		}
-		
+
 		return result;
 	}
 
-	private static void processSortField(SQLSession session, DynamicEntityPath dynamicEntityPath, EntityCache[] entityCaches, String[] fieldArr, List<OrderSpecifier> result) {
+	private static void processSortField(SQLSession session, DynamicEntityPath dynamicEntityPath,
+			EntityCache[] entityCaches, String[] fieldArr, List<OrderSpecifier> result) {
 		String field = fieldArr[0];
 		String fld = field;
 		String order = "asc";
@@ -77,7 +78,7 @@ public class AnterosSortFieldsHelper {
 		}
 
 	}
-	
+
 	private static DescriptionField getDescriptionField(EntityCache[] entityCaches, String field) {
 		for (EntityCache entityCache : entityCaches) {
 			DescriptionField descriptionField = entityCache.getDescriptionField(field);
@@ -87,9 +88,9 @@ public class AnterosSortFieldsHelper {
 		}
 		return null;
 	}
-	
-	
-	private static void addSort(DynamicEntityPath entityPath, DescriptionField descriptionField, String order, List<OrderSpecifier> result) {
+
+	private static void addSort(DynamicEntityPath entityPath, DescriptionField descriptionField, String order,
+			List<OrderSpecifier> result) {
 		if (descriptionField.isSimple()) {
 			if (ReflectionUtils.isExtendsClass(String.class, descriptionField.getField().getType())) {
 				StringPath predicateField = entityPath.createFieldString(descriptionField.getName());
@@ -115,19 +116,17 @@ public class AnterosSortFieldsHelper {
 					} else {
 						result.add(predicateField.desc());
 					}
-				} else if (ReflectionUtils.isExtendsClass(BigDecimal.class,
-						descriptionField.getField().getType())) {
-					NumberPath<BigDecimal> predicateField = entityPath
-							.createFieldNumber(descriptionField.getName(), BigDecimal.class);
+				} else if (ReflectionUtils.isExtendsClass(BigDecimal.class, descriptionField.getField().getType())) {
+					NumberPath<BigDecimal> predicateField = entityPath.createFieldNumber(descriptionField.getName(),
+							BigDecimal.class);
 					if ("asc".equals(order)) {
 						result.add(predicateField.asc());
 					} else {
 						result.add(predicateField.desc());
 					}
-				} else if (ReflectionUtils.isExtendsClass(BigInteger.class,
-						descriptionField.getField().getType())) {
-					NumberPath<BigInteger> predicateField = entityPath
-							.createFieldNumber(descriptionField.getName(), BigInteger.class);
+				} else if (ReflectionUtils.isExtendsClass(BigInteger.class, descriptionField.getField().getType())) {
+					NumberPath<BigInteger> predicateField = entityPath.createFieldNumber(descriptionField.getName(),
+							BigInteger.class);
 					if ("asc".equals(order)) {
 						result.add(predicateField.asc());
 					} else {
@@ -144,7 +143,15 @@ public class AnterosSortFieldsHelper {
 				}
 			} else if (ReflectionUtils.isExtendsClass(Date.class, descriptionField.getField().getType())) {
 				if (descriptionField.isTemporalDate()) {
-					DatePath<Date> predicateField = entityPath.createFieldDate(descriptionField.getName(),
+					DatePath<Date> predicateField = entityPath.createFieldDate(descriptionField.getName(), Date.class);
+					if ("asc".equals(order)) {
+						result.add(predicateField.asc());
+					} else {
+						result.add(predicateField.desc());
+					}
+
+				} else if (descriptionField.isTemporalDateTime()) {
+					DateTimePath<Date> predicateField = entityPath.createFieldDateTime(descriptionField.getName(),
 							Date.class);
 					if ("asc".equals(order)) {
 						result.add(predicateField.asc());
@@ -152,25 +159,14 @@ public class AnterosSortFieldsHelper {
 						result.add(predicateField.desc());
 					}
 
+				} else if (descriptionField.isTemporalTime()) {
+					TimePath<Date> predicateField = entityPath.createFieldTime(descriptionField.getName(), Date.class);
+					if ("asc".equals(order)) {
+						result.add(predicateField.asc());
+					} else {
+						result.add(predicateField.desc());
+					}
 				}
-			} else if (descriptionField.isTemporalDateTime()) {
-				DateTimePath<Date> predicateField = entityPath.createFieldDateTime(descriptionField.getName(),
-						Date.class);
-				if ("asc".equals(order)) {
-					result.add(predicateField.asc());
-				} else {
-					result.add(predicateField.desc());
-				}
-
-			} else if (descriptionField.isTemporalTime()) {
-				TimePath<Date> predicateField = entityPath.createFieldTime(descriptionField.getName(),
-						Date.class);
-				if ("asc".equals(order)) {
-					result.add(predicateField.asc());
-				} else {
-					result.add(predicateField.desc());
-				}
-
 			}
 		}
 	}
