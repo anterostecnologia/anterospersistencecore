@@ -82,6 +82,7 @@ import br.com.anteros.persistence.validation.version.Versioning;
 public class SQLPersisterImpl implements SQLPersister {
 
 	protected static final String PREVIEW = "preview#";
+	protected static final String DOWNLOAD = "download#";
 
 	private Logger LOG = LoggerProvider.getInstance().getLogger(SQLPersister.class);
 
@@ -532,7 +533,7 @@ public class SQLPersisterImpl implements SQLPersister {
 											namedParameters.put(columnModified.getColumnName(),
 													new ExternalFileNamedParameter(columnModified.getColumnName(),
 															new ExternalFileSaveCommand(session, folderName, fileName,
-																	data)));
+																	data, mimeType)));
 										}
 									}
 								} else {
@@ -1085,10 +1086,10 @@ public class SQLPersisterImpl implements SQLPersister {
 															+ mimeType.split("/")[1];
 
 													ExternalFileSaveCommand saveCommand = new ExternalFileSaveCommand(
-															session, folderName, newFileName, data);
+															session, folderName, newFileName, data,mimeType);
 													ExternalFileRemoveCommand removeCommand = null;
 													if (oldColumnValue != null && isURL(oldColumnValue)) {
-														if (oldColumnValue.contains(PREVIEW)) {
+														if (oldColumnValue.contains(PREVIEW) || oldColumnValue.contains(DOWNLOAD)) {
 															String oldFileName = oldColumnValue.split("\\#")[1];
 															removeCommand = new ExternalFileRemoveCommand(session,
 																	folderName, oldFileName);

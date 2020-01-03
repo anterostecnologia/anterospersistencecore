@@ -54,7 +54,7 @@ import br.com.anteros.persistence.session.query.SQLQueryAnalyserAlias;
  */
 public class EntityHandler implements ScrollableResultSetHandler {
 
-	private static Boolean androidPresent = null;
+	private static Boolean androidPresent = null; 
 	public static final boolean LOAD_ALL_FIELDS = true;
 	protected Class<?> resultClass;
 	protected transient EntityCacheManager entityCacheManager;
@@ -707,6 +707,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		}
 		String[] spNames = fieldsToForceLazy.split(",");
 		for (String name : spNames) {
+			name = StringUtils.trimAllWhitespace(name);
 			String[] spSub = name.split("\\.");
 			if (fieldName.equals(spSub[0])) {
 				String continueForceFieldsToLazy = "";

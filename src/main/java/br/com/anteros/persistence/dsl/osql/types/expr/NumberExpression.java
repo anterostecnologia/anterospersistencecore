@@ -177,6 +177,15 @@ public abstract class NumberExpression<T extends Number & Comparable<?>> extends
             return NumberOperation.create(type, Ops.NUMCAST, mixin, ConstantImpl.create(type));
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    public <A extends Number & Comparable<? super A>> NumberExpression<A> castToNum(Class<A> type, String complement) {
+        if (type.equals(getType())) {
+            return (NumberExpression<A>) this;
+        } else {
+            return NumberOperation.create(type, Ops.NUMCAST, mixin, ConstantImpl.create(type), ConstantImpl.create(complement));
+        }
+    }
 
     /**
      * Returns the smallest (closest to negative infinity)

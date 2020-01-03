@@ -697,7 +697,14 @@ public class SQLSerializer extends SerializerBase<SQLSerializer> {
 
 			} else if (operator == Ops.NUMCAST) {
 				final Class<?> targetType = (Class<?>) ((Constant<?>) args.get(1)).getConstant();
-				final String typeName = configuration.convertJavaToDatabaseType(targetType);
+				String typeName = configuration.convertJavaToDatabaseType(targetType);
+				String complement =  null;
+				if (args.size()>2) {
+					complement = (String) ((Constant<?>) args.get(2)).getConstant();
+				}
+				if (StringUtils.isNotBlank(complement)) {
+					typeName += complement;
+				}
 				super.visitOperation(targetType, SQLOps.CAST, ListUtils.of(args.get(0), ConstantImpl.create(typeName)));
 
 			} else if (operator == Ops.ALIAS) {
