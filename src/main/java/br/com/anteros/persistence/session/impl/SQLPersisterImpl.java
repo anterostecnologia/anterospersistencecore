@@ -292,7 +292,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			Object newObject, List<PersisterCommand> stackCommands) throws Exception {
 		List<PersisterCommand> commands = null;
 		if (statement.equals(SQLStatementType.INSERT))
-			commands = getCommandsToInsertObject(newObject, entityCache);
+			commands = getCommandsToInsertObject(newObject, entityCache, stackCommands);
 		else if (statement.equals(SQLStatementType.UPDATE))
 			commands = getCommandsToUpdateObject(oldObject, newObject, entityCache);
 		else if (statement.equals(SQLStatementType.DELETE))
@@ -315,7 +315,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected List<PersisterCommand> getCommandsToInsertObject(Object newObject, EntityCache entityCache)
+	protected List<PersisterCommand> getCommandsToInsertObject(Object newObject, EntityCache entityCache, List<PersisterCommand> stackCommands)
 			throws Exception {
 		List<PersisterCommand> result = new ArrayList<PersisterCommand>();
 		try {
@@ -324,7 +324,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			insertRelationships(newObject, entityCache, result);
 			insertCommonsParameters(newObject, entityCache, namedParameters);
 			insertObject(newObject, entityCache, result, namedParameters, identifierResult.identifierPostInsert,
-					identifierResult.identifyColumn);
+					identifierResult.identifyColumn, stackCommands);
 			insertChildrenCollections(newObject, entityCache, result, identifierResult.identifierPostInsert,
 					identifierResult.identifyColumn, session.getIdentifier(newObject).getDatabaseColumns());
 		} finally {
@@ -335,7 +335,7 @@ public class SQLPersisterImpl implements SQLPersister {
 
 	protected void insertObject(Object newObject, EntityCache entityCache, List<PersisterCommand> result,
 			LinkedHashMap<String, NamedParameter> namedParameters, IdentifierPostInsert identifierPostInsert,
-			DescriptionColumn identifyColumn) throws Exception {
+			DescriptionColumn identifyColumn, List<PersisterCommand> stackCommands) throws Exception {
 		/*
 		 * Salva o objeto
 		 */
@@ -350,9 +350,14 @@ public class SQLPersisterImpl implements SQLPersister {
 				entityCache.getTableName(), session.getShowSql(), identifierPostInsert, identifyColumn,
 				entityCache.getDescriptionSqlByType(SQLStatementType.INSERT), executeInBatchMode());
 
-		if (insertCommandSQL.getIdentifierPostInsert() != null)
-			insertCommandSQL.execute();
-		else
+		if (insertCommandSQL.getIdentifierPostInsert() != null) {
+			if (stackCommands!=null) {
+				session.getCommandQueue().addAll(stackCommands);
+				stackCommands.clear();
+			}
+			session.getCommandQueue().add(insertCommandSQL);
+			session.flush();
+		} else
 			result.add(insertCommandSQL);
 	}
 
@@ -1086,10 +1091,11 @@ public class SQLPersisterImpl implements SQLPersister {
 															+ mimeType.split("/")[1];
 
 													ExternalFileSaveCommand saveCommand = new ExternalFileSaveCommand(
-															session, folderName, newFileName, data,mimeType);
+															session, folderName, newFileName, data, mimeType);
 													ExternalFileRemoveCommand removeCommand = null;
 													if (oldColumnValue != null && isURL(oldColumnValue)) {
-														if (oldColumnValue.contains(PREVIEW) || oldColumnValue.contains(DOWNLOAD)) {
+														if (oldColumnValue.contains(PREVIEW)
+																|| oldColumnValue.contains(DOWNLOAD)) {
 															String oldFileName = oldColumnValue.split("\\#")[1];
 															removeCommand = new ExternalFileRemoveCommand(session,
 																	folderName, oldFileName);

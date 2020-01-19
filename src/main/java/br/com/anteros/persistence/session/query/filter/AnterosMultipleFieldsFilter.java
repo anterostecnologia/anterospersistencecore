@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -32,8 +31,10 @@ import br.com.anteros.persistence.dsl.osql.types.expr.params.DoubleParam;
 import br.com.anteros.persistence.dsl.osql.types.expr.params.FloatParam;
 import br.com.anteros.persistence.dsl.osql.types.expr.params.LongParam;
 import br.com.anteros.persistence.dsl.osql.types.expr.params.StringParam;
+import br.com.anteros.persistence.dsl.osql.types.path.BooleanPath;
 import br.com.anteros.persistence.dsl.osql.types.path.DatePath;
 import br.com.anteros.persistence.dsl.osql.types.path.DateTimePath;
+import br.com.anteros.persistence.dsl.osql.types.path.EnumPath;
 import br.com.anteros.persistence.dsl.osql.types.path.NumberPath;
 import br.com.anteros.persistence.dsl.osql.types.path.StringPath;
 import br.com.anteros.persistence.dsl.osql.types.path.TimePath;
@@ -375,7 +376,22 @@ public class AnterosMultipleFieldsFilter<T> {
 						value2 = v[1];
 					}
 
-					if (ReflectionUtils.isExtendsClass(String.class, descriptionField.getField().getType())) {
+					
+					if (ReflectionUtils.isEnum(descriptionField.getField().getType())) {
+						EnumPath predicateField = entityPath.createFieldEnum(descriptionField.getName(), Enum.class);
+						paramNumber++;
+						StringParam param = new StringParam("P" + paramNumber);
+						parameters.put(param, value1);
+						predicate = Expressions.predicate(Ops.EQ_IGNORE_CASE, predicateField, param);
+					} else if (descriptionField.isBoolean()) {
+						if (isBoolean(value1)) {
+							BooleanPath predicateField = entityPath.createFieldBoolean(descriptionField.getName());
+							paramNumber++;
+							StringParam param = new StringParam("P" + paramNumber);
+							parameters.put(param, value1);
+							predicate = Expressions.predicate(Ops.EQ, predicateField, param);
+						}
+					} else if (ReflectionUtils.isExtendsClass(String.class, descriptionField.getField().getType())) {
 						if (!isDate(value1) && (!isDateTime(value1))) {
 							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
 								StringPath predicateField = entityPath.createFieldString(descriptionField.getName());
@@ -524,6 +540,8 @@ public class AnterosMultipleFieldsFilter<T> {
 						}
 
 					}
+					
+					
 
 					if (ReflectionUtils.isExtendsClass(Date.class, descriptionField.getField().getType())) {
 						if (isDate(value1)) {
@@ -750,6 +768,11 @@ public class AnterosMultipleFieldsFilter<T> {
 				return false;
 			}
 		}
+	}
+	
+	public static boolean isBoolean(String value) {
+		return "true".equals(value) || "false".equals(value) || "sim".equalsIgnoreCase(value) || "não".equalsIgnoreCase(value)
+				|| "S".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value);
 	}
 
 	public static Date getDate(String inDate) {

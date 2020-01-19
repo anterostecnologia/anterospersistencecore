@@ -298,7 +298,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
 					: Collections.<T>emptyList());
 
-			return new PageImpl<T>(content, pageable, total);
+			return new PageImpl<T>(content, pageable, total); 	
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}

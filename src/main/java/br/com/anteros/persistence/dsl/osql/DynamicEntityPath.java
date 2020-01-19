@@ -4,6 +4,7 @@ import static br.com.anteros.persistence.dsl.osql.types.PathMetadataFactory.forV
 
 import br.com.anteros.persistence.dsl.osql.types.PathMetadata;
 import br.com.anteros.persistence.dsl.osql.types.path.ArrayPath;
+import br.com.anteros.persistence.dsl.osql.types.path.BooleanPath;
 import br.com.anteros.persistence.dsl.osql.types.path.DatePath;
 import br.com.anteros.persistence.dsl.osql.types.path.DateTimePath;
 import br.com.anteros.persistence.dsl.osql.types.path.EntityPathBase;
@@ -57,8 +58,14 @@ public class DynamicEntityPath extends EntityPathBase {
 		return super.createTime(property, type);
 	}
 	
+	public BooleanPath createFieldBoolean(String property) {
+		return super.createBoolean(property);
+	}
+	
 	public DynamicEntityPath createEntityPath(Class<?> resultClass, String variable) {
 		return new DynamicEntityPath(resultClass, forProperty(variable),INITS.get(variable));
 	}
+	
+	
 	
 }
