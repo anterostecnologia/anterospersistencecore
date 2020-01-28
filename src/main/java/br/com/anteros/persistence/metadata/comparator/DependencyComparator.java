@@ -12,7 +12,10 @@
  *******************************************************************************/
 package br.com.anteros.persistence.metadata.comparator;
 
+import java.lang.reflect.Field;
 import java.util.Comparator;
+
+import br.com.anteros.core.utils.ReflectionUtils;
 
 public class DependencyComparator implements Comparator<Class<?>> {
 
@@ -33,6 +36,20 @@ public class DependencyComparator implements Comparator<Class<?>> {
 		if (c1.equals(c2)) {
 			return 0;
 		}
+		
+		Field[] fields = ReflectionUtils.getAllDeclaredFields(c1);
+		for (Field field : fields) {
+			if (field.getType().equals(c2)) {
+				return 1;
+			}
+		}
+		
+		fields = ReflectionUtils.getAllDeclaredFields(c2);
+		for (Field field : fields) {
+			if (field.getType().equals(c1)) {
+				return -1;
+			}
+		}		
 
 		// Neste ponto, c1 e c2 não são nulos e não iguais, vamos
 		// compará-los para ver qual é "superior" na hierarquia de classes
@@ -44,6 +61,9 @@ public class DependencyComparator implements Comparator<Class<?>> {
 		} else if (c2Lower && !c1Lower) {
 			return -1;
 		}
+		
+		
+		
 
 		return c1.getName().compareTo(c2.getName());
 	}

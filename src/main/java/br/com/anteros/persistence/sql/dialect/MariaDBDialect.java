@@ -337,7 +337,8 @@ public class MariaDBDialect extends DatabaseDialect {
 
 	@Override
 	public String getSetLockTimeoutString(int secondsTimeOut) {
-		return "set innodb_lock_wait_timeout  = " + secondsTimeOut;
+		//return "set innodb_lock_wait_timeout  = " + secondsTimeOut;
+		return null;
 	}
 
 	@Override
