@@ -1,5 +1,7 @@
 package br.com.anteros.persistence.session.query.filter;
 
+import br.com.anteros.core.utils.StringUtils;
+
 public class FieldExpression extends JacksonBase implements Visitable {
 	
 	private String name;
@@ -55,7 +57,7 @@ public class FieldExpression extends JacksonBase implements Visitable {
 	}
 
 	public String getNameSql() {
-		if (nameSql==null || nameSql=="")
+		if (StringUtils.isEmpty(nameSql))
 			return name;
 		
 		return nameSql;

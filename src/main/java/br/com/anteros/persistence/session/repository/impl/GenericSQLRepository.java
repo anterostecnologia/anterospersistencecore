@@ -541,22 +541,9 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders) {
-
-		predicate = addTenantAndCompanyId(predicate);
-
-		OSQLQuery countQuery = createQuery(predicate);
-		Long total = countQuery.count();
-
-		OSQLQuery query = createQuery(predicate);
-		query.offset(pageable.getOffset());
-		query.limit(pageable.getPageSize());
-		query.setFieldsToForceLazy(fieldsToForceLazy);
-		query.orderBy(orders);
-
-		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T>emptyList();
-
-		return new PageImpl<T>(content, pageable, total);
-	}
+		return this.findAll(predicate, false, pageable, fieldsToForceLazy, orders);
+	}	
+	
 
 	@Override
 	public SQLSession getSession() {
@@ -1007,6 +994,31 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		}
 
 		getSession().validate(entity, groups);
+	}
+
+	@Override
+	public List<T> findAll(List<ID> ids, boolean readOnly, String fieldsToForceLazy) {
+		return this.findAll(ids, LockOptions.NONE, readOnly, fieldsToForceLazy);
+	}
+
+	@Override
+	public Page<T> findAll(Predicate predicate, boolean readOnly, Pageable pageable, String fieldsToForceLazy,
+			OrderSpecifier<?>... orders) {
+		predicate = addTenantAndCompanyId(predicate);
+
+		OSQLQuery countQuery = createQuery(predicate);
+		Long total = countQuery.count();
+
+		OSQLQuery query = createQuery(predicate);
+		query.offset(pageable.getOffset());
+		query.limit(pageable.getPageSize());
+		query.setFieldsToForceLazy(fieldsToForceLazy);
+		query.orderBy(orders);
+		query.readOnly(readOnly);
+
+		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T>emptyList();
+
+		return new PageImpl<T>(content, pageable, total);
 	}
 
 }

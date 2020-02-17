@@ -140,6 +140,8 @@ public interface SQLService<T, ID extends Serializable> {
 	
 	List<T> findAll(List<ID> ids, String fieldsToForceLazy);
 	
+	List<T> findAll(List<ID> ids, boolean readOnly, String fieldsToForceLazy);
+	
 	List<T> findAll(List<ID> ids, LockOptions lockOptions, String fieldsToForceLazy);
 	
 	List<T> findAll(List<ID> ids, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
@@ -149,6 +151,8 @@ public interface SQLService<T, ID extends Serializable> {
 	Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy);
 
 	Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders);
+	
+	Page<T> findAll(Predicate predicate, boolean readOnly, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders);
 	
 	
 	Class<T> getResultClass();

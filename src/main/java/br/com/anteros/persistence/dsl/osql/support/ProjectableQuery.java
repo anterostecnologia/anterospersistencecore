@@ -27,69 +27,62 @@ import br.com.anteros.persistence.dsl.osql.types.Expression;
  *
  * @author tiwe
  */
-public abstract class ProjectableQuery<Q extends ProjectableQuery<Q>>
-        extends QueryBase<Q> implements Projectable {
+public abstract class ProjectableQuery<Q extends ProjectableQuery<Q>> extends QueryBase<Q> implements Projectable {
 
-    public ProjectableQuery(QueryMixin<Q> queryMixin) {
-        super(queryMixin);
-    }
+	public ProjectableQuery(QueryMixin<Q> queryMixin) {
+		super(queryMixin);
+	}
 
-    @Override
-    public List<Tuple> list(Expression<?>... args) {
-        return IteratorAdapter.asList(iterate(args));
-    }
+	@Override
+	public List<Tuple> list(Expression<?>... args) {
+		return IteratorAdapter.asList(iterate(args));
+	}
 
-    @Override
-    public <RT> List<RT> list(Expression<RT> projection) {
-        return IteratorAdapter.asList(iterate(projection));
-    }
+	@Override
+	public <RT> List<RT> list(Expression<RT> projection) {
+		return IteratorAdapter.asList(iterate(projection));
+	}
 
-    @Override
-    public final <K, V> Map<K, V> map(Expression<K> key, Expression<V> value) {
-        List<Tuple> list = list(key, value);
-        Map<K, V> results = new LinkedHashMap<K, V>(list.size());
-        for (Tuple row : list) {
-            results.put(row.get(key), row.get(value));
-        }
-        return results;
-    }
+	@Override
+	public final <K, V> Map<K, V> map(Expression<K> key, Expression<V> value) {
+		List<Tuple> list = list(key, value);
+		Map<K, V> results = new LinkedHashMap<K, V>(list.size());
+		for (Tuple row : list) {
+			results.put(row.get(key), row.get(value));
+		}
+		return results;
+	}
 
-    @Override
-    public final boolean notExists() {
-        return !exists();
-    }
+	@Override
+	public final boolean notExists() {
+		return !exists();
+	}
 
-    @Override
-    public final Tuple singleResult(Expression<?>... args) {
-        return uniqueResult(args);
-    }
+	@Override
+	public final Tuple singleResult(Expression<?>... args) {
+		return uniqueResult(args);
+	}
 
-    @Override
-    public final <RT> RT singleResult(Expression<RT> expr) {
-        return uniqueResult(expr);
-    }
+	@Override
+	public final <RT> RT singleResult(Expression<RT> expr) {
+		return uniqueResult(expr);
+	}
 
-    @Override
-    public <T> T transform(ResultTransformer<T> transformer) {
-        return transformer.transform(this);
-    }
-    
-    
-    protected <T> T uniqueResult(CloseableIterator<T> it) {
-        try{
-            if (it.hasNext()) {
-                T rv = it.next();
-                if (it.hasNext()) {
-                    throw new NonUniqueResultException();
-                }
-                return rv;
-            } else {
-                return null;
-            }
-        }finally{
-            it.close();
-        }
-    }
+	@Override
+	public <T> T transform(ResultTransformer<T> transformer) {
+		return transformer.transform(this);
+	}
 
+	protected <T> T uniqueResult(CloseableIterator<T> it) {
+		if (it.hasNext()) {
+			T rv = it.next();
+			if (it.hasNext()) {
+				throw new NonUniqueResultException();
+			}
+			return rv;
+		} else {
+			return null;
+		}
+	}
 
 }

@@ -59,6 +59,7 @@ public class AnterosMultipleFieldsFilter<T> {
 	private Predicate predicate;
 	private Integer paramNumber;
 	private String fieldsToForceLazy;
+	private boolean readOnly=false;
 
 	public AnterosMultipleFieldsFilter(DynamicEntityPath entityPath, Predicate predicate) {
 		super();
@@ -136,6 +137,7 @@ public class AnterosMultipleFieldsFilter<T> {
 		}
 
 		query = new OSQLQuery(session).from(entityPath);
+		query.readOnly(readOnly);
 		query.setFieldsToForceLazy(fieldsToForceLazy);
 
 		BooleanBuilder builder = new BooleanBuilder();
@@ -823,6 +825,11 @@ public class AnterosMultipleFieldsFilter<T> {
 
 	public AnterosMultipleFieldsFilter<T> fieldsToForceLazy(String forceLazy) {
 		this.fieldsToForceLazy = forceLazy;
+		return this;
+	}
+
+	public AnterosMultipleFieldsFilter<T> readOnly(boolean readOnly) {
+		this.readOnly = readOnly;
 		return this;
 	}
 

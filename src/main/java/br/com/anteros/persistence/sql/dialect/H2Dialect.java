@@ -63,8 +63,10 @@ public class H2Dialect extends DatabaseDialect {
 		registerJavaColumnType(Short.class, new ColumnDatabaseType("SMALLINT", false, Types.SMALLINT));
 		registerJavaColumnType(Byte.class, new ColumnDatabaseType("SMALLINT", false, Types.SMALLINT));
 		registerJavaColumnType(java.math.BigInteger.class, new ColumnDatabaseType("NUMERIC", 38, Types.NUMERIC));
-		registerJavaColumnType(java.math.BigDecimal.class, new ColumnDatabaseType("NUMERIC", 38, Types.NUMERIC).setLimits(38, -19, 19));
-		registerJavaColumnType(Number.class, new ColumnDatabaseType("NUMERIC", 38, Types.NUMERIC).setLimits(38, -19, 19));
+		registerJavaColumnType(java.math.BigDecimal.class,
+				new ColumnDatabaseType("NUMERIC", 38, Types.NUMERIC).setLimits(38, -19, 19));
+		registerJavaColumnType(Number.class,
+				new ColumnDatabaseType("NUMERIC", 38, Types.NUMERIC).setLimits(38, -19, 19));
 		registerJavaColumnType(Byte[].class, new ColumnDatabaseType("LONGVARBINARY", false, Types.LONGVARBINARY));
 		registerJavaColumnType(Character[].class, new ColumnDatabaseType("LONGVARCHAR", false, Types.LONGVARCHAR));
 		registerJavaColumnType(byte[].class, new ColumnDatabaseType("LONGVARBINARY", false, Types.LONGVARBINARY));
@@ -174,30 +176,42 @@ public class H2Dialect extends DatabaseDialect {
 
 	@Override
 	public String getSequenceNextValString(String sequenceName) throws Exception {
-		return new StringBuilder(20 + sequenceName.length()).append("CALL NEXT VALUE FOR ").append(sequenceName).toString();
+		return new StringBuilder(20 + sequenceName.length()).append("CALL NEXT VALUE FOR ").append(sequenceName)
+				.toString();
 	}
 
 	@Override
 	public boolean checkSequenceExists(Connection conn, String sequenceName) throws SQLException, Exception {
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery("SELECT SEQUENCE_NAME FROM INFORMATION_SCHEMA.SEQUENCES WHERE SEQUENCE_NAME = '"
-				+ sequenceName.toUpperCase() + "'");
+		ResultSet resultSet = statement
+				.executeQuery("SELECT SEQUENCE_NAME FROM INFORMATION_SCHEMA.SEQUENCES WHERE SEQUENCE_NAME = '"
+						+ sequenceName.toUpperCase() + "'");
 
 		if (resultSet.next()) {
+			resultSet.close();
+			statement.close();
 			return true;
+		} else {
+			statement.close();
+			resultSet.close();
 		}
 
-		statement = conn.createStatement();
-		resultSet = statement.executeQuery("SELECT SEQUENCE_NAME FROM INFORMATION_SCHEMA.SEQUENCES WHERE SEQUENCE_NAME = '" + sequenceName + "'");
-		try {
-			if (resultSet.next()) {
-				return true;
+		Statement newStatement = conn.createStatement();
+		if (newStatement != null) {
+			ResultSet newResultSet = newStatement
+					.executeQuery("SELECT SEQUENCE_NAME FROM INFORMATION_SCHEMA.SEQUENCES WHERE SEQUENCE_NAME = '"
+							+ sequenceName + "'");
+			try {
+				if (newResultSet.next()) {
+					newResultSet.close();
+					return true;
+				}
+			} finally {
+				if (newResultSet != null)
+					newResultSet.close();
+				if (newStatement != null)
+					newStatement.close();
 			}
-		} finally {
-			if (resultSet != null)
-				resultSet.close();
-			if (statement != null)
-				statement.close();
 		}
 		return false;
 	}
@@ -206,12 +220,16 @@ public class H2Dialect extends DatabaseDialect {
 	public String[] getColumnNamesFromTable(Connection conn, String tableName) throws SQLException, Exception {
 		List<String> result = new ArrayList<String>();
 		Statement statement = conn.createStatement();
-		ResultSet columns = statement.executeQuery("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =  '" + tableName
-				+ "' ORDER BY ORDINAL_POSITION");
+		ResultSet columns = statement
+				.executeQuery("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =  '" + tableName
+						+ "' ORDER BY ORDINAL_POSITION");
 
 		while (columns.next()) {
 			result.add(columns.getString("COLUMN_NAME"));
 		}
+
+		columns.close();
+		statement.close();
 
 		return result.toArray(new String[] {});
 	}
@@ -286,13 +304,16 @@ public class H2Dialect extends DatabaseDialect {
 	public LimitClauseResult getLimitClause(String sql, int offset, int limit, boolean namedParameter) {
 		LimitClauseResult result;
 		if (namedParameter) {
-			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql)
-					.append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(), "PLIMIT", (offset > 0 ? "POFFSET" : ""), limit,
-					offset);
+			result = new LimitClauseResult(
+					new StringBuilder(sql.length() + 20).append(sql)
+							.append(offset > 0 ? " LIMIT :PLIMIT OFFSET :POFFSET " : " LIMIT :PLIMIT").toString(),
+					"PLIMIT", (offset > 0 ? "POFFSET" : ""), limit, offset);
 		} else {
-			result = new LimitClauseResult(new StringBuilder(sql.length() + 20).append(sql).append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?").toString(),
-					(offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER), (offset > 0 ? LimitClauseResult.LAST_PARAMETER
-							: LimitClauseResult.NONE_PARAMETER), limit, offset);
+			result = new LimitClauseResult(
+					new StringBuilder(sql.length() + 20).append(sql)
+							.append(offset > 0 ? " LIMIT ? OFFSET ?" : " LIMIT ?").toString(),
+					(offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER),
+					(offset > 0 ? LimitClauseResult.LAST_PARAMETER : LimitClauseResult.NONE_PARAMETER), limit, offset);
 		}
 		return result;
 	}

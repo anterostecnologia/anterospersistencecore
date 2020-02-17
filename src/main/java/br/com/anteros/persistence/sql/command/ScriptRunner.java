@@ -242,6 +242,7 @@ public class ScriptRunner {
             }
             println("");
           }
+          rs.close();
         }
       }
     } catch (SQLException e) {

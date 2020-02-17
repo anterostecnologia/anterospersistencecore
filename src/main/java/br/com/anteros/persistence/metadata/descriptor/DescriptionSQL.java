@@ -49,8 +49,8 @@ public class DescriptionSQL {
 
 	}
 
-	public DescriptionSQL(EntityCacheManager entityCacheManager, SQLStatementType sqlType, boolean callable, String sql, CallableType callableType,
-			String successParameter, String successValue, Map<String, String> parametersId) {
+	public DescriptionSQL(EntityCacheManager entityCacheManager, SQLStatementType sqlType, boolean callable, String sql,
+			CallableType callableType, String successParameter, String successValue, Map<String, String> parametersId) {
 		this.callable = callable;
 		this.sql = sql;
 		this.callableType = callableType;
@@ -127,24 +127,31 @@ public class DescriptionSQL {
 
 	public NamedParameter[] getParameters() {
 		List<NamedParameter> result = new ArrayList<NamedParameter>();
-		NamedParameterParserResult parserResult = (NamedParameterParserResult) PersistenceMetadataCache.getInstance(entityCacheManager.get())
-				.get("NamedParameters:" + sql);
-		if (parserResult == null) {
-			parserResult = NamedParameterStatement.parse(sql, null);
-			PersistenceMetadataCache.getInstance(entityCacheManager.get()).put("NamedParameters:" + sql, parserResult);
-		}
+		if (entityCacheManager != null) {
+			PersistenceMetadataCache cache = PersistenceMetadataCache.getInstance(entityCacheManager.get());
+			if (cache != null) {
+				NamedParameterParserResult parserResult = (NamedParameterParserResult) cache
+						.get("NamedParameters:" + sql);
+				if (parserResult == null) {
+					parserResult = NamedParameterStatement.parse(sql, null);
+					cache.put("NamedParameters:" + sql, parserResult);
+				}
 
-		for (NamedParameter parameter : parserResult.getNamedParameters()) {
-			if ((getSuccessParameter() != null) && (parameter.getName().equalsIgnoreCase(getSuccessParameter()))) {
-				result.add(new OutputNamedParameter(parameter.getName(), StoredParameterType.OUT));
-			} else {
-				result.add(parameter);
+				for (NamedParameter parameter : parserResult.getNamedParameters()) {
+					if ((getSuccessParameter() != null)
+							&& (parameter.getName().equalsIgnoreCase(getSuccessParameter()))) {
+						result.add(new OutputNamedParameter(parameter.getName(), StoredParameterType.OUT));
+					} else {
+						result.add(parameter);
+					}
+				}
 			}
 		}
 		return result.toArray(new NamedParameter[] {});
 	}
 
-	public NamedParameter[] processParameters(EntityCacheManager entityCacheManager, List<NamedParameter> namedParameters) {
+	public NamedParameter[] processParameters(EntityCacheManager entityCacheManager,
+			List<NamedParameter> namedParameters) {
 		List<NamedParameter> result = new ArrayList<NamedParameter>();
 		String[] names = this.getParametersName();
 		NamedParameter namedParam;

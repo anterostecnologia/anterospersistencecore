@@ -20,19 +20,23 @@ import java.io.IOException;
  */
 public final class FileUtils {
 
-    public static void delete(File file) throws IOException {
-        if (file.isDirectory()) {
-            for (File f : file.listFiles()) {
-                delete(f);
-            }
-        }
-        if (file.isDirectory() || file.isFile()) {
-            if (!file.delete()) {
-                throw new IllegalStateException("Deletion of " + file.getPath() + " failed");
-            }
-        }
-    }
-    
-    private FileUtils() {}
+	public static void delete(File file) throws IOException {
+		if (file.isDirectory()) {
+			File[] listFiles = file.listFiles();
+			if (listFiles != null) {
+				for (File f : listFiles) {
+					delete(f);
+				}
+			}
+		}
+		if (file.isDirectory() || file.isFile()) {
+			if (!file.delete()) {
+				throw new IllegalStateException("Deletion of " + file.getPath() + " failed");
+			}
+		}
+	}
+
+	private FileUtils() {
+	}
 
 }

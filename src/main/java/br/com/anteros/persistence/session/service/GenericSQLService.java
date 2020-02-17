@@ -542,5 +542,18 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 		return repository.getEntityPath();
 	}
 
+	@Override
+	public List<T> findAll(List<ID> ids, boolean readOnly, String fieldsToForceLazy) {
+		checkRepository();
+		return repository.findAll(ids,fieldsToForceLazy);
+	}
+
+	@Override
+	public Page<T> findAll(Predicate predicate, boolean readOnly, Pageable pageable, String fieldsToForceLazy,
+			OrderSpecifier<?>... orders) {
+		checkRepository();
+		return repository.findAll(predicate, readOnly, pageable, fieldsToForceLazy, orders);
+	}
+
 	
 }

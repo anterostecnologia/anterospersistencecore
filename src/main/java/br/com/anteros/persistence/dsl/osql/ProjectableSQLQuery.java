@@ -354,7 +354,9 @@ public abstract class ProjectableSQLQuery<Q extends ProjectableSQLQuery<Q> & Que
             limit(2);
         }
         CloseableIterator<RT> iterator = iterate(expr);
-        return uniqueResult(iterator);
+        RT result = uniqueResult(iterator);
+        iterator.close();
+        return result;
     }
 
     @Override

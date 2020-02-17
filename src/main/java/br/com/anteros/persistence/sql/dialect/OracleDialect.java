@@ -82,8 +82,10 @@ public class OracleDialect extends DatabaseDialect {
 		registerJavaColumnType(Short.class, new ColumnDatabaseType("NUMBER", 5, Types.NUMERIC));
 		registerJavaColumnType(Byte.class, new ColumnDatabaseType("NUMBER", 3, Types.NUMERIC));
 		registerJavaColumnType(java.math.BigInteger.class, new ColumnDatabaseType("NUMBER", 38, Types.NUMERIC));
-		registerJavaColumnType(java.math.BigDecimal.class, new ColumnDatabaseType("NUMBER", 38, Types.NUMERIC).setLimits(38, -38, 38));
-		registerJavaColumnType(Number.class, new ColumnDatabaseType("NUMBER", 38, Types.NUMERIC).setLimits(38, -38, 38));
+		registerJavaColumnType(java.math.BigDecimal.class,
+				new ColumnDatabaseType("NUMBER", 38, Types.NUMERIC).setLimits(38, -38, 38));
+		registerJavaColumnType(Number.class,
+				new ColumnDatabaseType("NUMBER", 38, Types.NUMERIC).setLimits(38, -38, 38));
 		registerJavaColumnType(String.class, new ColumnDatabaseType("VARCHAR2", DEFAULT_VARCHAR_SIZE, Types.VARCHAR));
 		registerJavaColumnType(Character.class, new ColumnDatabaseType("CHAR", 1, Types.CHAR));
 		registerJavaColumnType(Byte[].class, new ColumnDatabaseType("BLOB", false, Types.BLOB));
@@ -111,7 +113,8 @@ public class OracleDialect extends DatabaseDialect {
 
 	/*
 	 * public List<ProcedureMetadata> getNativeFunctions() throws Exception { //
-	 * http://ss64.com/ora/syntax-functions.html List<ProcedureMetadata> result = new ArrayList<ProcedureMetadata>();
+	 * http://ss64.com/ora/syntax-functions.html List<ProcedureMetadata> result =
+	 * new ArrayList<ProcedureMetadata>();
 	 * 
 	 * return result; }
 	 */
@@ -133,15 +136,18 @@ public class OracleDialect extends DatabaseDialect {
 
 	@Override
 	public Blob createTemporaryBlob(Connection connection, byte[] bytes) throws Exception {
-		return (Blob) createTemporaryLob(connection, new ByteArrayInputStream(bytes), ORACLE_BLOB, "getBinaryOutputStream");
+		return (Blob) createTemporaryLob(connection, new ByteArrayInputStream(bytes), ORACLE_BLOB,
+				"getBinaryOutputStream");
 	}
 
 	@Override
 	public Clob createTemporaryClob(Connection connection, byte[] bytes) throws Exception {
-		return (Clob) createTemporaryLob(connection, new ByteArrayInputStream(bytes), ORACLE_CLOB, "getAsciiOutputStream");
+		return (Clob) createTemporaryLob(connection, new ByteArrayInputStream(bytes), ORACLE_CLOB,
+				"getAsciiOutputStream");
 	}
 
-	protected Object createTemporaryLob(Connection connection, InputStream in, int lobType, String methodOutputStream) throws Exception {
+	protected Object createTemporaryLob(Connection connection, InputStream in, int lobType, String methodOutputStream)
+			throws Exception {
 		Class<?> lobClass = null;
 		if (lobType == ORACLE_BLOB)
 			lobClass = connection.getClass().getClassLoader().loadClass("oracle.sql.BLOB");
@@ -154,8 +160,10 @@ public class OracleDialect extends DatabaseDialect {
 		Class<?> c3p0ConnectionClass = null;
 		Class<?> cp30OracleUtilsClass = null;
 		try {
-			c3p0ConnectionClass = connection.getClass().getClassLoader().loadClass("com.mchange.v2.c3p0.C3P0ProxyConnection");
-			cp30OracleUtilsClass = connection.getClass().getClassLoader().loadClass("com.mchange.v2.c3p0.dbms.OracleUtils");
+			c3p0ConnectionClass = connection.getClass().getClassLoader()
+					.loadClass("com.mchange.v2.c3p0.C3P0ProxyConnection");
+			cp30OracleUtilsClass = connection.getClass().getClassLoader()
+					.loadClass("com.mchange.v2.c3p0.dbms.OracleUtils");
 		} catch (Exception e) {
 		}
 		if ((cp30OracleUtilsClass != null) && (c3p0ConnectionClass != null)
@@ -167,7 +175,8 @@ public class OracleDialect extends DatabaseDialect {
 				m = ReflectionUtils.findMethodObject(cp30OracleUtilsClass, "createTemporaryCLOB");
 			result = m.invoke(null, new Object[] { connection, Boolean.valueOf(true), 10 });
 		} else {
-			Method createTemporary = lobClass.getMethod("createTemporary", new Class[] { Connection.class, Boolean.TYPE, Integer.TYPE });
+			Method createTemporary = lobClass.getMethod("createTemporary",
+					new Class[] { Connection.class, Boolean.TYPE, Integer.TYPE });
 			result = createTemporary.invoke(null, connection, true, durationSessionConstant);
 		}
 		Method open = lobClass.getMethod("open", new Class[] { Integer.TYPE });
@@ -281,28 +290,30 @@ public class OracleDialect extends DatabaseDialect {
 	public Map<String, IndexMetadata> getAllIndexesByTable(Connection conn, String tableName) throws Exception {
 		Map<String, IndexMetadata> indexes = new HashMap<String, IndexMetadata>();
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery(
-				"SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
-						+ tableName.toUpperCase() + "' ORDER BY I.INDEX_NAME, IC.COLUMN_POSITION ");
-		try {
-			IndexMetadata index = null;
-			while (resultSet.next()) {
-				if (resultSet.getString(COLUMN_NAME) != null) {
-					if (indexes.containsKey(resultSet.getString(INDEX_NAME)))
-						index = indexes.get(resultSet.getString(INDEX_NAME));
-					else {
-						index = new IndexMetadata(resultSet.getString(INDEX_NAME));
-						indexes.put(index.indexName, index);
+		if (statement != null) {
+			ResultSet resultSet = statement.executeQuery(
+					"SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
+							+ tableName.toUpperCase() + "' ORDER BY I.INDEX_NAME, IC.COLUMN_POSITION ");
+			try {
+				IndexMetadata index = null;
+				while (resultSet.next()) {
+					if (resultSet.getString(COLUMN_NAME) != null) {
+						if (indexes.containsKey(resultSet.getString(INDEX_NAME)))
+							index = indexes.get(resultSet.getString(INDEX_NAME));
+						else {
+							index = new IndexMetadata(resultSet.getString(INDEX_NAME));
+							indexes.put(index.indexName, index);
+						}
+						index.unique = (UNIQUE.equals(resultSet.getString(UNIQUENESS)));
+						index.addColumn(resultSet.getString(COLUMN_NAME));
 					}
-					index.unique = (UNIQUE.equals(resultSet.getString(UNIQUENESS)));
-					index.addColumn(resultSet.getString(COLUMN_NAME));
 				}
+			} finally {
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
-		} finally {
-			if (resultSet != null)
-				resultSet.close();
-			if (statement != null)
-				statement.close();
 		}
 		return indexes;
 	}
@@ -311,28 +322,31 @@ public class OracleDialect extends DatabaseDialect {
 	public Map<String, IndexMetadata> getAllUniqueIndexesByTable(Connection conn, String tableName) throws Exception {
 		Map<String, IndexMetadata> indexes = new HashMap<String, IndexMetadata>();
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery(
-				"SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
-						+ tableName.toUpperCase() + "' AND I.UNIQUENESS = 'UNIQUE' ORDER BY I.INDEX_NAME, IC.COLUMN_POSITION ");
-		try {
-			IndexMetadata index = null;
-			while (resultSet.next()) {
-				if (resultSet.getString(COLUMN_NAME) != null) {
-					if (indexes.containsKey(resultSet.getString(INDEX_NAME)))
-						index = indexes.get(resultSet.getString(INDEX_NAME));
-					else {
-						index = new IndexMetadata(resultSet.getString(INDEX_NAME));
-						indexes.put(index.indexName, index);
+		if (statement != null) {
+			ResultSet resultSet = statement.executeQuery(
+					"SELECT I.INDEX_NAME, IC.COLUMN_POSITION, IC.COLUMN_NAME, I.UNIQUENESS  FROM USER_INDEXES I  JOIN USER_IND_COLUMNS IC    ON I.INDEX_NAME = IC.INDEX_NAME WHERE I.TABLE_NAME = '"
+							+ tableName.toUpperCase()
+							+ "' AND I.UNIQUENESS = 'UNIQUE' ORDER BY I.INDEX_NAME, IC.COLUMN_POSITION ");
+			try {
+				IndexMetadata index = null;
+				while (resultSet.next()) {
+					if (resultSet.getString(COLUMN_NAME) != null) {
+						if (indexes.containsKey(resultSet.getString(INDEX_NAME)))
+							index = indexes.get(resultSet.getString(INDEX_NAME));
+						else {
+							index = new IndexMetadata(resultSet.getString(INDEX_NAME));
+							indexes.put(index.indexName, index);
+						}
+						index.unique = (UNIQUE.equals(resultSet.getString(UNIQUENESS)));
+						index.addColumn(resultSet.getString(COLUMN_NAME));
 					}
-					index.unique = (UNIQUE.equals(resultSet.getString(UNIQUENESS)));
-					index.addColumn(resultSet.getString(COLUMN_NAME));
 				}
+			} finally {
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
-		} finally {
-			if (resultSet != null)
-				resultSet.close();
-			if (statement != null)
-				statement.close();
 		}
 		return indexes;
 	}
@@ -340,17 +354,20 @@ public class OracleDialect extends DatabaseDialect {
 	@Override
 	public boolean checkUniqueKeyExists(Connection conn, String tableName, String uniqueKeyName) throws Exception {
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery(
-				"SELECT I.INDEX_NAME FROM USER_INDEXES I  WHERE I.INDEX_NAME = '" + uniqueKeyName.toUpperCase() + "' AND I.UNIQUENESS = 'UNIQUE' ");
-		try {
-			if (resultSet.next()) {
-				return true;
+		if (statement != null) {
+			ResultSet resultSet = statement
+					.executeQuery("SELECT I.INDEX_NAME FROM USER_INDEXES I  WHERE I.INDEX_NAME = '"
+							+ uniqueKeyName.toUpperCase() + "' AND I.UNIQUENESS = 'UNIQUE' ");
+			try {
+				if (resultSet.next()) {
+					return true;
+				}
+			} finally {
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
-		} finally {
-			if (resultSet != null)
-				resultSet.close();
-			if (statement != null)
-				statement.close();
 		}
 
 		return false;
@@ -359,65 +376,76 @@ public class OracleDialect extends DatabaseDialect {
 	@Override
 	public boolean checkIndexExistsByName(Connection conn, String tableName, String indexName) throws Exception {
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery("SELECT I.INDEX_NAME FROM USER_INDEXES I  WHERE I.INDEX_NAME = '" + indexName.toUpperCase() + "' ");
-		try {
-			if (resultSet.next()) {
-				return true;
+		if (statement != null) {
+			ResultSet resultSet = statement.executeQuery(
+					"SELECT I.INDEX_NAME FROM USER_INDEXES I  WHERE I.INDEX_NAME = '" + indexName.toUpperCase() + "' ");
+			try {
+				if (resultSet.next()) {
+					return true;
+				}
+			} finally {
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
-		} finally {
-			if (resultSet != null)
-				resultSet.close();
-			if (statement != null)
-				statement.close();
 		}
 
 		return false;
 	}
 
 	@Override
-	public boolean checkForeignKeyExistsByName(Connection conn, String tableName, String foreignKeyName) throws Exception {
+	public boolean checkForeignKeyExistsByName(Connection conn, String tableName, String foreignKeyName)
+			throws Exception {
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery("SELECT UC.CONSTRAINT_NAME  FROM USER_CONSTRAINTS UC WHERE UC.TABLE_NAME = '" + tableName.toUpperCase()
-				+ "' AND   UC.CONSTRAINT_NAME = '" + foreignKeyName.toUpperCase() + "' AND  UC.CONSTRAINT_TYPE = 'R'");
-		try {
-			if (resultSet.next()) {
-				return true;
+		if (statement != null) {
+			ResultSet resultSet = statement
+					.executeQuery("SELECT UC.CONSTRAINT_NAME  FROM USER_CONSTRAINTS UC WHERE UC.TABLE_NAME = '"
+							+ tableName.toUpperCase() + "' AND   UC.CONSTRAINT_NAME = '" + foreignKeyName.toUpperCase()
+							+ "' AND  UC.CONSTRAINT_TYPE = 'R'");
+			try {
+				if (resultSet.next()) {
+					return true;
+				}
+			} finally {
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
-		} finally {
-			if (resultSet != null)
-				resultSet.close();
-			if (statement != null)
-				statement.close();
 		}
 		return false;
 	}
 
 	@Override
-	public Map<String, ForeignKeyMetadata> getAllForeignKeysByTable(Connection conn, String tableName) throws Exception {
+	public Map<String, ForeignKeyMetadata> getAllForeignKeysByTable(Connection conn, String tableName)
+			throws Exception {
 
 		Map<String, ForeignKeyMetadata> fks = new HashMap<String, ForeignKeyMetadata>();
 		Statement statement = conn.createStatement();
-		ResultSet resultSet = statement.executeQuery(
-				"SELECT A.CONSTRAINT_NAME, A.TABLE_NAME, A.COLUMN_NAME FROM USER_CONS_COLUMNS A  JOIN USER_CONSTRAINTS C ON A.OWNER = C.OWNER  AND A.CONSTRAINT_NAME = C.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = 'R' AND C.TABLE_NAME = '"
-						+ tableName.toUpperCase() + "'");
+		if (statement != null) {
+			ResultSet resultSet = statement.executeQuery(
+					"SELECT A.CONSTRAINT_NAME, A.TABLE_NAME, A.COLUMN_NAME FROM USER_CONS_COLUMNS A  JOIN USER_CONSTRAINTS C ON A.OWNER = C.OWNER  AND A.CONSTRAINT_NAME = C.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = 'R' AND C.TABLE_NAME = '"
+							+ tableName.toUpperCase() + "'");
 
-		try {
-			ForeignKeyMetadata fk = null;
-			while (resultSet.next()) {
-				if (fks.containsKey(resultSet.getString(CONSTRAINT_NAME)))
-					fk = fks.get(resultSet.getString(CONSTRAINT_NAME));
-				else {
-					fk = new ForeignKeyMetadata(resultSet.getString(CONSTRAINT_NAME));
-					fks.put(fk.fkName, fk);
+			try {
+				ForeignKeyMetadata fk = null;
+				while (resultSet.next()) {
+					if (fks.containsKey(resultSet.getString(CONSTRAINT_NAME)))
+						fk = fks.get(resultSet.getString(CONSTRAINT_NAME));
+					else {
+						fk = new ForeignKeyMetadata(resultSet.getString(CONSTRAINT_NAME));
+						fks.put(fk.fkName, fk);
+					}
+
+					fk.addColumn(resultSet.getString(COLUMN_NAME));
 				}
-
-				fk.addColumn(resultSet.getString(COLUMN_NAME));
+			} finally {
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
-		} finally {
-			if (resultSet != null)
-				resultSet.close();
-			if (statement != null)
-				statement.close();
 		}
 
 		return fks;
@@ -443,7 +471,8 @@ public class OracleDialect extends DatabaseDialect {
 			schemaWriter.write(columnSchema.getColumnDefinition());
 		} else {
 
-			if (columnSchema.isAutoIncrement() && supportsIdentity() && !useColumnDefinitionForIdentity() && !columnSchema.hasSequenceName()) {
+			if (columnSchema.isAutoIncrement() && supportsIdentity() && !useColumnDefinitionForIdentity()
+					&& !columnSchema.hasSequenceName()) {
 				writeColumnIdentityClauseDDLStatement(schemaWriter);
 			} else {
 				/*
@@ -561,12 +590,16 @@ public class OracleDialect extends DatabaseDialect {
 		}
 		switch (lockMode) {
 		case PESSIMISTIC_READ:
-			return sql + " FOR UPDATE " + aliases + (lockOptions.getTimeOut() >= LockOptions.NO_WAIT
-					? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ") : "");
+			return sql + " FOR UPDATE " + aliases
+					+ (lockOptions.getTimeOut() >= LockOptions.NO_WAIT
+							? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ")
+							: "");
 		case PESSIMISTIC_WRITE:
 		case PESSIMISTIC_FORCE_INCREMENT:
-			return sql + " FOR UPDATE " + aliases + (lockOptions.getTimeOut() >= LockOptions.NO_WAIT
-					? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ") : "");
+			return sql + " FOR UPDATE " + aliases
+					+ (lockOptions.getTimeOut() >= LockOptions.NO_WAIT
+							? (lockOptions.getTimeOut() > 0 ? " WAIT " + lockOptions.getTimeOut() : " NOWAIT ")
+							: "");
 		default:
 			return sql;
 		}
@@ -615,7 +648,8 @@ public class OracleDialect extends DatabaseDialect {
 		if (namedParameter) {
 			result = new LimitClauseResult(select.toString(), "PLIMIT", (offset > 0 ? "POFFSET" : ""), limit, offset);
 		} else {
-			result = new LimitClauseResult(select.toString(), (offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER),
+			result = new LimitClauseResult(select.toString(),
+					(offset > 0 ? LimitClauseResult.PREVIOUS_PARAMETER : LimitClauseResult.LAST_PARAMETER),
 					(offset > 0 ? LimitClauseResult.LAST_PARAMETER : LimitClauseResult.NONE_PARAMETER), limit, offset);
 		}
 
@@ -648,7 +682,8 @@ public class OracleDialect extends DatabaseDialect {
 		return null;
 	}
 
-	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter) throws IOException {
+	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter)
+			throws IOException {
 		schemaWriter.write(getCreateSequenceString() + " ");
 		schemaWriter.write(sequenceGeneratorSchema.getName());
 		if (sequenceGeneratorSchema.getAllocationSize() != 1) {
@@ -656,7 +691,7 @@ public class OracleDialect extends DatabaseDialect {
 		}
 		schemaWriter.write(" START WITH " + sequenceGeneratorSchema.getInitialValue());
 		if (sequenceGeneratorSchema.getCacheSize() > 0)
-			schemaWriter.write(" CACHE "+sequenceGeneratorSchema.getCacheSize());
+			schemaWriter.write(" CACHE " + sequenceGeneratorSchema.getCacheSize());
 		else
 			schemaWriter.write(" NOCACHE ");
 		return schemaWriter;

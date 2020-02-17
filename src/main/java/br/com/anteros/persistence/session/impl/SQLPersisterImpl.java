@@ -515,7 +515,7 @@ public class SQLPersisterImpl implements SQLPersister {
 									} else {
 										Tika tika = new Tika();
 										String mimeType = tika.detect((byte[]) columnValue);
-										if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType)
+										if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType) || MimeTypes.MIME_TEXT_HTML.equals(mimeType)
 												|| MimeTypes.MIME_APPLICATION_OCTET_STREAM.equals(mimeType)) {
 											namedParameters.put(columnModified.getColumnName(),
 													fieldModified.getNamedParameterFromDatabaseObjectValue(session,
@@ -1068,7 +1068,7 @@ public class SQLPersisterImpl implements SQLPersister {
 														(byte[]) columnValue);
 												Tika tika = new Tika();
 												String mimeType = tika.detect(bais);
-												if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType)
+												if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType) || MimeTypes.MIME_TEXT_HTML.equals(mimeType)
 														|| MimeTypes.MIME_APPLICATION_OCTET_STREAM.equals(mimeType)) {
 													namedParameters
 															.add(fieldModified.getNamedParameterFromDatabaseObjectValue(

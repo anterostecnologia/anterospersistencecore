@@ -885,16 +885,21 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 			if (object != null) {
 				if (descriptionFieldOwner.getFieldClass().equals(java.sql.Blob.class)) {
 					byte[] bytes = (byte[]) ObjectUtils.convert(object, byte[].class);
+					resultSet.close();
 					return new AnterosBlob(bytes);
 				} else if (descriptionFieldOwner.getFieldClass().equals(java.sql.Clob.class)) {
 					String value = (String) ObjectUtils.convert(object, String.class);
+					resultSet.close();
 					return new AnterosClob(value);
 				} else if (descriptionFieldOwner.getFieldClass().equals(java.sql.NClob.class)) {
 					String value = (String) ObjectUtils.convert(object, String.class);
+					resultSet.close();
 					return new AnterosClob(value);
 				}
 			}
 		}
+		
+		resultSet.close();
 
 		return null;
 	}
@@ -1406,7 +1411,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 		if (readOnly)
 			lockOptions = LockOptions.NONE;
 
-		String parsedSql = sql;
+		String parsedSql = null;
 
 		if (entityCache == null)
 			throw new SQLQueryException(

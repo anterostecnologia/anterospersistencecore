@@ -56,7 +56,7 @@ public abstract class AbstractSQLRunner {
 	protected volatile boolean pmdKnownBroken = false;
 	protected DataSource dataSource;
 	protected Map<String, int[]> cacheOutputTypes = new HashMap<String, int[]>();
-	protected static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+	protected SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
 	public AbstractSQLRunner() {
 		super();

@@ -114,13 +114,14 @@ public abstract class AnterosBasicConfiguration implements BasicConfiguration {
 	}
 
 	public AnterosBasicConfiguration configure(String xmlFile) throws AnterosConfigurationException {
-		InputStream is;
 		try {
+			InputStream is;
 			final List<URL> resources = ResourceUtils.getResources(xmlFile, getClass());
 			if ((resources != null) && (resources.size() > 0)) {
 				final URL url = resources.get(0);
 				is = url.openStream();
 				configure(is);
+				is.close();
 				return this;
 			}
 		} catch (final Exception e) {

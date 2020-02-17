@@ -2865,8 +2865,9 @@ public class EntityCacheManager {
 					}
 				}
 			}
+			return en.toString();
 		}
-		return en.toString();
+		return "";		
 	}
 
 	public Map<Object, Class<?>> getEntityListeners() {

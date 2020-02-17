@@ -33,6 +33,7 @@ import java.util.Set;
 import br.com.anteros.core.converter.Converter;
 import br.com.anteros.core.utils.ReflectionUtils;
 import br.com.anteros.core.utils.StringUtils;
+import br.com.anteros.persistence.metadata.EntityCacheException;
 import br.com.anteros.persistence.metadata.EntityListener;
 import br.com.anteros.persistence.metadata.annotation.Comment;
 import br.com.anteros.persistence.metadata.annotation.Convert;
@@ -76,6 +77,7 @@ import br.com.anteros.persistence.metadata.annotation.type.DiscriminatorType;
 import br.com.anteros.persistence.metadata.annotation.type.InheritanceType;
 import br.com.anteros.persistence.metadata.annotation.type.ScopeType;
 import br.com.anteros.persistence.metadata.descriptor.type.ConnectivityType;
+import br.com.anteros.persistence.metadata.exception.EntityCacheManagerException;
 import br.com.anteros.synchronism.annotation.Remote;
 
 public class EntityConfiguration {
@@ -112,7 +114,7 @@ public class EntityConfiguration {
 	private List<PrimaryKeyJoinColumnConfiguration> primaryKeys = new LinkedList<PrimaryKeyJoinColumnConfiguration>();
 	private String foreignKeyName;
 	private List<EntityListener> entityListeners = new ArrayList<EntityListener>();
-	private Map<Method,EventType> methodListeners = new HashMap<Method,EventType>();
+	private Map<Method, EventType> methodListeners = new HashMap<Method, EventType>();
 
 	public EntityConfiguration(Class<? extends Serializable> sourceClazz, PersistenceModelConfiguration model) {
 		this.sourceClazz = sourceClazz;
@@ -123,13 +125,14 @@ public class EntityConfiguration {
 	public Class<? extends Serializable> getSourceClazz() {
 		return sourceClazz;
 	}
-	
+
 	public EntityConfiguration entityListeners(Object listener) throws ClassNotFoundException {
 		annotations.add(EntityListeners.class);
 		Set<String> cls = new HashSet<String>();
 		cls.add(listener.getClass().getName());
-		Method[] methods = ReflectionUtils.getAllMethodsAnnotatedWith(cls, new Class[] { PrePersist.class, PostPersist.class,
-				PreUpdate.class, PostUpdate.class, PreRemove.class, PostRemove.class, PreValidate.class, PostValidate.class });
+		Method[] methods = ReflectionUtils.getAllMethodsAnnotatedWith(cls,
+				new Class[] { PrePersist.class, PostPersist.class, PreUpdate.class, PostUpdate.class, PreRemove.class,
+						PostRemove.class, PreValidate.class, PostValidate.class });
 		for (Method mt : methods) {
 			if (mt.isAnnotationPresent(PrePersist.class)) {
 				entityListeners.add(EntityListener.of(listener, mt, EventType.PrePersist));
@@ -312,7 +315,8 @@ public class EntityConfiguration {
 		return sourceClazz.getName();
 	}
 
-	public void loadAnnotations() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void loadAnnotations()
+			throws ClassNotFoundException, InstantiationException, IllegalAccessException, EntityCacheManagerException {
 		Annotation[] annotations = sourceClazz.getAnnotations();
 		for (Annotation annotation : annotations) {
 			if (annotation instanceof Entity) {
@@ -331,40 +335,40 @@ public class EntityConfiguration {
 									PreRemove.class, PostRemove.class, PreValidate.class, PostValidate.class });
 					for (Method m : methods) {
 						if (m.isAnnotationPresent(PrePersist.class)) {
-							methodListeners.put(m,EventType.PrePersist);
+							methodListeners.put(m, EventType.PrePersist);
 							this.annotations.add(PrePersist.class);
 						}
 						if (m.isAnnotationPresent(PostPersist.class)) {
-							methodListeners.put(m,EventType.PostPersist);
+							methodListeners.put(m, EventType.PostPersist);
 							this.annotations.add(PostPersist.class);
 						}
 						if (m.isAnnotationPresent(PreUpdate.class)) {
-							methodListeners.put(m,EventType.PreUpdate);
+							methodListeners.put(m, EventType.PreUpdate);
 							this.annotations.add(PreUpdate.class);
 						}
 						if (m.isAnnotationPresent(PostUpdate.class)) {
-							methodListeners.put(m,EventType.PostUpdate);
+							methodListeners.put(m, EventType.PostUpdate);
 							this.annotations.add(PostUpdate.class);
 						}
 						if (m.isAnnotationPresent(PreRemove.class)) {
-							methodListeners.put(m,EventType.PreRemove);
+							methodListeners.put(m, EventType.PreRemove);
 							this.annotations.add(PreRemove.class);
 						}
 						if (m.isAnnotationPresent(PostRemove.class)) {
-							methodListeners.put(m,EventType.PostRemove);
+							methodListeners.put(m, EventType.PostRemove);
 							this.annotations.add(PostRemove.class);
 						}
 						if (m.isAnnotationPresent(PreValidate.class)) {
-							methodListeners.put(m,EventType.PreValidate);
+							methodListeners.put(m, EventType.PreValidate);
 							this.annotations.add(PreValidate.class);
 						}
 						if (m.isAnnotationPresent(PostValidate.class)) {
-							methodListeners.put(m,EventType.PostValidate);
+							methodListeners.put(m, EventType.PostValidate);
 							this.annotations.add(PostValidate.class);
 						}
 					}
 				} catch (ClassNotFoundException e) {
-					new RuntimeException(e);
+					new EntityCacheManagerException(e);
 				}
 			} else if (annotation instanceof Table) {
 				table(((Table) annotation).catalog(), ((Table) annotation).schema(), ((Table) annotation).name());
@@ -400,10 +404,12 @@ public class EntityConfiguration {
 						}
 					}
 				}
-				if ((annotation instanceof SecondaryTables) || (annotation instanceof SecondaryTable.List))
-					secondaryTables(secondaryConf);
-				else
-					secondaryTable(secondaryConf);
+				if (secondaryConf != null) {
+					if ((annotation instanceof SecondaryTables) || (annotation instanceof SecondaryTable.List))
+						secondaryTables(secondaryConf);
+					else
+						secondaryTable(secondaryConf);
+				}
 
 			} else if ((annotation instanceof Indexes) || (annotation instanceof Index)
 					|| (annotation instanceof Index.List)) {
@@ -871,7 +877,7 @@ public class EntityConfiguration {
 		return this;
 	}
 
-	public Map<Method,EventType> getMethodListeners() {
+	public Map<Method, EventType> getMethodListeners() {
 		return methodListeners;
 	}
 

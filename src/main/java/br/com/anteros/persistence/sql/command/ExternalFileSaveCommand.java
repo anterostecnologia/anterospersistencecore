@@ -22,7 +22,7 @@ public class ExternalFileSaveCommand implements PersisterCommand {
 
 	@Override
 	public CommandReturn execute() throws Exception {
-		ResultInfo resultInfo = session.getExternalFileManager().saveFile(folderName, fileName, content, mimeType);
+		ResultInfo resultInfo = session.getExternalFileManager().uploadAndShareFile(folderName, fileName, content, mimeType);
 		return new CommandReturn(resultInfo.getSharedLink(), null);
 	}
 

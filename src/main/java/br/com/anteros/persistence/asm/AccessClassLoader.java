@@ -7,27 +7,32 @@ import java.util.HashSet;
 import java.util.WeakHashMap;
 
 class AccessClassLoader extends ClassLoader {
-	// Weak-references to class loaders, to avoid perm gen memory leaks, for example in app servers/web containters if the
-	// reflectasm library (including this class) is loaded outside the deployed applications (WAR/EAR) using ReflectASM/Kryo (exts,
+	// Weak-references to class loaders, to avoid perm gen memory leaks, for example
+	// in app servers/web containters if the
+	// reflectasm library (including this class) is loaded outside the deployed
+	// applications (WAR/EAR) using ReflectASM/Kryo (exts,
 	// user classpath, etc).
-	// The key is the parent class loader and the value is the AccessClassLoader, both are weak-referenced in the hash table.
+	// The key is the parent class loader and the value is the AccessClassLoader,
+	// both are weak-referenced in the hash table.
 	static private final WeakHashMap<ClassLoader, WeakReference<AccessClassLoader>> accessClassLoaders = new WeakHashMap();
 
 	// Fast-path for classes loaded in the same ClassLoader as this class.
 	static private final ClassLoader selfContextParentClassLoader = getParentClassLoader(AccessClassLoader.class);
-	static private volatile AccessClassLoader selfContextAccessClassLoader = new AccessClassLoader(selfContextParentClassLoader);
+	static private volatile AccessClassLoader selfContextAccessClassLoader = new AccessClassLoader(
+			selfContextParentClassLoader);
 
 	static private volatile Method defineClassMethod;
 
 	private final HashSet<String> localClassNames = new HashSet();
 
-	private AccessClassLoader (ClassLoader parent) {
+	private AccessClassLoader(ClassLoader parent) {
 		super(parent);
 	}
 
 	/** Returns null if the access class has not yet been defined. */
-	Class loadAccessClass (String name) {
-		// No need to check the parent class loader if the access class hasn't been defined yet.
+	Class loadAccessClass(String name) {
+		// No need to check the parent class loader if the access class hasn't been
+		// defined yet.
 		if (localClassNames.contains(name)) {
 			try {
 				return loadClass(name, false);
@@ -38,36 +43,44 @@ class AccessClassLoader extends ClassLoader {
 		return null;
 	}
 
-	Class defineAccessClass (String name, byte[] bytes) throws ClassFormatError {
+	Class defineAccessClass(String name, byte[] bytes) throws ClassFormatError {
 		localClassNames.add(name);
 		return defineClass(name, bytes);
 	}
 
-	protected Class<?> loadClass (String name, boolean resolve) throws ClassNotFoundException {
+	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		// These classes come from the classloader that loaded AccessClassLoader.
-		if (name.equals(FieldAccess.class.getName())) return FieldAccess.class;
-		if (name.equals(MethodAccess.class.getName())) return MethodAccess.class;
-		if (name.equals(ConstructorAccess.class.getName())) return ConstructorAccess.class;
-		if (name.equals(PublicConstructorAccess.class.getName())) return PublicConstructorAccess.class;
-		// All other classes come from the classloader that loaded the type we are accessing.
+		if (name.equals(FieldAccess.class.getName()))
+			return FieldAccess.class;
+		if (name.equals(MethodAccess.class.getName()))
+			return MethodAccess.class;
+		if (name.equals(ConstructorAccess.class.getName()))
+			return ConstructorAccess.class;
+		if (name.equals(PublicConstructorAccess.class.getName()))
+			return PublicConstructorAccess.class;
+		// All other classes come from the classloader that loaded the type we are
+		// accessing.
 		return super.loadClass(name, resolve);
 	}
 
-	Class<?> defineClass (String name, byte[] bytes) throws ClassFormatError {
+	Class<?> defineClass(String name, byte[] bytes) throws ClassFormatError {
 		try {
-			// Attempt to load the access class in the same loader, which makes protected and default access members accessible.
-			return (Class<?>)getDefineClassMethod().invoke(getParent(),
-				new Object[] {name, bytes, Integer.valueOf(0), Integer.valueOf(bytes.length), getClass().getProtectionDomain()});
+			// Attempt to load the access class in the same loader, which makes protected
+			// and default access members accessible.
+			return (Class<?>) getDefineClassMethod().invoke(getParent(), new Object[] { name, bytes, Integer.valueOf(0),
+					Integer.valueOf(bytes.length), getClass().getProtectionDomain() });
 		} catch (Exception ignored) {
-			// continue with the definition in the current loader (won't have access to protected and package-protected members)
+			// continue with the definition in the current loader (won't have access to
+			// protected and package-protected members)
 		}
 		return defineClass(name, bytes, 0, bytes.length, getClass().getProtectionDomain());
 	}
 
 	// As per JLS, section 5.3,
-	// "The runtime package of a class or interface is determined by the package name and defining class loader of the class or
+	// "The runtime package of a class or interface is determined by the package
+	// name and defining class loader of the class or
 	// interface."
-	static boolean areInSameRuntimeClassLoader (Class type1, Class type2) {
+	static boolean areInSameRuntimeClassLoader(Class type1, Class type2) {
 		if (type1.getPackage() != type2.getPackage()) {
 			return false;
 		}
@@ -77,24 +90,27 @@ class AccessClassLoader extends ClassLoader {
 		if (loader1 == null) {
 			return (loader2 == null || loader2 == systemClassLoader);
 		}
-		if (loader2 == null) return loader1 == systemClassLoader;
+		if (loader2 == null)
+			return loader1 == systemClassLoader;
 		return loader1 == loader2;
 	}
 
-	static private ClassLoader getParentClassLoader (Class type) {
+	static private ClassLoader getParentClassLoader(Class type) {
 		ClassLoader parent = type.getClassLoader();
-		if (parent == null) parent = ClassLoader.getSystemClassLoader();
+		if (parent == null)
+			parent = ClassLoader.getSystemClassLoader();
 		return parent;
 	}
 
-	static private Method getDefineClassMethod () throws Exception {
+	static private Method getDefineClassMethod() throws Exception {
 		if (defineClassMethod == null) {
 			synchronized (accessClassLoaders) {
 				if (defineClassMethod == null) {
 					defineClassMethod = ClassLoader.class.getDeclaredMethod("defineClass",
-						new Class[] {String.class, byte[].class, int.class, int.class, ProtectionDomain.class});
+							new Class[] { String.class, byte[].class, int.class, int.class, ProtectionDomain.class });
 					try {
-						defineClassMethod.setAccessible(true);
+						if (defineClassMethod != null)
+							defineClassMethod.setAccessible(true);
 					} catch (Exception ignored) {
 					}
 				}
@@ -103,7 +119,7 @@ class AccessClassLoader extends ClassLoader {
 		return defineClassMethod;
 	}
 
-	static AccessClassLoader get (Class type) {
+	static AccessClassLoader get(Class type) {
 		ClassLoader parent = getParentClassLoader(type);
 		// 1. fast-path:
 		if (selfContextParentClassLoader.equals(parent)) {
@@ -123,7 +139,8 @@ class AccessClassLoader extends ClassLoader {
 				if (accessClassLoader != null)
 					return accessClassLoader;
 				else
-					accessClassLoaders.remove(parent); // the value has been GC-reclaimed, but still not the key (defensive sanity)
+					accessClassLoaders.remove(parent); // the value has been GC-reclaimed, but still not the key
+														// (defensive sanity)
 			}
 			AccessClassLoader accessClassLoader = new AccessClassLoader(parent);
 			accessClassLoaders.put(parent, new WeakReference<AccessClassLoader>(accessClassLoader));
@@ -131,7 +148,7 @@ class AccessClassLoader extends ClassLoader {
 		}
 	}
 
-	static public void remove (ClassLoader parent) {
+	static public void remove(ClassLoader parent) {
 		// 1. fast-path:
 		if (selfContextParentClassLoader.equals(parent)) {
 			selfContextAccessClassLoader = null;
@@ -143,9 +160,10 @@ class AccessClassLoader extends ClassLoader {
 		}
 	}
 
-	static public int activeAccessClassLoaders () {
+	static public int activeAccessClassLoaders() {
 		int sz = accessClassLoaders.size();
-		if (selfContextAccessClassLoader != null) sz++;
+		if (selfContextAccessClassLoader != null)
+			sz++;
 		return sz;
 	}
 }

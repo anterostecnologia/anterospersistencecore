@@ -151,11 +151,10 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				this.rethrow(e, sql, parameters, clientId);
 
 			} finally {
-				try {
-					close(resultSet);
-				} finally {
-					close(statement);
-				}
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
 		}
 		return result;
@@ -433,11 +432,10 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				this.rethrow(e, "", new Object[] {}, clientId);
 
 			} finally {
-				try {
-					close(resultSet);
-				} finally {
-					close(statement);
-				}
+				if (resultSet != null)
+					resultSet.close();
+				if (statement != null)
+					statement.close();
 			}
 		}
 
@@ -793,7 +791,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			throws Exception {
 		PreparedStatement statement = null;
 		PreparedStatement statementGeneratedKeys = null;
-		ResultSet rsGeneratedKeys;
+		ResultSet rsGeneratedKeys = null;
 		int rows = 0;
 		boolean retry = true;
 		while (true) {
@@ -815,15 +813,15 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				rsGeneratedKeys = statement.getGeneratedKeys();
 				if (rsGeneratedKeys.next()) {
 					identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
-					close(rsGeneratedKeys);
+					rsGeneratedKeys.close();
 				} else {
-					close(rsGeneratedKeys);
+					rsGeneratedKeys.close();
 					if ((identitySelectString != null) && ("".equals(identitySelectString))) {
 						statementGeneratedKeys = session.getConnection().prepareStatement(identitySelectString);
 						rsGeneratedKeys = statementGeneratedKeys.executeQuery();
 						if (rsGeneratedKeys.next())
 							identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
-						close(rsGeneratedKeys);
+						rsGeneratedKeys.close();
 					}
 				}
 				break;
@@ -847,6 +845,8 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				this.rethrow(e, sql, parameters, clientId);
 
 			} finally {
+				if (rsGeneratedKeys != null)
+					rsGeneratedKeys.close();
 				close(statement);
 				close(statementGeneratedKeys);
 			}
@@ -910,11 +910,12 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 			List<SQLSessionListener> listeners, String clientId) throws Exception {
 		NamedParameterStatement statement = null;
 		PreparedStatement stmtGeneratedKeys = null;
-		ResultSet rsGeneratedKeys;
+		
 		int rows = 0;
 		boolean retry = true;
 		while (true) {
 			try {
+				ResultSet rsGeneratedKeys;
 				statement = new NamedParameterStatement(session.getConnection(), sql, parameters,
 						Statement.RETURN_GENERATED_KEYS);
 				for (NamedParameter namedParameter : parameters) {
@@ -935,18 +936,17 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 				rsGeneratedKeys = statement.getStatement().getGeneratedKeys();
 				if (rsGeneratedKeys.next()) {
 					identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
-					close(rsGeneratedKeys);
 				} else {
-					close(rsGeneratedKeys);
 					if ((identitySelectString != null) && ("".equals(identitySelectString))) {
 						stmtGeneratedKeys = session.getConnection().prepareStatement(identitySelectString);
-						rsGeneratedKeys = stmtGeneratedKeys.executeQuery();
-						if (rsGeneratedKeys.next()) {
-							identifierPostInsert.setGeneratedValue(rsGeneratedKeys);
+						ResultSet rsKeys = stmtGeneratedKeys.executeQuery();
+						if (rsKeys.next()) {
+							identifierPostInsert.setGeneratedValue(rsKeys);
 						}
-						close(rsGeneratedKeys);
+						rsKeys.close();
 					}
 				}
+				rsGeneratedKeys.close();
 				break;
 
 			} catch (SQLException e) {
@@ -969,8 +969,10 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 
 			} finally {
 				if (statement != null)
-					close(statement.getStatement());
-				close(stmtGeneratedKeys);
+					statement.getStatement().close();
+				if (stmtGeneratedKeys!=null) {
+					stmtGeneratedKeys.close();
+				}
 				statement = null;
 				stmtGeneratedKeys = null;
 			}
