@@ -32,6 +32,7 @@ import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.asm.ConstructorAccess;
 import br.com.anteros.persistence.asm.FieldAccess;
 import br.com.anteros.persistence.asm.MethodAccess;
+import br.com.anteros.persistence.metadata.annotation.Code;
 import br.com.anteros.persistence.metadata.annotation.EventType;
 import br.com.anteros.persistence.metadata.annotation.type.FetchType;
 import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
@@ -1194,6 +1195,23 @@ public class EntityCache {
 			constructorAccess = ConstructorAccess.get(this.getEntityClass());
 		}
 		return constructorAccess;
+	}
+
+	public DescriptionField getCodeField() {
+		for (DescriptionField descriptionField : getDescriptionFields()) {
+			if (descriptionField.getField().isAnnotationPresent(Code.class)) {
+				return descriptionField;
+			}
+		}
+		return null;		
+	}
+
+	public boolean hasTenantId() {
+		return getTenantId()!=null;
+	}
+
+	public boolean hasCompanyId() {
+		return getCompanyId()!=null;
 	}
 
 }

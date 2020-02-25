@@ -1848,7 +1848,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 						select.and();
 					}
 					select.addCondition(tenantId.getSimpleColumn().getColumnName(), "=",
-							'"' + session.getTenantId().toString() + '"');
+							"'" + session.getTenantId().toString() + "'");
 				}
 
 				if (companyId != null) {
@@ -1861,7 +1861,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 						select.and();
 					}
 					select.addCondition(companyId.getSimpleColumn().getColumnName(), "=",
-							'"' + session.getCompanyId().toString() + '"');
+							"'" + session.getCompanyId().toString() + "'");
 				}
 
 				this.sql(select.toStatementString());

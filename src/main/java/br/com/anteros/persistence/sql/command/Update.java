@@ -85,7 +85,7 @@ public class Update {
 		return this;
 	}	
 
-	public Update addPrimaryKeyColumn(String columnName, String valueExpression) {
+	public Update addPrimaryKeyColumn(String columnName, Object valueExpression) {
 		this.primaryKeyColumns.put(columnName, valueExpression);
 		return this;
 	}

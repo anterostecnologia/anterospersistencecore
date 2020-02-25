@@ -192,8 +192,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 							+ getEntityCache().getEntityClass().getName());
 				}
 				hasWhere = true;
-				sql = sql + " where P." + tenantId.getSimpleColumn().getColumnName() + " = " + '"'
-						+ getSession().getTenantId().toString() + '"';
+				sql = sql + " where P." + tenantId.getSimpleColumn().getColumnName() + " = " + "'"
+						+ getSession().getTenantId().toString() + "'";
 			}
 
 			if (companyId != null) {
@@ -206,8 +206,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 				} else {
 					sql = sql + " and ";
 				}
-				sql = sql + "P." + companyId.getSimpleColumn().getColumnName() + " = " + '"'
-						+ getSession().getCompanyId().toString() + '"';
+				sql = sql + "P." + companyId.getSimpleColumn().getColumnName() + " = " + "'"
+						+ getSession().getCompanyId().toString() + "'";
 			}
 
 			TypedSQLQuery<?> query = getSession().createQuery(sql, persistentClass);
@@ -270,8 +270,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 							+ getEntityCache().getEntityClass().getName());
 				}
 				hasWhere = true;
-				sql = sql + " where P." + tenantId.getSimpleColumn().getColumnName() + " = " + '"'
-						+ getSession().getTenantId().toString() + '"';
+				sql = sql + " where P." + tenantId.getSimpleColumn().getColumnName() + " = " + "'"
+						+ getSession().getTenantId().toString() + "'";
 			}
 			if (companyId != null) {
 				if (getSession().getCompanyId() == null) {
@@ -283,8 +283,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 				} else {
 					sql = sql + " and ";
 				}
-				sql = sql + "P." + companyId.getSimpleColumn().getColumnName() + " = " + '"'
-						+ getSession().getCompanyId().toString() + '"';
+				sql = sql + "P." + companyId.getSimpleColumn().getColumnName() + " = " + "'"
+						+ getSession().getCompanyId().toString() + "'";
 			}
 			query = getSession().createQuery(sql, persistentClass);
 
@@ -581,8 +581,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 						+ getEntityCache().getEntityClass().getName());
 			}
 			hasWhere = true;
-			sql = sql + " where x." + tenantId.getSimpleColumn().getColumnName() + " = " + '"'
-					+ getSession().getTenantId().toString() + '"';
+			sql = sql + " where x." + tenantId.getSimpleColumn().getColumnName() + " = " + "'"
+					+ getSession().getTenantId().toString() + "'";
 		}
 
 		if (companyId != null) {
@@ -595,8 +595,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			} else {
 				sql = sql + " and ";
 			}
-			sql = sql + "x." + companyId.getSimpleColumn().getColumnName() + " = " + '"'
-					+ getSession().getCompanyId().toString() + '"';
+			sql = sql + "x." + companyId.getSimpleColumn().getColumnName() + " = " + "'"
+					+ getSession().getCompanyId().toString() + "'";
 		}
 
 		return doCount(sql);

@@ -24,6 +24,7 @@ import br.com.anteros.persistence.handler.EntityHandlerException;
 import br.com.anteros.persistence.metadata.EntityCache;
 import br.com.anteros.persistence.metadata.EntityManaged;
 import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
+import br.com.anteros.persistence.metadata.type.EntityStatus;
 import br.com.anteros.persistence.proxy.collection.DefaultSQLList;
 import br.com.anteros.persistence.proxy.collection.DefaultSQLSet;
 import br.com.anteros.persistence.session.SQLSession;
@@ -203,7 +204,9 @@ public class CollectionExpressionFieldMapper extends ExpressionFieldMapper {
 				 * Adiciona o campo na lista de campos que poderão ser alterados. Se o campo não for buscado no select
 				 * não poderá ser alterado.
 				 */
-				entityManaged.getFieldsForUpdate().add(descriptionField.getField().getName());
+				if (entityManaged.getStatus() != EntityStatus.READ_ONLY) {
+					entityManaged.getFieldsForUpdate().add(descriptionField.getField().getName());
+				}
 			}
 		}
 		/*
