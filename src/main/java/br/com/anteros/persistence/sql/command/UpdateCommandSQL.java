@@ -46,6 +46,7 @@ public class UpdateCommandSQL extends CommandSQL {
 
 	@Override
 	public CommandReturn execute() throws Exception {
+		boolean threwAnException = false;
 		try {
 			session.notifyListeners(EventType.PreUpdate, oldObject, targetObject);
 			/*
@@ -81,8 +82,10 @@ public class UpdateCommandSQL extends CommandSQL {
 								LOG.debug("");
 							}
 
-							if (!descriptionSQL.getSuccessValue().equalsIgnoreCase(successValue.toString()))
+							if (!descriptionSQL.getSuccessValue().equalsIgnoreCase(successValue.toString())) {
+								threwAnException = true;
 								throw new SQLSessionException(successValue.toString());
+							}
 						} finally {
 							if (result != null)
 								result.close();
@@ -101,13 +104,15 @@ public class UpdateCommandSQL extends CommandSQL {
 										NamedParameter.getAllValues(namedParameters), showSql, session.getListeners(),
 										session.clientId());
 								if (rowsUpdated == 0) {
-									if (entityCache.isVersioned())
+									threwAnException = true;
+									if (entityCache.isVersioned()) {
 										throw new SQLException("Objeto foi atualizado ou removido por outra transação. "
 												+ this.getObjectId());
-									else
+									} else {
 										throw new SQLException(
 												"Não foi possível atualizar o objeto " + this.getObjectId()
 														+ " pois o mesmo não foi encontrado. Verifique os parâmetros.");
+									}
 								} else {
 									for (NamedParameter np : namedParameters) {
 										if (np instanceof VersionNamedParameter) {
@@ -131,12 +136,15 @@ public class UpdateCommandSQL extends CommandSQL {
 					if (targetObject == null)
 						return null;
 				} catch (SQLException ex) {
+					threwAnException = true;
 					throw session.getDialect().convertSQLException(ex, "", sql);
 				}
 			}
 			setEntityManaged();
 		} finally {
-			session.notifyListeners(EventType.PostUpdate, oldObject, targetObject);
+			if (!threwAnException) {
+				session.notifyListeners(EventType.PostUpdate, oldObject, targetObject);
+			}
 		}
 		return null;
 	}

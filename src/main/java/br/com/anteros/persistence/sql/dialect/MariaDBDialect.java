@@ -24,6 +24,7 @@ import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.core.resource.messages.AnterosBundle;
 import br.com.anteros.core.resource.messages.AnterosResourceBundle;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.SQLTemplates;
 import br.com.anteros.persistence.dsl.osql.templates.MariaDBTemplates;
@@ -309,6 +310,7 @@ public class MariaDBDialect extends DatabaseDialect {
 	@Override
 	public SQLSessionException convertSQLException(SQLException ex, String msg, String sql) throws SQLSessionException {
 		final String sqlState = extractSqlState(ex);
+		final int errorCode = extractErrorCode(ex);
 
 		if ("41000".equals(sqlState)) {
 			return new LockTimeoutException(msg, ex, sql);
@@ -317,6 +319,61 @@ public class MariaDBDialect extends DatabaseDialect {
 		if ("40001".equals(sqlState)) {
 			return new LockAcquisitionException(msg, ex, sql);
 		}
+		
+		if (errorCode==1451) {
+			return new SQLSessionException("Não é possível REMOVER o registro pois existem outros registros dependendo dele. ", ex, sql); 	
+		}
+		
+		if (errorCode==1452) {
+			return new SQLSessionException("Não é possível ADICIONAR/EDITAR o registro pois umas das chaves relacionadas não existe. ", ex, sql); 	
+		}
+		
+		if (errorCode==1406) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Data too long for column", "Dado maior que o permitido para a coluna");
+			msg = StringUtils.replaceAll(msg, "at row", "registro");
+		}
+		
+		if (errorCode==1048) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Column", "Coluna");
+			msg = StringUtils.replaceAll(msg, "cannot be null", "deve ser preenchida.");
+		}
+		
+		if (errorCode==1049) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Unknown database", "Banco de dados desconhecido");
+		}
+		
+		if (errorCode==1050) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Table", "Tabela");
+			msg = StringUtils.replaceAll(msg, "already exists", "já existe no banco de dados.");
+		}
+		
+		if (errorCode==1051) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Unknown table", "Tabela desconhecida");
+		}
+		
+		if (errorCode==1052) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Column", "Coluna");
+			msg = StringUtils.replaceAll(msg, "in", "em");
+			msg = StringUtils.replaceAll(msg, "is ambiguous", "está repetida.");
+		}
+		
+		if (errorCode==1054) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Unknown column", "Coluna desconhecida");
+			msg = StringUtils.replaceAll(msg, "in", "em");
+		}
+		
+		if (errorCode==1060) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Duplicate column name", "Nome de coluna duplicada");
+		}
+		
+		if (errorCode==1117) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Too many columns", "Colunas demais.");
+		}
+		
+		if (errorCode==1166) {
+			msg = StringUtils.replaceAll(ex.getMessage(), "Incorrect column name", "Nome de coluna incorreta");
+		}
+		
 
 		return new SQLSessionException(msg, ex, sql);
 	}

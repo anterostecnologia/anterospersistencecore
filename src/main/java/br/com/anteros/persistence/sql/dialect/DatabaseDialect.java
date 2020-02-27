@@ -1744,6 +1744,16 @@ public abstract class DatabaseDialect {
 		}
 		return sqlState;
 	}
+	
+	public static int extractVendorCode(SQLException sqlException) {
+		int errorCode = sqlException.getErrorCode();
+		SQLException nested = sqlException.getNextException();
+		while (errorCode == 0 && nested != null) {
+			errorCode = nested.getErrorCode();
+			nested = nested.getNextException();
+		}
+		return errorCode;
+	}
 
 	public abstract LimitClauseResult getLimitClause(String sql, int offset, int limit, boolean namedParameter);
 

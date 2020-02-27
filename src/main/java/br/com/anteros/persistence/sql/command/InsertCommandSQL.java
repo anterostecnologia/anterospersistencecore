@@ -55,6 +55,7 @@ public class InsertCommandSQL extends CommandSQL {
 
 	@Override
 	public CommandReturn execute() throws Exception {
+		boolean threwAnException = false;
 		try {
 			session.notifyListeners(EventType.PrePersist, null, this.targetObject);
 			/*
@@ -90,8 +91,10 @@ public class InsertCommandSQL extends CommandSQL {
 								LOG.debug("");
 							}
 
-							if (!descriptionSQL.getSuccessValue().equalsIgnoreCase(successValue.toString()))
+							if (!descriptionSQL.getSuccessValue().equalsIgnoreCase(successValue.toString())) {
+								threwAnException = true;
 								throw new SQLSessionException(successValue.toString());
+							}
 
 							if (descriptionSQL.getParametersId().size() > 0) {
 								Identifier identifier = session.getIdentifier(targetObject);
@@ -160,13 +163,16 @@ public class InsertCommandSQL extends CommandSQL {
 					if (targetObject == null)
 						return null;
 				} catch (SQLException ex) {
+					threwAnException = true;
 					throw session.getDialect().convertSQLException(ex, "", sql);
 				}
 			}
 			setEntityManaged();
 			return null;
 		} finally {
-			session.notifyListeners(EventType.PostPersist, null, this.targetObject);
+			if (!threwAnException) {
+				session.notifyListeners(EventType.PostPersist, null, this.targetObject);
+			}
 		}
 
 	}

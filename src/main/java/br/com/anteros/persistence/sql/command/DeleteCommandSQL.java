@@ -42,6 +42,7 @@ public class DeleteCommandSQL extends CommandSQL {
 
 	@Override
 	public CommandReturn execute() throws Exception {
+		boolean threwAnException = false;
 		try {
 			session.notifyListeners(EventType.PreRemove, null, this.targetObject);
 			/*
@@ -79,7 +80,8 @@ public class DeleteCommandSQL extends CommandSQL {
 							}
 
 							if (!descriptionSQL.getSuccessValue().equals(successValue.toString()))
-								throw new SQLSessionException(successValue.toString());
+								threwAnException = true;
+							throw new SQLSessionException(successValue.toString());
 						} finally {
 							if (result != null)
 								result.close();
@@ -107,11 +109,14 @@ public class DeleteCommandSQL extends CommandSQL {
 					}
 					session.notifyListeners(EventType.PostRemove, null, this.targetObject);
 				} catch (SQLException ex) {
+					threwAnException = true;
 					throw session.getDialect().convertSQLException(ex, "", sql);
 				}
 			}
 		} finally {
-			session.notifyListeners(EventType.PostRemove, null, this.targetObject);
+			if (!threwAnException) {
+				session.notifyListeners(EventType.PostRemove, null, this.targetObject);
+			}
 		}
 		return null;
 
