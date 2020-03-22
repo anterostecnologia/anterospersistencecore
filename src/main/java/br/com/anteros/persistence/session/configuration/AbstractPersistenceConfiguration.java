@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import br.com.anteros.cloud.integration.filesharing.CloudFileManager;
 import br.com.anteros.core.configuration.AnterosCoreProperties;
 import br.com.anteros.core.log.Logger;
 import br.com.anteros.core.log.LoggerProvider;
@@ -40,7 +41,6 @@ import br.com.anteros.persistence.metadata.annotation.Entity;
 import br.com.anteros.persistence.metadata.annotation.EnumValues;
 import br.com.anteros.persistence.metadata.comparator.DependencyComparator;
 import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfiguration;
-import br.com.anteros.persistence.session.ExternalFileManager;
 import br.com.anteros.persistence.session.SQLSessionFactory;
 import br.com.anteros.persistence.session.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
@@ -88,7 +88,7 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 	protected EntityCacheManager entityCacheManager;
 	protected DataSource dataSource;
 	protected PersistenceModelConfiguration modelConfiguration;
-	protected ExternalFileManager externalFileManager;
+	protected CloudFileManager externalFileManager;
 	protected boolean enableImageCompression = false;
 	protected Map<Object,Class<?>> entityListeners = new LinkedHashMap<Object,Class<?>>();
 
@@ -96,21 +96,21 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 		entityCacheManager = new EntityCacheManager();
 	}
 
-	public AbstractPersistenceConfiguration(DataSource dataSource, ExternalFileManager externalFileManager, boolean enableImageCompression) {
+	public AbstractPersistenceConfiguration(DataSource dataSource, CloudFileManager externalFileManager, boolean enableImageCompression) {
 		this();
 		this.dataSource = dataSource;
 		this.externalFileManager = externalFileManager;
 		this.enableImageCompression = enableImageCompression;
 	}
 
-	public AbstractPersistenceConfiguration(PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager, boolean enableImageCompression) {
+	public AbstractPersistenceConfiguration(PersistenceModelConfiguration modelConfiguration, CloudFileManager externalFileManager, boolean enableImageCompression) {
 		this();
 		this.modelConfiguration = modelConfiguration;
 		this.externalFileManager = externalFileManager;
 		this.enableImageCompression = enableImageCompression;
 	}
 
-	public AbstractPersistenceConfiguration(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, ExternalFileManager externalFileManager, boolean enableImageCompression) {
+	public AbstractPersistenceConfiguration(DataSource dataSource, PersistenceModelConfiguration modelConfiguration, CloudFileManager externalFileManager, boolean enableImageCompression) {
 		super();
 		this.dataSource = dataSource;
 		this.modelConfiguration = modelConfiguration;

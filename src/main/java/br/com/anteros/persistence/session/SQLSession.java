@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import br.com.anteros.cloud.integration.filesharing.CloudFileManager;
+import br.com.anteros.cloud.integration.filesharing.impl.ExternalFileManagerException;
 import br.com.anteros.persistence.handler.EntityHandler;
 import br.com.anteros.persistence.metadata.EntityCacheManager;
 import br.com.anteros.persistence.metadata.annotation.EventType;
@@ -286,7 +288,7 @@ public interface SQLSession {
 	
 	public Object getCompanyId();
 	
-	public ExternalFileManager getExternalFileManager();
+	public CloudFileManager getExternalFileManager();
 	
 	public void disableNotifyListeners();
 	

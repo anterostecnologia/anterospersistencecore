@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.0.75</version>
+	<version>1.0.76</version>
 
 	<properties>
 		<java.versao>1.6</java.versao>
@@ -59,7 +59,11 @@
 			<groupId>br.com.anteros</groupId>
 			<artifactId>Anteros-Core</artifactId>
 			<version>[1.0.0,)</version>
-			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>br.com.anteros</groupId>
+			<artifactId>Anteros-Cloud-Integration</artifactId>
+			<version>[1.0.0,)</version>
 		</dependency>
 		<dependency>
 			<groupId>br.com.anteros</groupId>
@@ -77,10 +81,10 @@
 			<version>6.2.1</version>
 		</dependency>
 		<dependency>
-    <groupId>org.apache.tika</groupId>
-    <artifactId>tika-core</artifactId>
-    <version>1.18</version>
-</dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>1.18</version>
+		</dependency>
 	</dependencies>
 
 	<profiles>

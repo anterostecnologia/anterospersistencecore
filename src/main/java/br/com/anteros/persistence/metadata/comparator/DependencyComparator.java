@@ -37,19 +37,19 @@ public class DependencyComparator implements Comparator<Class<?>> {
 			return 0;
 		}
 		
-		Field[] fields = ReflectionUtils.getAllDeclaredFields(c1);
-		for (Field field : fields) {
-			if (field.getType().equals(c2)) {
-				return 1;
-			}
-		}
-		
-		fields = ReflectionUtils.getAllDeclaredFields(c2);
-		for (Field field : fields) {
-			if (field.getType().equals(c1)) {
-				return -1;
-			}
-		}		
+//		Field[] fields = ReflectionUtils.getAllDeclaredFields(c1);
+//		for (Field field : fields) {
+//			if (field.getType().equals(c2)) {
+//				return 1;
+//			}
+//		}
+//		
+//		fields = ReflectionUtils.getAllDeclaredFields(c2);
+//		for (Field field : fields) {
+//			if (field.getType().equals(c1)) {
+//				return -1;
+//			}
+//		}		
 
 		// Neste ponto, c1 e c2 não são nulos e não iguais, vamos
 		// compará-los para ver qual é "superior" na hierarquia de classes

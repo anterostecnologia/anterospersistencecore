@@ -18,6 +18,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -355,8 +356,16 @@ public class SQLPersisterImpl implements SQLPersister {
 				session.getCommandQueue().addAll(stackCommands);
 				stackCommands.clear();
 			}
-			session.getCommandQueue().add(insertCommandSQL);
-			session.flush();
+			try {
+				insertCommandSQL.execute();
+			} catch (SQLException ex) {
+				if (insertCommandSQL instanceof CommandSQL)
+					throw session.getDialect().convertSQLException(ex, "Erro enviando comando sql.",
+							((CommandSQL) insertCommandSQL).getSql());
+				else {
+					throw ex;
+				}
+			}
 		} else
 			result.add(insertCommandSQL);
 	}

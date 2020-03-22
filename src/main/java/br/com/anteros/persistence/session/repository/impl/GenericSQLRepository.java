@@ -14,6 +14,7 @@ package br.com.anteros.persistence.session.repository.impl;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -157,7 +158,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+	public T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly,
+			String fieldsToForceLazy) {
 		List<T> result = find(sql, parameters, readOnly, fieldsToForceLazy);
 		if ((result != null) && (result.size() > 0))
 			return result.get(0);
@@ -298,7 +300,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			List<T> content = (List<T>) (total > pageable.getOffset() ? query.getResultList()
 					: Collections.<T>emptyList());
 
-			return new PageImpl<T>(content, pageable, total); 	
+			return new PageImpl<T>(content, pageable, total);
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}
@@ -318,7 +320,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+	public Page<T> find(String sql, Pageable pageable, LockOptions lockOptions, boolean readOnly,
+			String fieldsToForceLazy) {
 		if (null == pageable) {
 			return new PageImpl<T>(this.find(sql, fieldsToForceLazy));
 		}
@@ -343,7 +346,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+	public List<T> find(String sql, Object parameters, LockOptions lockOptions, boolean readOnly,
+			String fieldsToForceLazy) {
 		try {
 			TypedSQLQuery<?> query = getSession().createQuery(sql, persistentClass, parameters);
 			query.setReadOnly(readOnly);
@@ -356,7 +360,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, boolean readOnly,
+			String fieldsToForceLazy) {
 		if (null == pageable) {
 			return new PageImpl<T>(find(sql, parameters, fieldsToForceLazy));
 		}
@@ -421,7 +426,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly, String fieldsToForceLazy) {
+	public Page<T> findByNamedQuery(String queryName, Object parameters, Pageable pageable, boolean readOnly,
+			String fieldsToForceLazy) {
 		Assert.notNull(queryName, "O nome da query não pode ser nulo.");
 		Assert.notNull(persistentClass,
 				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
@@ -430,7 +436,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		DescriptionNamedQuery namedQuery = cache.getDescriptionNamedQuery(queryName);
 		if (namedQuery == null)
 			throw new SQLQueryException("Query nomeada " + queryName + " não encontrada.");
-		return find(namedQuery.getQuery(), parameters, pageable, namedQuery.getLockOptions(), readOnly, fieldsToForceLazy);
+		return find(namedQuery.getQuery(), parameters, pageable, namedQuery.getLockOptions(), readOnly,
+				fieldsToForceLazy);
 
 	}
 
@@ -446,7 +453,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		if (path == null) {
 			// this.path = (EntityPath<T>)
 			// DEFAULT_ENTITY_PATH_RESOLVER.createPath(persistentClass);
-			this.path = new DynamicEntityPath(persistentClass, persistentClass.getSimpleName()+"_P");
+			this.path = new DynamicEntityPath(persistentClass, persistentClass.getSimpleName() + "_P");
 		}
 		return path;
 	}
@@ -514,9 +521,9 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			StringPath predicateField = entityPath.createFieldString(tenantId.getName());
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField,
 					Expressions.constant(getSession().getTenantId().toString()));
-			
+
 			if (predicate instanceof BooleanOperation) {
-				((BooleanOperation)predicate).and(expression);
+				((BooleanOperation) predicate).and(expression);
 			} else {
 				((BooleanBuilder) predicate).and(expression);
 			}
@@ -531,7 +538,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 			BooleanExpression expression = Expressions.predicate(Ops.EQ, predicateField,
 					Expressions.constant(this.getSession().getCompanyId().toString()));
 			if (predicate instanceof BooleanOperation) {
-				((BooleanOperation)predicate).and(expression);
+				((BooleanOperation) predicate).and(expression);
 			} else {
 				((BooleanBuilder) predicate).and(expression);
 			}
@@ -540,16 +547,23 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders) {
+	public Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy,
+			OrderSpecifier<?>... orders) {
 		return this.findAll(predicate, false, pageable, fieldsToForceLazy, orders);
-	}	
-	
+	}
 
 	@Override
 	public SQLSession getSession() {
-		if (session != null)
+		if (session != null) {
+			try {
+				if (session.getConnection().isClosed()) {
+					session.invalidateConnection();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 			return session;
-		else if (sessionFactory != null) {
+		} else if (sessionFactory != null) {
 			try {
 				return sessionFactory.getCurrentSession();
 			} catch (Exception e) {
@@ -750,7 +764,8 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	}
 
 	@Override
-	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions, String fieldsToForceLazy) {
+	public Page<T> find(String sql, Object parameters, Pageable pageable, LockOptions lockOptions,
+			String fieldsToForceLazy) {
 		return find(sql, parameters, pageable, false, fieldsToForceLazy);
 	}
 

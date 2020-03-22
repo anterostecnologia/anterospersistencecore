@@ -1,6 +1,6 @@
 package br.com.anteros.persistence.sql.command;
 
-import br.com.anteros.persistence.session.ResultInfo;
+import br.com.anteros.cloud.integration.filesharing.CloudResultInfo;
 import br.com.anteros.persistence.session.SQLSession;
 
 public class ExternalFileSaveCommand implements PersisterCommand {
@@ -22,7 +22,7 @@ public class ExternalFileSaveCommand implements PersisterCommand {
 
 	@Override
 	public CommandReturn execute() throws Exception {
-		ResultInfo resultInfo = session.getExternalFileManager().uploadAndShareFile(folderName, fileName, content, mimeType);
+		CloudResultInfo resultInfo = session.getExternalFileManager().uploadAndShareFile(folderName, fileName, content, mimeType);
 		return new CommandReturn(resultInfo.getSharedLink(), null);
 	}
 

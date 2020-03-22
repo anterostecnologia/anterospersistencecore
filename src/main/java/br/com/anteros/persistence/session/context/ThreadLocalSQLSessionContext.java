@@ -51,7 +51,7 @@ public class ThreadLocalSQLSessionContext implements CurrentSQLSessionContext {
 
 	public final SQLSession currentSession() throws Exception {
 		SQLSession current = existingSession(factory);
-		if (current == null) {
+		if (current == null || current.getConnection().isClosed() || !current.getConnection().isValid(2000)) {
 			current = factory.openSession();
 			current.getTransaction().registerSynchronization(new CleaningSession(factory));
 			if ( needsWrapping( current ) ) {
