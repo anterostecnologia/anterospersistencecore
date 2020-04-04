@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import br.com.anteros.persistence.dsl.osql.ColumnMetadata;
+import br.com.anteros.persistence.dsl.osql.DynamicEntityPath;
 import br.com.anteros.persistence.dsl.osql.OSQLQueryException;
 import br.com.anteros.persistence.dsl.osql.types.EntityPath;
 import br.com.anteros.persistence.dsl.osql.types.Path;
@@ -36,6 +37,8 @@ import br.com.anteros.persistence.dsl.osql.types.PathMetadata;
 public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 
 	private static final long serialVersionUID = -8610055828414880996L;
+	
+	private static final PathInits INITS = PathInits.DIRECT2;
 
 	private final Map<Path<?>, ColumnMetadata> columnMetadata = new LinkedHashMap<Path<?>, ColumnMetadata>();
 
@@ -144,6 +147,10 @@ public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 	@Override
 	public EntityPath<T> excludeProjection(Object... args) {
 		return excludeProjection(buildNewCustomProjectionArguments(args).toArray(new Path<?>[]{}));
+	}
+	
+	public DynamicEntityPath createEntityPath(Class<?> resultClass, String variable) {
+		return new DynamicEntityPath(resultClass, forProperty(variable),INITS.get(variable));
 	}
 
 }

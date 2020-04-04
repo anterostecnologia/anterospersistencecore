@@ -40,7 +40,7 @@ public class EntityCacheAnnotationValidation {
 		 * Se não implementar java.io.Serializable
 		 */
 		if (!Serializable.class.isAssignableFrom(sourceClazz)) {
-			errors.add("A classe " + sourceClazz.getName() + " não implemanta java.io.Serializable");
+			errors.add("A classe " + sourceClazz.getName() + " não implementa java.io.Serializable");
 		}
 
 		/*

@@ -54,7 +54,7 @@ import br.com.anteros.persistence.session.query.SQLQueryAnalyserAlias;
  */
 public class EntityHandler implements ScrollableResultSetHandler {
 
-	private static Boolean androidPresent = null; 
+	private static Boolean androidPresent = null;
 	public static final boolean LOAD_ALL_FIELDS = true;
 	protected Class<?> resultClass;
 	protected transient EntityCacheManager entityCacheManager;
@@ -94,8 +94,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	}
 
 	public EntityHandler(LazyLoadFactory proxyFactory, Class<?> targetClazz, EntityCacheManager entityCacheManager,
-			SQLSession session, Cache transactionCache, boolean allowDuplicateObjects, int firstResult,
-			int maxResults, String fieldsToForceLazy) {
+			SQLSession session, Cache transactionCache, boolean allowDuplicateObjects, int firstResult, int maxResults,
+			String fieldsToForceLazy) {
 		this(proxyFactory, targetClazz, entityCacheManager, new LinkedHashSet<ExpressionFieldMapper>(),
 				new LinkedHashMap<SQLQueryAnalyserAlias, Map<String, String[]>>(), session, transactionCache,
 				allowDuplicateObjects, firstResult, maxResults, false, LockOptions.NONE, fieldsToForceLazy);
@@ -137,13 +137,12 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	protected void readRow(ResultSet resultSet, Collection<Object> result)
 			throws EntityHandlerException, SQLException, Exception {
 		/*
-		 * Se a classe passada para o handler for uma entidade abstrata localiza
-		 * no entityCache a classe correspondente ao discriminator colum
+		 * Se a classe passada para o handler for uma entidade abstrata localiza no
+		 * entityCache a classe correspondente ao discriminator colum
 		 */
 		EntityCache entityCache = getEntityCacheByResultSetRow(resultClass, resultSet);
 		/*
-		 * Processa a linha do resultSet montando o objeto da classe de
-		 * resultado
+		 * Processa a linha do resultSet montando o objeto da classe de resultado
 		 */
 		if (entityCache != null) {
 			handleRow(resultSet, result, entityCache, LOAD_ALL_FIELDS);
@@ -185,9 +184,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		Object createdOject = createObject(entityCache.getEntityClass(), resultSet, result);
 
 		/*
-		 * Carrega coleções e relacionamentos. Preenche a árvore do objeto
-		 * considerando as estratégias configuradas em cada field com ForeignKey
-		 * e Fetch
+		 * Carrega coleções e relacionamentos. Preenche a árvore do objeto considerando
+		 * as estratégias configuradas em cada field com ForeignKey e Fetch
 		 */
 		if (loadAllFields)
 			loadCollectionsRelationShipAndLob(createdOject, entityCache, resultSet);
@@ -226,12 +224,9 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	/**
 	 * Método responsável por criar o objeto.
 	 * 
-	 * @param targetClass
-	 *            Classe para criação do objeto
-	 * @param resultSet
-	 *            Resultado do SQL.
-	 * @param result
-	 *            Objeto criado
+	 * @param targetClass Classe para criação do objeto
+	 * @param resultSet   Resultado do SQL.
+	 * @param result      Objeto criado
 	 * @return
 	 * @throws Exception
 	 */
@@ -247,11 +242,11 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		 */
 		String uniqueId = getUniqueId(resultSet, entityCacheManager.getEntityCache(resultClass), null);
 		/*
-		 * Se foi atribuido um objeto para ser atualizado usa o objeto e não
-		 * cria um novo
+		 * Se foi atribuido um objeto para ser atualizado usa o objeto e não cria um
+		 * novo
 		 */
 		if (objectToRefresh != null) {
-			mainObject = objectToRefresh;			
+			mainObject = objectToRefresh;
 			objectToRefresh = null;
 		} else {
 			/*
@@ -262,7 +257,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 				/*
 				 * Se não encontrou no cache cria uma nova instância
 				 */
-				
+
 				mainObject = entityCache.getConstructorAccess().newInstance();
 				createdNewObject = true;
 			}
@@ -271,7 +266,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		/*
 		 * Adiciona o objeto como sendo uma entidade gerenciada no contexto
 		 */
-		entityManaged = session.getPersistenceContext().addEntityManaged(mainObject, readOnly, false, !createdNewObject);
+		entityManaged = session.getPersistenceContext().addEntityManaged(mainObject, readOnly, false,
+				!createdNewObject);
 		entityManaged.setLockMode(lockOptions.getLockMode());
 
 		/*
@@ -280,11 +276,11 @@ public class EntityHandler implements ScrollableResultSetHandler {
 		for (ExpressionFieldMapper expression : expressionsFieldMapper) {
 			expression.execute(session, resultSet, entityManaged, mainObject, transactionCache);
 		}
-		
+
 		result.add(mainObject);
 		/*
-		 * Adiciona o objeto no Cache da sessão ou da transação para evitar
-		 * buscar o objeto novamente no mesmo processamento
+		 * Adiciona o objeto no Cache da sessão ou da transação para evitar buscar o
+		 * objeto novamente no mesmo processamento
 		 */
 
 		addObjectToCache(entityCache, mainObject, uniqueId);
@@ -302,10 +298,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	/**
 	 * Retorna o alias da coluna de uma entidade no resultSet.
 	 * 
-	 * @param sourceEntityCache
-	 *            Entidade
-	 * @param columnName
-	 *            Nome da coluna
+	 * @param sourceEntityCache Entidade
+	 * @param columnName        Nome da coluna
 	 * @return Alias da coluna
 	 */
 	private String getAliasColumnName(EntityCache sourceEntityCache, String columnName) {
@@ -326,7 +320,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 					}
 				}
 				result = (alias == null || alias.length == 0 ? columnName : alias[alias.length - 1]);
-				
+
 				sb = new StringBuilder();
 				sb.append(sourceEntityCache.getEntityClass().getName()).append(":").append(columnName);
 				aliasesCache.put(sb.toString(), result);
@@ -339,10 +333,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	/**
 	 * Retorna o alias da coluna de uma entidade no resultSet.
 	 * 
-	 * @param sourceAlias
-	 *            Nome do alias da tabela
-	 * @param columnName
-	 *            Nome da coluna
+	 * @param sourceAlias Nome do alias da tabela
+	 * @param columnName  Nome da coluna
 	 * @return Alias da coluna
 	 */
 	private String getAliasColumnName(String sourceAlias, String columnName) {
@@ -373,38 +365,31 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	/**
 	 * Adiciona um objeto no cache da transação SQL ou da persistência
 	 * 
-	 * @param entityCache
-	 *            Entidade
-	 * @param targetObject
-	 *            Objeto
-	 * @param uniqueId
-	 *            Chave do objeto
+	 * @param entityCache  Entidade
+	 * @param targetObject Objeto
+	 * @param uniqueId     Chave do objeto
 	 */
 	private void addObjectToCache(EntityCache entityCache, Object targetObject, String uniqueId) {
 		/*
-		 * Adiciona o objeto no cache da sessão ou da transação para evitar
-		 * buscar o objeto novamente no mesmo processamento
+		 * Adiciona o objeto no cache da sessão ou da transação para evitar buscar o
+		 * objeto novamente no mesmo processamento
 		 */
 		StringBuilder sb = new StringBuilder();
 		sb.append(entityCache.getEntityClass().getName()).append("_").append(uniqueId);
 		if ((entityCache.getCacheScope().equals(ScopeType.TRANSACTION)) && (transactionCache != null)) {
-			transactionCache.put(sb.toString(), targetObject,
-					entityCache.getMaxTimeCache());
+			transactionCache.put(sb.toString(), targetObject, entityCache.getMaxTimeCache());
 		} else {
-			session.getPersistenceContext().addObjectToCache(sb.toString(),
-					targetObject, entityCache.getMaxTimeCache());
+			session.getPersistenceContext().addObjectToCache(sb.toString(), targetObject,
+					entityCache.getMaxTimeCache());
 		}
 	}
 
 	/**
 	 * Retorna a chave única do objeto buscando os valores no resultSet.
 	 * 
-	 * @param resultSet
-	 *            Resultado do SQL.
-	 * @param entityCache
-	 *            Entidade
-	 * @param alias
-	 *            Alias da tabela
+	 * @param resultSet   Resultado do SQL.
+	 * @param entityCache Entidade
+	 * @param alias       Alias da tabela
 	 * @return Chave única da entidade
 	 * @throws SQLException
 	 */
@@ -434,9 +419,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			}
 			if (index < 0) {
 				/*
-				 * Esta exception não deverá ocorrer nunca pois as colunas estão
-				 * sendo parseadas pela análise do SQL. Se isto ocorrer pode ser
-				 * um erro na análise.
+				 * Esta exception não deverá ocorrer nunca pois as colunas estão sendo parseadas
+				 * pela análise do SQL. Se isto ocorrer pode ser um erro na análise.
 				 */
 				throw new SQLException("NÃO ACHOU COLUNA " + column.getColumnName());
 			}
@@ -445,13 +429,13 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			 */
 			if (appendSeparator)
 				uniqueIdTemp.append("_");
-			
+
 			if (column.getDescriptionField().isTemporalDateTime()) {
 				uniqueIdTemp.append(resultSet.getTimestamp(index));
 			} else {
 				uniqueIdTemp.append(resultSet.getObject(index));
-			}				
-			
+			}
+
 			appendSeparator = true;
 		}
 		/*
@@ -463,16 +447,12 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	/**
 	 * Busca um objeto no cache usando a Entidade e a chave para localização.
 	 * 
-	 * @param session
-	 *            Sessão
-	 * @param targetEntityCache
-	 *            Entidade
-	 * @param uniqueId
-	 *            Chave primária do objeto
-	 * @param transactionCache
-	 *            Cache da transação
-	 * @return Objeto correspondente a entidade e chave informada ou nulo caso
-	 *         não exista no cache.
+	 * @param session           Sessão
+	 * @param targetEntityCache Entidade
+	 * @param uniqueId          Chave primária do objeto
+	 * @param transactionCache  Cache da transação
+	 * @return Objeto correspondente a entidade e chave informada ou nulo caso não
+	 *         exista no cache.
 	 */
 	private Object getObjectFromCache(EntityCache targetEntityCache, String uniqueId, Cache transactionCache) {
 		Object result = null;
@@ -490,8 +470,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 				if (result != null) {
 					break;
 				}
-				result = session.getPersistenceContext()
-						.getObjectFromCache(sb.toString());
+				result = session.getPersistenceContext().getObjectFromCache(sb.toString());
 				if (result != null)
 					break;
 			}
@@ -503,49 +482,42 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			sb.append(targetEntityCache.getEntityClass().getName()).append("_").append(uniqueId);
 			result = transactionCache.get(sb.toString());
 			if (result == null)
-				result = session.getPersistenceContext()
-						.getObjectFromCache(sb.toString());
+				result = session.getPersistenceContext().getObjectFromCache(sb.toString());
 
 		}
 		return result;
 	}
 
 	/**
-	 * Carrega as coleções, relacionamentos e Lob que não foram carregados no
-	 * SQL. Adota o padrão definido no mapeamento para criar objetos ou criar
-	 * proxies para os campos.
+	 * Carrega as coleções, relacionamentos e Lob que não foram carregados no SQL.
+	 * Adota o padrão definido no mapeamento para criar objetos ou criar proxies
+	 * para os campos.
 	 * 
-	 * @param targetObject
-	 *            Objeto alvo
-	 * @param entityCache
-	 *            Entidade
-	 * @param resultSet
-	 *            Resultado do SQL.
+	 * @param targetObject Objeto alvo
+	 * @param entityCache  Entidade
+	 * @param resultSet    Resultado do SQL.
 	 * @throws Exception
 	 */
 	protected void loadCollectionsRelationShipAndLob(Object targetObject, EntityCache entityCache, ResultSet resultSet)
 			throws Exception {
 		/*
-		 * Faz um loop apenas nos fields que tenham sido configuradas com
-		 * ForeignKey, Lob e Fetch. Os demais campos simples já foram
-		 * processados.
+		 * Faz um loop apenas nos fields que tenham sido configuradas com ForeignKey,
+		 * Lob e Fetch. Os demais campos simples já foram processados.
 		 */
 		for (DescriptionField descriptionField : entityCache.getDescriptionFields()) {
 			/*
-			 * Gera o valor do field somente se o usuário não incluiu a
-			 * expressão manualmente no sql. Se ele adicionou a expressão será
-			 * criado o objeto e alimentado apenas com os dados da expressão no
-			 * método processExpression
+			 * Gera o valor do field somente se o usuário não incluiu a expressão
+			 * manualmente no sql. Se ele adicionou a expressão será criado o objeto e
+			 * alimentado apenas com os dados da expressão no método processExpression
 			 */
 			if (descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable()
 					|| descriptionField.isRelationShip() || descriptionField.isLob()) {
 				Object assignedValue = descriptionField.getObjectValue(targetObject);
 
 				/*
-				 * Verifica se há necessidade de processar o field. Se o field
-				 * possuir uma expressão ou já tiver um valor não é necessário
-				 * processá-lo. Caso o valor seja uma chave e estiver
-				 * incompleta, irá buscar o objeto novamente.
+				 * Verifica se há necessidade de processar o field. Se o field possuir uma
+				 * expressão ou já tiver um valor não é necessário processá-lo. Caso o valor
+				 * seja uma chave e estiver incompleta, irá buscar o objeto novamente.
 				 */
 				if (checkNeedsProcessDescriptionField(entityCache, descriptionField, assignedValue)) {
 					EntityCache targetEntityCache = getTargetEntityCacheByDescriptionField(entityCache,
@@ -558,21 +530,19 @@ public class EntityHandler implements ScrollableResultSetHandler {
 							descriptionField);
 
 					/*
-					 * Se não foi possível obter a chave do field no resultSet é
-					 * porque o usuário não quer que este field seja carregado.
+					 * Se não foi possível obter a chave do field no resultSet é porque o usuário
+					 * não quer que este field seja carregado.
 					 */
 					if (columnKeyValue != null) {
 
 						/*
-						 * Se a estratégia for EAGER busca os dados do field, se
-						 * for LAZY cria um proxy.
+						 * Se a estratégia for EAGER busca os dados do field, se for LAZY cria um proxy.
 						 */
 						FetchType fetchType = descriptionField.getFetchType();
 						/*
-						 * Se estiver no android e não for uma coleção então
-						 * assume EAGER pois no Android não é possível usar
-						 * ferramentas de manipulação de bytecode e assim não é
-						 * possível implementar lazy em alguns casos.
+						 * Se estiver no android e não for uma coleção então assume EAGER pois no
+						 * Android não é possível usar ferramentas de manipulação de bytecode e assim
+						 * não é possível implementar lazy em alguns casos.
 						 */
 						if (EntityHandler.androidIsPresent() && !(descriptionField.isAnyCollectionOrMap()))
 							fetchType = FetchType.EAGER;
@@ -582,22 +552,19 @@ public class EntityHandler implements ScrollableResultSetHandler {
 						 */
 						if (descriptionField.isLob())
 							fetchType = descriptionField.getFetchType();
-						
-						
-						
-						CheckForceResult checkForceResult = this.checkForceFetchTypeByField(descriptionField.getField().getName(), fetchType);
+
+						CheckForceResult checkForceResult = this
+								.checkForceFetchTypeByField(descriptionField.getField().getName(), fetchType);
 
 						/*
-						 * Somente busca relacionamentos pois LOB já é criado
-						 * junto com os demais campos. Somente cria o LOB se for
-						 * LAZY. Ai cria como um proxy.
+						 * Somente busca relacionamentos pois LOB já é criado junto com os demais
+						 * campos. Somente cria o LOB se for LAZY. Ai cria como um proxy.
 						 */
 						if (checkForceResult.getFetchType() == FetchType.EAGER) {
 							if (!descriptionField.isLob()) {
 								Object result = null;
 								/*
-								 * Se a chave estiver incompleta, carrega o 
-								 * objeto completo novamente.
+								 * Se a chave estiver incompleta, carrega o objeto completo novamente.
 								 */
 								if (isIncompleteKey) {
 									StringBuilder sb = new StringBuilder("");
@@ -614,15 +581,13 @@ public class EntityHandler implements ScrollableResultSetHandler {
 									String uniqueId = sb.toString();
 									transactionCache.remove(uniqueId);
 									/*
-									 * Cria a query e busca novamente o objeto
-									 * completo
+									 * Cria a query e busca novamente o objeto completo
 									 */
 									SQLQuery query = session.createQuery("");
 									query.allowDuplicateObjects(true);
 									query.setFieldsToForceLazy(checkForceResult.getContinueFieldsToForceLazy());
 									/*
-									 * Extende o lock para as coleções e tabelas
-									 * de junção
+									 * Extende o lock para as coleções e tabelas de junção
 									 */
 									if ((descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable())
 											&& (lockOptions.getLockScope() == LockScope.EXTENDED)) {
@@ -641,16 +606,14 @@ public class EntityHandler implements ScrollableResultSetHandler {
 									result = assignedValue;
 								} else {
 									/*
-									 * Busca o objeto que será atribuido ao
-									 * campo do objeto alvo
+									 * Busca o objeto que será atribuido ao campo do objeto alvo
 									 */
 									SQLQuery query = session.createQuery("");
 									query.allowDuplicateObjects(true);
 									query.setFieldsToForceLazy(checkForceResult.getContinueFieldsToForceLazy());
 
 									/*
-									 * Extende o lock para as coleções e tabelas
-									 * de junção
+									 * Extende o lock para as coleções e tabelas de junção
 									 */
 									if ((descriptionField.isAnyCollectionOrMap() || descriptionField.isJoinTable())
 											&& (lockOptions.getLockScope() == LockScope.EXTENDED)) {
@@ -667,8 +630,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 
 								descriptionField.setObjectValue(targetObject, result);
 								/*
-								 * Se a consulta não for somente leitura
-								 * armazena os valores dos campos.
+								 * Se a consulta não for somente leitura armazena os valores dos campos.
 								 */
 								if (entityManaged.getStatus() != EntityStatus.READ_ONLY) {
 									FieldEntityValue fieldEntityValue = descriptionField.getFieldEntityValue(session,
@@ -706,12 +668,18 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			return new CheckForceResult(current, null);
 		}
 		String[] spNames = fieldsToForceLazy.split(",");
+		String continueForceFieldsToLazy = "";
+		FetchType result = current;
+		boolean appendContinue = false;
 		for (String name : spNames) {
+			if (appendContinue) {
+				continueForceFieldsToLazy += ",";
+			}
 			name = StringUtils.trimAllWhitespace(name);
 			String[] spSub = name.split("\\.");
 			if (fieldName.equals(spSub[0])) {
-				String continueForceFieldsToLazy = "";
-				if (spSub.length>1) {
+				result = FetchType.EAGER;
+				if (spSub.length > 1) {
 					boolean appendDelimiter = false;
 					for (int i = 1; i < spSub.length; i++) {
 						if (appendDelimiter) {
@@ -720,27 +688,29 @@ public class EntityHandler implements ScrollableResultSetHandler {
 						continueForceFieldsToLazy += spSub[i];
 						appendDelimiter = true;
 					}
+
+					appendContinue = true;
 				}
-				return new CheckForceResult(FetchType.EAGER,continueForceFieldsToLazy);
+
 			}
 		}
-		return new CheckForceResult(current, null);
+		if (StringUtils.isNotBlank(continueForceFieldsToLazy)) {
+			return new CheckForceResult(result, continueForceFieldsToLazy);
+		} else {
+			return new CheckForceResult(result, null);
+		}
 	}
 
 	/**
 	 * Verifica se um determinado campo em uma entidade tem necessidade de ser
-	 * processado para criar o objeto. No caso de chaves estrangeiras que não
-	 * foram trazidas no SQL e objetos com chave parcial devem ser considerados
-	 * como necessário criar o objeto do campo novamente.
+	 * processado para criar o objeto. No caso de chaves estrangeiras que não foram
+	 * trazidas no SQL e objetos com chave parcial devem ser considerados como
+	 * necessário criar o objeto do campo novamente.
 	 * 
-	 * @param entityCache
-	 *            Entidade
-	 * @param descriptionField
-	 *            Campo
-	 * @param assignedValue
-	 *            Valor atribuído ao campo atual
-	 * @return Verdadeiro se há necessidade de criar o objeto e atribuir ao
-	 *         campo
+	 * @param entityCache      Entidade
+	 * @param descriptionField Campo
+	 * @param assignedValue    Valor atribuído ao campo atual
+	 * @return Verdadeiro se há necessidade de criar o objeto e atribuir ao campo
 	 * @throws Exception
 	 */
 	private boolean checkNeedsProcessDescriptionField(EntityCache entityCache, DescriptionField descriptionField,
@@ -752,8 +722,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 
 		if (assignedValue != null) {
 			/*
-			 * Processa se for uma collection que não seja herança de
-			 * DefaultSQLList our DefaultSQLSet
+			 * Processa se for uma collection que não seja herança de DefaultSQLList our
+			 * DefaultSQLSet
 			 */
 			if (descriptionField.isAnyCollectionOrMap()
 					&& ((assignedValue instanceof DefaultSQLList) || (assignedValue instanceof DefaultSQLSet)))
@@ -768,8 +738,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 						.getEntityCache(descriptionField.getFieldClass());
 				if (fieldentEntityCache != null) {
 					/*
-					 * Verifica se a chave do objeto está incompleta. Isto
-					 * ocorre em casos com chave composta.
+					 * Verifica se a chave do objeto está incompleta. Isto ocorre em casos com chave
+					 * composta.
 					 */
 					isIncompleteKey = fieldentEntityCache.isIncompletePrimaryKeyValue(assignedValue);
 					if (!isIncompleteKey) {
@@ -788,10 +758,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	/**
 	 * Retorna a entidade destino de um campo em uma determinada entidade
 	 * 
-	 * @param entityCache
-	 *            Entidade de origem
-	 * @param descriptionField
-	 *            Campo da entidade origem
+	 * @param entityCache      Entidade de origem
+	 * @param descriptionField Campo da entidade origem
 	 * @return Entidade destino
 	 * @throws EntityHandlerException
 	 */
@@ -809,8 +777,7 @@ public class EntityHandler implements ScrollableResultSetHandler {
 						.getEntityCache(descriptionField.getTargetEntity().getEntityClass());
 
 				/*
-				 * Não encontrou a classe no dicionário gera uma exceção
-				 * avisando.
+				 * Não encontrou a classe no dicionário gera uma exceção avisando.
 				 */
 				if (targetEntityCache == null)
 					throw new EntityHandlerException("Para que seja criado o objeto da classe "
@@ -824,17 +791,12 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	}
 
 	/**
-	 * Retorna os valores da chave de um determinado campo da entidade no
-	 * resultSet.
+	 * Retorna os valores da chave de um determinado campo da entidade no resultSet.
 	 * 
-	 * @param targetObject
-	 *            Objeto alvo
-	 * @param entityCache
-	 *            Entidade
-	 * @param resultSet
-	 *            Resultado do SQL
-	 * @param descriptionField
-	 *            Campo da entidade
+	 * @param targetObject     Objeto alvo
+	 * @param entityCache      Entidade
+	 * @param resultSet        Resultado do SQL
+	 * @param descriptionField Campo da entidade
 	 * @return Mapa com os valores da chave
 	 * @throws EntityHandlerException
 	 */
@@ -842,9 +804,9 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			DescriptionField descriptionField) throws EntityHandlerException {
 
 		/*
-		 * Se o DescriptionField for um FK guarda o valor da coluna. Apenas
-		 * monta o objeto da chave estrangeira caso o usuário tenha incluido as
-		 * colunas da chave no SQL.
+		 * Se o DescriptionField for um FK guarda o valor da coluna. Apenas monta o
+		 * objeto da chave estrangeira caso o usuário tenha incluido as colunas da chave
+		 * no SQL.
 		 */
 		String columnName = "";
 		try {
@@ -855,17 +817,18 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			if (descriptionField.hasDescriptionColumn() && !(descriptionField.isLob())) {
 				for (DescriptionColumn descriptionColumn : descriptionField.getDescriptionColumns()) {
 					/*
-					 * Se o campo é uma chave estrangeira e não é uma
-					 * inversedJoinColumn
+					 * Se o campo é uma chave estrangeira e não é uma inversedJoinColumn
 					 */
 					if (descriptionColumn.isForeignKey() && !descriptionColumn.isInversedJoinColumn()) {
 						columnName = descriptionColumn.getColumnName();
 						String aliasColumnName = getAliasColumnName(entityCache, descriptionColumn.getColumnName());
-						if (descriptionField.isJoinTable() && StringUtils.isNotEmpty(descriptionColumn.getReferencedColumnName())) {
-							aliasColumnName = getAliasColumnName(entityCache, descriptionColumn.getReferencedColumnName());
+						if (descriptionField.isJoinTable()
+								&& StringUtils.isNotEmpty(descriptionColumn.getReferencedColumnName())) {
+							aliasColumnName = getAliasColumnName(entityCache,
+									descriptionColumn.getReferencedColumnName());
 						}
 
-						int index = resultSet.findColumn(aliasColumnName);						
+						int index = resultSet.findColumn(aliasColumnName);
 						if (index < 0) {
 							return null;
 						}
@@ -884,8 +847,8 @@ public class EntityHandler implements ScrollableResultSetHandler {
 			return columnKeyValue;
 		} catch (Exception ex) {
 			/*
-			 * Se não for um DescriptionField do tipo COLLECTION_TABLE, continua
-			 * iteracao do proximo field.
+			 * Se não for um DescriptionField do tipo COLLECTION_TABLE, continua iteracao do
+			 * proximo field.
 			 */
 			if (!descriptionField.isElementCollection() && !descriptionField.isJoinTable() && isIncompleteKey) {
 				throw new EntityHandlerException("Para que seja criado o objeto do tipo "
@@ -899,25 +862,23 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	}
 
 	/**
-	 * Retorna se existe uma expressão para ser processada para um determinado
-	 * campo na entidade.
+	 * Retorna se existe uma expressão para ser processada para um determinado campo
+	 * na entidade.
 	 * 
-	 * @param entityCache
-	 *            Entidade
-	 * @param fieldName
-	 *            Nome do campo
-	 * @return Verdadeiro se encontrou a expressão associada ao campo da
-	 *         entidade
+	 * @param entityCache Entidade
+	 * @param fieldName   Nome do campo
+	 * @return Verdadeiro se encontrou a expressão associada ao campo da entidade
 	 */
 	private boolean existsExpressionForProcessing(EntityCache entityCache, String fieldName) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(entityCache.getEntityClass().getName()).append(":").append(fieldName);
+		StringBuilder sb = new StringBuilder();
+		sb.append(entityCache.getEntityClass().getName()).append(":").append(fieldName);
 		String result = aliasesCache.get(sb.toString());
 		if (result != null)
 			return true;
 
 		for (ExpressionFieldMapper expression : expressionsFieldMapper) {
-			if (expression.getDescriptionField()!=null && expression.getDescriptionField().getField().getName().equalsIgnoreCase(fieldName)) {
+			if (expression.getDescriptionField() != null
+					&& expression.getDescriptionField().getField().getName().equalsIgnoreCase(fieldName)) {
 				/*
 				 * Armazena no cache para acelerar a próxima busca
 				 */
@@ -929,11 +890,10 @@ public class EntityHandler implements ScrollableResultSetHandler {
 	}
 
 	/**
-	 * Atribui um objeto para ser atualizado. Se for atribuido um objeto não
-	 * será criado uma nova instância para a classe de resultado.
+	 * Atribui um objeto para ser atualizado. Se for atribuido um objeto não será
+	 * criado uma nova instância para a classe de resultado.
 	 * 
-	 * @param objectToRefresh
-	 *            Objeto a ser atualizado
+	 * @param objectToRefresh Objeto a ser atualizado
 	 * @throws EntityHandlerException
 	 */
 	public void setObjectToRefresh(Object objectToRefresh) throws EntityHandlerException {

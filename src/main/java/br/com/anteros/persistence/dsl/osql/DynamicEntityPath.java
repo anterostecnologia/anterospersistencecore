@@ -62,10 +62,5 @@ public class DynamicEntityPath extends EntityPathBase {
 		return super.createBoolean(property);
 	}
 	
-	public DynamicEntityPath createEntityPath(Class<?> resultClass, String variable) {
-		return new DynamicEntityPath(resultClass, forProperty(variable),INITS.get(variable));
-	}
-	
-	
 	
 }

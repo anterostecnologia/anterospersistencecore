@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.0.76</version>
+	<version>1.0.77</version>
 
 	<properties>
 		<java.versao>1.6</java.versao>
