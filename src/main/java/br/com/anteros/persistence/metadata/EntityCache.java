@@ -34,6 +34,7 @@ import br.com.anteros.persistence.asm.FieldAccess;
 import br.com.anteros.persistence.asm.MethodAccess;
 import br.com.anteros.persistence.metadata.annotation.Code;
 import br.com.anteros.persistence.metadata.annotation.EventType;
+import br.com.anteros.persistence.metadata.annotation.JoinTable;
 import br.com.anteros.persistence.metadata.annotation.type.FetchType;
 import br.com.anteros.persistence.metadata.annotation.type.GeneratedType;
 import br.com.anteros.persistence.metadata.annotation.type.InheritanceType;
@@ -1212,6 +1213,16 @@ public class EntityCache {
 
 	public boolean hasCompanyId() {
 		return getCompanyId()!=null;
+	}
+
+	public List<DescriptionField> getJoinTables() {
+		ArrayList<DescriptionField> result = new ArrayList<DescriptionField>();
+		for (DescriptionField descriptionField : getDescriptionFields()) {
+			if (descriptionField.getField().isAnnotationPresent(JoinTable.class)) {
+				result.add(descriptionField);
+			}
+		}	
+		return result;
 	}
 
 }

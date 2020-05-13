@@ -141,6 +141,31 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 		return result;
 	}
+	
+	@Override
+	public Object save(SQLSession session, Object object, Class<?>[] groups) throws Exception {
+		this.session = session;
+		Object result = null;
+		try {
+			MergeResult mergeResult = mergeIfNeed(object);
+
+			if (getValidator() != null && session.validationIsActive()) {
+				session.notifyListeners(EventType.PreValidate, null, mergeResult.getNewObject());
+				getValidator().validateBean(mergeResult.getNewObject(),groups);
+				session.notifyListeners(EventType.PostValidate, null, mergeResult.getNewObject());
+			}
+
+			result = save(mergeResult.getOldObject(), mergeResult.getNewObject(), null);
+		} finally {
+			objectsInSavingProcess.clear();
+			for (Object ob : objectsInSaving) {
+				EntityManaged entityManaged = session.getPersistenceContext().addEntityManaged(ob, false, false, true);
+				entityManaged.updateLastValues(session, ob);
+			}
+			objectsInSaving.clear();
+		}
+		return result;
+	}
 
 	private MergeResult mergeIfNeed(Object newEntity) throws Exception {
 		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(newEntity.getClass());
@@ -150,7 +175,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 
 		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(newEntity);
-		if (entityManaged == null) {
+		if (entityManaged != null) {
 			if (session.getIdentifier(newEntity).hasIdentifier()) {
 				if (existsRecordInDatabaseTable(entityCache.getTableName(),
 						session.getIdentifier(newEntity).getDatabaseColumns())) {
@@ -351,19 +376,22 @@ public class SQLPersisterImpl implements SQLPersister {
 				entityCache.getTableName(), session.getShowSql(), identifierPostInsert, identifyColumn,
 				entityCache.getDescriptionSqlByType(SQLStatementType.INSERT), executeInBatchMode());
 
-		if (insertCommandSQL.getIdentifierPostInsert() != null) {
+		if (insertCommandSQL.getIdentifierPostInsert() != null) {			
 			if (stackCommands!=null) {
+				stackCommands.add(insertCommandSQL);
 				session.getCommandQueue().addAll(stackCommands);
 				stackCommands.clear();
-			}
-			try {
-				insertCommandSQL.execute();
-			} catch (SQLException ex) {
-				if (insertCommandSQL instanceof CommandSQL)
-					throw session.getDialect().convertSQLException(ex, "Erro enviando comando sql.",
-							((CommandSQL) insertCommandSQL).getSql());
-				else {
-					throw ex;
+				session.flush();
+			} else {
+				try {
+					insertCommandSQL.execute();
+				} catch (SQLException ex) {
+					if (insertCommandSQL instanceof CommandSQL)
+						throw session.getDialect().convertSQLException(ex, "Erro enviando comando sql.",
+								((CommandSQL) insertCommandSQL).getSql());
+					else {
+						throw ex;
+					}
 				}
 			}
 		} else
@@ -1550,5 +1578,7 @@ public class SQLPersisterImpl implements SQLPersister {
 			save(session, obj);
 		}
 	}
+
+	
 
 }

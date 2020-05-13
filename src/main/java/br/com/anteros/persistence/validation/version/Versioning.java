@@ -16,7 +16,11 @@
 package br.com.anteros.persistence.validation.version;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+
+import br.com.anteros.core.utils.DateUtil;
 
 public class Versioning {
 
@@ -41,8 +45,9 @@ public class Versioning {
 				result = new Short((short) (((Short) currentVersion).shortValue()+1));
 			}
 		} else if (type == Date.class) {
-			result = new Date();
+			result = DateUtil.truncate(new Date(), Calendar.SECOND);
 		}
 		return result;
 	}
+	
 }

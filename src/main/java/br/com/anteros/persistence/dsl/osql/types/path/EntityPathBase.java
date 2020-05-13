@@ -152,5 +152,7 @@ public class EntityPathBase<T> extends BeanPath<T> implements EntityPath<T> {
 	public DynamicEntityPath createEntityPath(Class<?> resultClass, String variable) {
 		return new DynamicEntityPath(resultClass, forProperty(variable),INITS.get(variable));
 	}
+	
+	
 
 }

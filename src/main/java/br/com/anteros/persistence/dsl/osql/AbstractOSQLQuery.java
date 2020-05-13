@@ -96,6 +96,8 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	private boolean allowDuplicateObjects = false;
 	
 	protected String fieldsToForceLazy;
+	
+	protected boolean ignoreCompanyId = false;
 
 	public AbstractOSQLQuery(Configuration configuration) {
 		this(null, configuration, new DefaultQueryMetadata().noValidate());
@@ -358,6 +360,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			query.setLockOptions(lockOptions);
 			query.allowDuplicateObjects(allowDuplicateObjects);
 			query.nextAliasColumnName(configuration.getNextAliasColumnName());
+			query.ignoreCompanyId(this.ignoreCompanyId);
 
 			/*
 			 * Converte os parâmetros no formato de expressão para o formato da
@@ -705,6 +708,11 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			return new QueryModifiers();
 
 		return new QueryModifiers(limit, offset);
+	}
+	
+	public AbstractOSQLQuery<Q> ignoreCompanyId(boolean ignoreCompanyId) {
+		this.ignoreCompanyId = ignoreCompanyId;
+		return this;		
 	}
 
 }

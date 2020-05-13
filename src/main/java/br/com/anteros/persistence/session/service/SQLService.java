@@ -65,6 +65,16 @@ public interface SQLService<T, ID extends Serializable> {
 	T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
 
 	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy);
+	
+	
+	T findByCode(String code, String fieldsToForceLazy);
+
+	T findByCode(String code, boolean readOnly,String fieldsToForceLazy);
+
+	T findByCode(String code, LockOptions lockOptions,String fieldsToForceLazy);
+
+	T findByCode(String code, LockOptions lockOptions, boolean readOnly,String fieldsToForceLazy);	
+	
 
 	boolean exists(ID id);
 	
@@ -137,6 +147,8 @@ public interface SQLService<T, ID extends Serializable> {
 	T findOne(Predicate predicate, String fieldsToForceLazy);
 
 	List<T> findAll(Predicate predicate, String fieldsToForceLazy);
+	
+	Page<T> findAll(Predicate predicate, Pageable page, boolean readOnly, String fieldsToForceLazy);
 	
 	List<T> findAll(List<ID> ids, String fieldsToForceLazy);
 	

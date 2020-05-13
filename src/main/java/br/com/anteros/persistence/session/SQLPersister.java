@@ -21,6 +21,8 @@ public interface SQLPersister {
 
 	public Object save(SQLSession session, Object object) throws Exception;
 	
+	public Object save(SQLSession session, Object object, Class<?>[] groups) throws Exception;
+	
 	public void save(SQLSession session, Object[] objects) throws Exception;
 	
 	public void save(SQLSession session, Collection<?> objects) throws Exception;
@@ -34,4 +36,6 @@ public interface SQLPersister {
 	public void save(SQLSession session, Class<?> clazz, String[] columns, String[] values) throws Exception;
 	
 	public SQLSessionValidator getValidator();
+
+	
 }

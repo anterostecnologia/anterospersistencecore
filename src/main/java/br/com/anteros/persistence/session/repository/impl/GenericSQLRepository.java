@@ -33,6 +33,7 @@ import br.com.anteros.persistence.dsl.osql.types.OrderSpecifier;
 import br.com.anteros.persistence.dsl.osql.types.Predicate;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanOperation;
+import br.com.anteros.persistence.dsl.osql.types.expr.params.StringParam;
 import br.com.anteros.persistence.dsl.osql.types.path.PathBuilder;
 import br.com.anteros.persistence.dsl.osql.types.path.StringPath;
 import br.com.anteros.persistence.metadata.EntityCache;
@@ -98,6 +99,15 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 	public <S extends T> S save(S entity) {
 		try {
 			return (S) getSession().save(entity);
+		} catch (Exception e) {
+			throw new SQLRepositoryException(e);
+		}
+	}
+	
+	@Override
+	public <S extends T> S save(S entity, Class<?>... groups) {
+		try {
+			return (S) getSession().save(entity, groups);
 		} catch (Exception e) {
 			throw new SQLRepositoryException(e);
 		}
@@ -492,6 +502,26 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		return new PageImpl<T>(content, pageable, total);
 	}
 
+	
+	@Override
+	public Page<T> findAll(Predicate predicate, Pageable pageable, boolean readOnly,  String fieldsToForceLazy) {
+
+		predicate = addTenantAndCompanyId(predicate);
+
+		OSQLQuery countQuery = createQuery(predicate);
+		Long total = countQuery.count();
+
+		OSQLQuery query = createQuery(predicate);
+		query.offset(pageable.getOffset());
+		query.limit(pageable.getPageSize());
+		query.readOnly(readOnly);
+
+		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T>emptyList();
+
+		return new PageImpl<T>(content, pageable, total);
+	}
+
+	
 	protected Predicate addTenantAndCompanyId(Predicate predicate) {
 		if (predicate == null) {
 			predicate = new BooleanBuilder();
@@ -1035,5 +1065,54 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		return new PageImpl<T>(content, pageable, total);
 	}
+
+	@Override
+	public T findByCode(String code, String fieldsToForceLazy) {
+		return this.findByCode(code, LockOptions.NONE, false, fieldsToForceLazy);
+	}
+
+	@Override
+	public T findByCode(String code, boolean readOnly, String fieldsToForceLazy) {
+		return this.findByCode(code, LockOptions.NONE, readOnly, fieldsToForceLazy);
+	}
+
+	@Override
+	public T findByCode(String code, LockOptions lockOptions, String fieldsToForceLazy) {
+		return this.findByCode(code, lockOptions, false, fieldsToForceLazy);
+	}
+
+	@Override
+	public T findByCode(String code, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+		Assert.notNull(code, "O CODE não pode ser nulo.");
+
+		Assert.notNull(persistentClass,
+				"A classe de persistência não foi informada. Verifique se usou a classe GenericSQLRepository diretamente, se usou será necessário passar a classe de persistência como parâmetro. Se preferir pode extender a classe GenericSQLRepository e definir os parâmetros do genérics da classe.");
+
+		Assert.notNull(getEntityCache().getCodeField(),
+				"A classe de persistência não possui um campo CODE.");
+				
+		getEntityCache().getCodeField();	
+		
+		try {
+			StringParam pCode = new StringParam("PCODE");
+			DynamicEntityPath entityPath = new DynamicEntityPath(persistentClass, "P");	
+			StringPath predicateField = entityPath.createString(getEntityCache().getCodeField().getName());
+			OSQLQuery query = createObjectQuery();
+			query.from(entityPath).where(predicateField.eq(pCode)).set(pCode, code);
+			query.readOnly(readOnly);
+			query.setLockOptions(lockOptions);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
+			
+			List list = query.list(entityPath);
+			if (list.size()>0)
+				return (T) list.get(0);
+			
+		} catch (Exception e) {
+			throw new SQLRepositoryException(e);
+		}
+		return null;
+	}
+
+	
 
 }

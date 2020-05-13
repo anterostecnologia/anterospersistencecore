@@ -196,4 +196,6 @@ public interface SQLQuery {
 	
 	public String getFieldsToForceLazy();
 
+	public SQLQuery ignoreCompanyId(boolean ignoreCompanyId);
+
 }

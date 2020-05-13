@@ -78,4 +78,6 @@ public class OSQLQuery extends AbstractOSQLQuery<OSQLQuery> {
 		this.fieldsToForceLazy = fieldsToForceLazy;
 	}
 
+	
+
 }

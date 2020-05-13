@@ -33,29 +33,14 @@ public interface SQLRepository<T, ID extends Serializable> {
 	void validate(T entity, Class<?>... groups) throws Exception;
 	
 	<S extends T> S save(S entity);
+	
+	<S extends T> S save(S entity, Class<?>... groups);
 
 	<S extends T> Iterable<S> save(Iterable<S> entities);
 
 	<S extends T> S saveAndFlush(S entity);
 
 	void flush();
-	
-	
-//	T _findOne(FindParameters<T> params);
-//	
-//	T _findOneBySql(FindParameters<T> params);
-//	
-//	List<T> _findAll(FindParameters<T> params);
-//	
-//	Page<T> _findAllWithPage(FindParameters<T> params);
-//	
-//	List<T> _find(FindParameters<T> params);
-//	
-//	List<T> _findWithPage(FindParameters<T> params);
-//	
-//	List<T> _findByNamedQuery(FindParameters<T> params);
-//	
-//	Page<T> _findByNamedQueryWithPage(FindParameters<T> params);
 
 	T findOne(ID id, String fieldsToForceLazy);
 
@@ -80,6 +65,14 @@ public interface SQLRepository<T, ID extends Serializable> {
 	T findOneBySql(String sql, LockOptions lockOptions, boolean readOnly,String fieldsToForceLazy);
 
 	T findOneBySql(String sql, Object parameters, LockOptions lockOptions, boolean readOnly,String fieldsToForceLazy);
+	
+	T findByCode(String code, String fieldsToForceLazy);
+
+	T findByCode(String code, boolean readOnly,String fieldsToForceLazy);
+
+	T findByCode(String code, LockOptions lockOptions,String fieldsToForceLazy);
+
+	T findByCode(String code, LockOptions lockOptions, boolean readOnly,String fieldsToForceLazy);	
 
 	boolean exists(ID id);
 	
@@ -91,7 +84,7 @@ public interface SQLRepository<T, ID extends Serializable> {
 
 	List<T> findAll(boolean readOnly,String fieldsToForceLazy);
 
-	Page<T> findAll(Pageable pageable, boolean readOnly,String fieldsToForceLazy);
+	Page<T> findAll(Pageable pageable, boolean readOnly, String fieldsToForceLazy);
 
 	List<T> find(String sql,String fieldsToForceLazy);
 
@@ -166,6 +159,8 @@ public interface SQLRepository<T, ID extends Serializable> {
 	Iterable<T> findAll(Predicate predicate, String fieldsToForceLazy, OrderSpecifier<?>... orders);
 
 	Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy);
+	
+	Page<T> findAll(Predicate predicate, Pageable pageable, boolean readOnly, String fieldsToForceLazy);
 
 	Page<T> findAll(Predicate predicate, Pageable pageable, String fieldsToForceLazy, OrderSpecifier<?>... orders);
 	

@@ -153,6 +153,8 @@ public interface SQLSession {
 	public void validate(Object object, Class<?>... groups) throws Exception;
 	
 	public Object save(Object object) throws Exception;
+	
+	public Object save(Object object, Class<?>... groups) throws Exception;
 
 	public void save(Object[] object) throws Exception;
 	

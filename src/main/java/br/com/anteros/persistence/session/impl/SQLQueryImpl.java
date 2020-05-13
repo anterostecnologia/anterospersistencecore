@@ -119,6 +119,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 	protected SelectStatementNode firstStatement;
 	protected int nextAliasColumnName;
 	protected String fieldsToForceLazy;
+	protected boolean ignoreCompanyId=false;
 
 	public SQLQueryImpl(SQLSession session) {
 		this.session = session;
@@ -1851,7 +1852,7 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 							"'" + session.getTenantId().toString() + "'");
 				}
 
-				if (companyId != null) {
+				if (companyId != null && !this.ignoreCompanyId) {
 					if (session.getCompanyId() == null) {
 						throw new SQLQueryException(
 								"Informe o Company ID para que seja possível fazer select na entidade "
@@ -1999,6 +2000,12 @@ public class SQLQueryImpl<T> implements TypedSQLQuery<T>, SQLQuery {
 
 	public String getFieldsToForceLazy() {
 		return fieldsToForceLazy;
+	}
+
+	@Override
+	public SQLQuery ignoreCompanyId(boolean ignoreCompanyId) {
+		this.ignoreCompanyId = ignoreCompanyId;
+		return this;
 	}
 
 }

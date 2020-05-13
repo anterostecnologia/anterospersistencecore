@@ -15,7 +15,7 @@
  *******************************************************************************/
 package br.com.anteros.persistence.session.service;
 
-import java.io.Serializable; 
+import java.io.Serializable;
 import java.util.List;
 
 import br.com.anteros.core.utils.Assert;
@@ -162,6 +162,12 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 	public List<T> findAll(Predicate predicate, String fieldsToForceLazy) {
 		checkRepository();
 		return repository.findAll(predicate, fieldsToForceLazy);
+	}
+	
+	@Override
+	public Page<T> findAll(Predicate predicate, Pageable page, boolean readOnly, String fieldsToForceLazy) {
+		checkRepository();
+		return repository.findAll(predicate, page, readOnly, fieldsToForceLazy);
 	}
 
 	@Override
@@ -555,5 +561,28 @@ public class GenericSQLService<T, ID extends Serializable> implements SQLService
 		return repository.findAll(predicate, readOnly, pageable, fieldsToForceLazy, orders);
 	}
 
+	@Override
+	public T findByCode(String code, String fieldsToForceLazy) {
+		checkRepository();
+		return repository.findByCode(code, fieldsToForceLazy);
+	}
+
+	@Override
+	public T findByCode(String code, boolean readOnly, String fieldsToForceLazy) {
+		checkRepository();
+		return repository.findByCode(code, readOnly, fieldsToForceLazy);
+	}
+
+	@Override
+	public T findByCode(String code, LockOptions lockOptions, String fieldsToForceLazy) {
+		checkRepository();
+		return repository.findByCode(code, lockOptions, fieldsToForceLazy);
+	}
+
+	@Override
+	public T findByCode(String code, LockOptions lockOptions, boolean readOnly, String fieldsToForceLazy) {
+		checkRepository();
+		return repository.findByCode(code, lockOptions, fieldsToForceLazy);
+	}
 	
 }
