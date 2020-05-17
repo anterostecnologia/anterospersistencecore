@@ -496,6 +496,7 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 		OSQLQuery query = createQuery(predicate);
 		query.offset(pageable.getOffset());
 		query.limit(pageable.getPageSize());
+		query.setFieldsToForceLazy(fieldsToForceLazy);
 
 		List<T> content = total > pageable.getOffset() ? query.list(path) : Collections.<T>emptyList();
 
@@ -508,10 +509,11 @@ public class GenericSQLRepository<T, ID extends Serializable> implements SQLRepo
 
 		predicate = addTenantAndCompanyId(predicate);
 
-		OSQLQuery countQuery = createQuery(predicate);
+		OSQLQuery countQuery = createQuery(predicate); 
 		Long total = countQuery.count();
 
 		OSQLQuery query = createQuery(predicate);
+		query.setFieldsToForceLazy(fieldsToForceLazy);
 		query.offset(pageable.getOffset());
 		query.limit(pageable.getPageSize());
 		query.readOnly(readOnly);
