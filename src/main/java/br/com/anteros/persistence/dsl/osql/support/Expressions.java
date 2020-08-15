@@ -10,10 +10,12 @@
 package br.com.anteros.persistence.dsl.osql.support;
 
 import java.sql.Time;
+import java.util.Collection;
 import java.util.Date;
 
 import br.com.anteros.persistence.dsl.osql.QueryMetadata;
 import br.com.anteros.persistence.dsl.osql.Tuple;
+import br.com.anteros.persistence.dsl.osql.types.CollectionExpression;
 import br.com.anteros.persistence.dsl.osql.types.ConstantImpl;
 import br.com.anteros.persistence.dsl.osql.types.Expression;
 import br.com.anteros.persistence.dsl.osql.types.NullExpression;
@@ -21,11 +23,13 @@ import br.com.anteros.persistence.dsl.osql.types.Operator;
 import br.com.anteros.persistence.dsl.osql.types.Ops;
 import br.com.anteros.persistence.dsl.osql.types.Path;
 import br.com.anteros.persistence.dsl.osql.types.PathImpl;
+import br.com.anteros.persistence.dsl.osql.types.PathMetadata;
 import br.com.anteros.persistence.dsl.osql.types.PathMetadataFactory;
 import br.com.anteros.persistence.dsl.osql.types.Template;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.BooleanOperation;
 import br.com.anteros.persistence.dsl.osql.types.expr.CaseBuilder;
+import br.com.anteros.persistence.dsl.osql.types.expr.CollectionOperation;
 import br.com.anteros.persistence.dsl.osql.types.expr.ComparableExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.ComparableOperation;
 import br.com.anteros.persistence.dsl.osql.types.expr.DateExpression;
@@ -43,11 +47,15 @@ import br.com.anteros.persistence.dsl.osql.types.expr.StringOperation;
 import br.com.anteros.persistence.dsl.osql.types.expr.TimeExpression;
 import br.com.anteros.persistence.dsl.osql.types.expr.TimeOperation;
 import br.com.anteros.persistence.dsl.osql.types.path.BooleanPath;
+import br.com.anteros.persistence.dsl.osql.types.path.CollectionPath;
 import br.com.anteros.persistence.dsl.osql.types.path.ComparablePath;
 import br.com.anteros.persistence.dsl.osql.types.path.DatePath;
 import br.com.anteros.persistence.dsl.osql.types.path.DateTimePath;
 import br.com.anteros.persistence.dsl.osql.types.path.DslPath;
+import br.com.anteros.persistence.dsl.osql.types.path.EnumPath;
+import br.com.anteros.persistence.dsl.osql.types.path.ListPath;
 import br.com.anteros.persistence.dsl.osql.types.path.NumberPath;
+import br.com.anteros.persistence.dsl.osql.types.path.SetPath;
 import br.com.anteros.persistence.dsl.osql.types.path.SimplePath;
 import br.com.anteros.persistence.dsl.osql.types.path.StringPath;
 import br.com.anteros.persistence.dsl.osql.types.path.TimePath;
@@ -625,6 +633,98 @@ public final class Expressions {
         }
         return rv;
     }
+    
+    /**
+     * Create a new Path expression
+     *
+     * @param type element type
+     * @param queryType element expression type
+     * @param metadata path metadata
+     * @param <E> element type
+     * @param <Q> element expression type
+     * @return path expression
+     */
+    public static <E, Q extends SimpleExpression<? super E>> SetPath<E, Q> setPath(Class<E> type, Class<Q> queryType, PathMetadata metadata) {
+        return new SetPath<E, Q>(type, queryType, metadata);
+    }
+    
+    /**
+     * Create a new Path expression
+     *
+     * @param type type of expression
+     * @param variable variable name
+     * @return path expression
+     */
+    public static <T extends Enum<T>> EnumPath<T> enumPath(Class<? extends T> type, String variable) {
+        return new EnumPath<T>(type, PathMetadataFactory.forVariable(variable));
+    }
+
+    /**
+     * Create a new Path expression
+     *
+     * @param type type of expression
+     * @param parent parent path
+     * @param property property name
+     * @return property path
+     */
+    public static <T extends Enum<T>> EnumPath<T> enumPath(Class<? extends T> type, Path<?> parent, String property) {
+        return new EnumPath<T>(type, PathMetadataFactory.forProperty(parent, property));
+    }
+
+    /**
+     * Create a new Path expression
+     *
+     * @param type type of expression
+     * @param metadata path metadata
+     * @param <T> type of expression
+     * @return path expression
+     */
+    public static <T extends Enum<T>> EnumPath<T> enumPath(Class<? extends T> type, PathMetadata metadata) {
+        return new EnumPath<T>(type, metadata);
+    }
+    
+    /**
+     * Create a new Collection operation expression
+     *
+     * @param elementType element type
+     * @param operator operator
+     * @param args operation arguments
+     * @param <T> type of expression
+     * @return operation expression
+     */
+    public static <T> CollectionExpression<Collection<T>, T> collectionOperation(Class<T> elementType, Operator operator,
+                                                                  Expression<?>... args) {
+        return new CollectionOperation<T>(operator,elementType, args);
+    }
+
+    /**
+     * Create a new Path expression
+     *
+     * @param type element type
+     * @param queryType element expression type
+     * @param metadata path metadata
+     * @param <E> element type
+     * @param <Q> element expression type
+     * @return path expression
+     */
+    public static <E, Q extends SimpleExpression<? super E>> CollectionPath<E, Q> collectionPath(Class<E> type, Class<Q> queryType, PathMetadata metadata) {
+        return new CollectionPath<E, Q>(type, queryType, metadata);
+    }
+
+    /**
+     * Create a new Path expression
+     *
+     * @param type element type
+     * @param queryType element expression type
+     * @param metadata path metadata
+     * @param <E> element type
+     * @param <Q> element expression type
+     * @return path expression
+     */
+    public static <E, Q extends SimpleExpression<? super E>> ListPath<E, Q> listPath(Class<E> type, Class<Q> queryType, PathMetadata metadata) {
+        return new ListPath<E, Q>(type, queryType, metadata);
+    }
+
 
     private Expressions() {}
 

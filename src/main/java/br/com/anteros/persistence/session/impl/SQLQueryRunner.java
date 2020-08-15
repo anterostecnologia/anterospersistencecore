@@ -1023,6 +1023,7 @@ public class SQLQueryRunner extends AbstractSQLRunner {
 		while (true) {
 			try {
 				session.getConnection().prepareStatement(ddl).executeUpdate();
+				break;
 			} catch (SQLException e) {
 				String message = (e.getCause() != null ? e.getCause().getMessage()+" "+e.getMessage() : e.getMessage());
 				if (retry && StringUtils.isNotEmpty(message) && ((message.toLowerCase().contains("connection")

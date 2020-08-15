@@ -12,6 +12,8 @@
  *******************************************************************************/
 package br.com.anteros.persistence.sql.dialect;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -28,6 +30,7 @@ import br.com.anteros.core.log.LoggerProvider;
 import br.com.anteros.persistence.dsl.osql.QueryFlag.Position;
 import br.com.anteros.persistence.dsl.osql.SQLTemplates;
 import br.com.anteros.persistence.dsl.osql.templates.H2Templates;
+import br.com.anteros.persistence.schema.definition.SequenceGeneratorSchema;
 import br.com.anteros.persistence.schema.definition.type.ColumnDatabaseType;
 import br.com.anteros.persistence.session.exception.ConstraintViolationException;
 import br.com.anteros.persistence.session.exception.SQLSessionException;
@@ -332,6 +335,21 @@ public class H2Dialect extends DatabaseDialect {
 	public String getIndexHint(Map<String, String> indexes) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public Writer writeCreateSequenceDDLStatement(SequenceGeneratorSchema sequenceGeneratorSchema, Writer schemaWriter)
+			throws IOException {
+		schemaWriter.write(getCreateSequenceString() + " ");
+		schemaWriter.write(sequenceGeneratorSchema.getName());
+		if (sequenceGeneratorSchema.getAllocationSize() != 1) {
+			schemaWriter.write(" INCREMENT BY " + (sequenceGeneratorSchema.getAllocationSize()==0?1:sequenceGeneratorSchema.getAllocationSize()));
+		}
+		schemaWriter.write(" START WITH " + sequenceGeneratorSchema.getInitialValue());
+		return schemaWriter;
+	}
+
+	public String getCreateSequenceString() {
+		return "CREATE SEQUENCE IF NOT EXISTS ";
 	}
 
 }

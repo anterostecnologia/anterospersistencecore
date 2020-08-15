@@ -27,6 +27,26 @@ public class FindParameters<T> {
 	private Pageable pageable;
 	private Predicate predicate;
 	private OrderSpecifier<?>[] orders;
+	private boolean ignoreCompanyId=false;
+	private boolean ignoreTenantId=false;
+
+	public boolean isIgnoreCompanyId() {
+		return ignoreCompanyId;
+	}
+
+	public FindParameters<T> ignoreCompanyId(boolean ignoreCompanyId) {
+		this.ignoreCompanyId = ignoreCompanyId;
+		return this;
+	}
+
+	public boolean isIgnoreTenantId() {
+		return ignoreTenantId;
+	}
+
+	public FindParameters<T> ignoreTenantId(boolean ignoreTenantId) {
+		this.ignoreTenantId = ignoreTenantId;
+		return this;
+	}
 
 	public Class<?> getEntityClass() {
 		return entityClass;

@@ -141,7 +141,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 		return result;
 	}
-	
+
 	@Override
 	public Object save(SQLSession session, Object object, Class<?>[] groups) throws Exception {
 		this.session = session;
@@ -151,7 +151,7 @@ public class SQLPersisterImpl implements SQLPersister {
 
 			if (getValidator() != null && session.validationIsActive()) {
 				session.notifyListeners(EventType.PreValidate, null, mergeResult.getNewObject());
-				getValidator().validateBean(mergeResult.getNewObject(),groups);
+				getValidator().validateBean(mergeResult.getNewObject(), groups);
 				session.notifyListeners(EventType.PostValidate, null, mergeResult.getNewObject());
 			}
 
@@ -175,7 +175,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 
 		EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(newEntity);
-		if (entityManaged != null) {
+		if (entityManaged == null) {
 			if (session.getIdentifier(newEntity).hasIdentifier()) {
 				if (existsRecordInDatabaseTable(entityCache.getTableName(),
 						session.getIdentifier(newEntity).getDatabaseColumns())) {
@@ -341,8 +341,8 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 	}
 
-	protected List<PersisterCommand> getCommandsToInsertObject(Object newObject, EntityCache entityCache, List<PersisterCommand> stackCommands)
-			throws Exception {
+	protected List<PersisterCommand> getCommandsToInsertObject(Object newObject, EntityCache entityCache,
+			List<PersisterCommand> stackCommands) throws Exception {
 		List<PersisterCommand> result = new ArrayList<PersisterCommand>();
 		try {
 			LinkedHashMap<String, NamedParameter> namedParameters = new LinkedHashMap<String, NamedParameter>();
@@ -376,8 +376,8 @@ public class SQLPersisterImpl implements SQLPersister {
 				entityCache.getTableName(), session.getShowSql(), identifierPostInsert, identifyColumn,
 				entityCache.getDescriptionSqlByType(SQLStatementType.INSERT), executeInBatchMode());
 
-		if (insertCommandSQL.getIdentifierPostInsert() != null) {			
-			if (stackCommands!=null) {
+		if (insertCommandSQL.getIdentifierPostInsert() != null) {
+			if (stackCommands != null) {
 				stackCommands.add(insertCommandSQL);
 				session.getCommandQueue().addAll(stackCommands);
 				stackCommands.clear();
@@ -552,7 +552,8 @@ public class SQLPersisterImpl implements SQLPersister {
 									} else {
 										Tika tika = new Tika();
 										String mimeType = tika.detect((byte[]) columnValue);
-										if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType) || MimeTypes.MIME_TEXT_HTML.equals(mimeType)
+										if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType)
+												|| MimeTypes.MIME_TEXT_HTML.equals(mimeType)
 												|| MimeTypes.MIME_APPLICATION_OCTET_STREAM.equals(mimeType)) {
 											namedParameters.put(columnModified.getColumnName(),
 													fieldModified.getNamedParameterFromDatabaseObjectValue(session,
@@ -626,18 +627,17 @@ public class SQLPersisterImpl implements SQLPersister {
 			Object oldVersion = updateVersion(newObject, entityCache, namedParameters, entityManaged);
 			updateParametersKey(newObject, entityCache, namedParameters);
 			updateObject(oldObject, newObject, entityCache, namedParameters, result, oldVersion);
-		} else if ((entityManaged != null) && (entityManaged.containsLockMode(LockMode.OPTIMISTIC, LockMode.READ))) {
-			if (entityCache.isVersioned()) {
-				Identifier<Object> identifier = session.getIdentifier(newObject);
-				Map<String, Object> params = identifier.getDatabaseColumnsValues();
-				params.put(entityCache.getVersionColumnName(), entityManaged.getOldVersion());
-				if (!existsRecordInDatabaseTable(entityCache.getTableName(), params)) {
-					throw new OptimisticLockException(
-							"Não foi possível alterar a Entidade " + entityCache.getSimpleName()
-									+ " pois foi a mesma não foi encontrada ou possui uma nova versão. Id "
-									+ identifier.getDatabaseValues() + " Versão " + entityManaged.getOldVersion());
-				}
+		} else if ((hasFieldsModified) && (entityManaged != null) && (entityManaged.containsLockMode(LockMode.OPTIMISTIC, LockMode.READ))
+				|| ((hasFieldsModified) && (entityManaged != null) && (entityCache.isVersioned()))) {
+			Identifier<Object> identifier = session.getIdentifier(newObject);
+			Map<String, Object> params = identifier.getDatabaseColumnsValues();
+			params.put(entityCache.getVersionColumnName(), entityManaged.getOldVersion());
+			if (!existsRecordInDatabaseTable(entityCache.getTableName(), params)) {
+				throw new OptimisticLockException("Não foi possível alterar a Entidade " + entityCache.getSimpleName()
+						+ " pois foi a mesma não foi encontrada ou possui uma nova versão. Id "
+						+ identifier.getDatabaseValues() + " Versão " + entityManaged.getOldVersion());
 			}
+
 		}
 
 		updateRelationshipsOnCollectionFields(newObject, entityCache, result, entityManaged,
@@ -1007,7 +1007,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		 * Incrementa a versão atual caso o objeto tenha sido anotado com
 		 * 
 		 * @Version e a estratégia do lock seja OPTIMIST_FORCE_INCREMENT,
-		 * PESSIMISTIC_FORCE_INCREMENT ou WRITE
+		 * PESSIMISTIC_FORCE_INCREMENT ou WRITE ou NONE
 		 */
 		if (entityCache.isVersioned()) {
 			Object newVersion = null;
@@ -1015,7 +1015,7 @@ public class SQLPersisterImpl implements SQLPersister {
 				oldVersion = entityManaged.getOldVersion();
 				newVersion = entityManaged.getOldVersion();
 				if (entityManaged.containsLockMode(LockMode.OPTIMISTIC_FORCE_INCREMENT,
-						LockMode.PESSIMISTIC_FORCE_INCREMENT, LockMode.WRITE)) {
+						LockMode.PESSIMISTIC_FORCE_INCREMENT, LockMode.WRITE, LockMode.NONE)) {
 					newVersion = Versioning.incrementVersion(entityManaged.getCurrentVersion(),
 							entityCache.getVersionColumn().getField().getType());
 					entityManaged.setCurrentVersion(newVersion);
@@ -1105,7 +1105,8 @@ public class SQLPersisterImpl implements SQLPersister {
 														(byte[]) columnValue);
 												Tika tika = new Tika();
 												String mimeType = tika.detect(bais);
-												if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType) || MimeTypes.MIME_TEXT_HTML.equals(mimeType)
+												if (MimeTypes.MIME_TEXT_PLAIN.equals(mimeType)
+														|| MimeTypes.MIME_TEXT_HTML.equals(mimeType)
 														|| MimeTypes.MIME_APPLICATION_OCTET_STREAM.equals(mimeType)) {
 													namedParameters
 															.add(fieldModified.getNamedParameterFromDatabaseObjectValue(
@@ -1474,8 +1475,8 @@ public class SQLPersisterImpl implements SQLPersister {
 			DescriptionField field, DescriptionColumn identifyColumn, IdentifierPostInsert identifierPostInsert,
 			Map<String, Object> primaryKeyOwner) {
 		List<CommandSQL> result = new ArrayList<CommandSQL>();
+		ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 		if (value != null) {
-			ArrayList<NamedParameter> namedParameters = new ArrayList<NamedParameter>();
 			if (statement.equals(SQLStatementType.INSERT)) {
 				for (DescriptionColumn column : field.getDescriptionColumns()) {
 					if (column.isForeignKey()) {
@@ -1504,18 +1505,19 @@ public class SQLPersisterImpl implements SQLPersister {
 				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
 						namedParameters, null, null, field.getTableName(), session.getShowSql(),
 						field.getDescriptionSqlByType(statement), executeInBatchMode()));
-			} else if (statement.equals(SQLStatementType.DELETE_ALL)) {
-				for (DescriptionColumn column : field.getDescriptionColumns()) {
-					if (column.isPrimaryKey()) {
-						if (column.isForeignKey())
-							namedParameters.add(new NamedParameter(column.getColumnName(),
-									primaryKeyOwner.get(column.getReferencedColumnName()), true));
-					}
-				}
-				result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
-						namedParameters, null, null, field.getTableName(), session.getShowSql(),
-						field.getDescriptionSqlByType(statement), executeInBatchMode()));
 			}
+		}
+		if (statement.equals(SQLStatementType.DELETE_ALL)) {
+			for (DescriptionColumn column : field.getDescriptionColumns()) {
+				if (column.isPrimaryKey()) {
+					if (column.isForeignKey())
+						namedParameters.add(new NamedParameter(column.getColumnName(),
+								primaryKeyOwner.get(column.getReferencedColumnName()), true));
+				}
+			}
+			result.add(new DeleteCommandSQL(session, generateSql(field.getTableName(), statement, namedParameters),
+					namedParameters, null, null, field.getTableName(), session.getShowSql(),
+					field.getDescriptionSqlByType(statement), executeInBatchMode()));
 		}
 		return result;
 	}
@@ -1578,7 +1580,5 @@ public class SQLPersisterImpl implements SQLPersister {
 			save(session, obj);
 		}
 	}
-
-	
 
 }

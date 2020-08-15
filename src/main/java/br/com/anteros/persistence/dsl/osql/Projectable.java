@@ -67,6 +67,7 @@ public interface Projectable {
      */
     List<Tuple> list(Expression<?>... args);
 
+
     /**
      * list the results for the given projection
      * 
@@ -78,7 +79,8 @@ public interface Projectable {
      * @return a List over the projection
      */
     <RT> List<RT> list(Expression<RT> projection);
-
+    
+    
     /**
      * list the results for the given projection
      *
@@ -136,7 +138,7 @@ public interface Projectable {
      * @return the result or null for an empty result
      */
     <RT> RT singleResult(Expression<RT> projection);
-    
+       
     /**
      * Apply the given transformer to this Projectable instance and return the results
      * 
@@ -157,6 +159,7 @@ public interface Projectable {
      * @return
      */
     Tuple uniqueResult(Expression<?>... args);
+    
 
     /**
      * return a unique result for the given projection or null if no result is found

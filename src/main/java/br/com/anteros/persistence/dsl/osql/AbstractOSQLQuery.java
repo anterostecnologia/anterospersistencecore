@@ -98,6 +98,10 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	protected String fieldsToForceLazy;
 	
 	protected boolean ignoreCompanyId = false;
+	
+	protected boolean ignoreTenantId = false;
+	
+	protected Expression<?>[] select;
 
 	public AbstractOSQLQuery(Configuration configuration) {
 		this(null, configuration, new DefaultQueryMetadata().noValidate());
@@ -124,6 +128,11 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 		} catch (Exception ex) {
 			throw new OSQLQueryException(ex);
 		}
+	}
+	
+	public AbstractOSQLQuery select(Expression<?>[] select) {
+		this.select = select;
+		return this;
 	}
 
 	/**
@@ -191,6 +200,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 		EntityPath<?> entityPath = (EntityPath<?>) queryMixin.getMetadata().getJoins().get(0).getTarget();
 		return !limit(1).list(entityPath).isEmpty();
 	}
+	
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -205,6 +215,47 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	public <RT> List<RT> listBySelect() {
+		validateSession();
+		try {
+			validateExpressions(this.select);
+			SQLQuery query = createQuery(this.select);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
+			return (List<RT>) getResultList(query);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <RT> RT uniqueResultBySelect() {
+		validateSession();
+		try {
+			SQLQuery query = createQuery(this.select);
+			query.setFieldsToForceLazy(fieldsToForceLazy);
+			return (RT) getSingleResult(query);
+		} catch (SQLQueryNoResultException se) {
+			return null;
+		} catch (OSQLQueryException oe) {
+			throw oe;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public Tuple uniqueResultTupleBySelect() {
+		validateSession();
+		try {
+			validateExpressions(this.select);
+			return uniqueResult(queryMixin.createProjection(this.select));
+		} catch (SQLQueryNoResultException se) {
+			return null;
+		} catch (Exception e) {
+			throw new OSQLQueryException(e);
+		}
+	}	
 
 	/**
 	 * Valida as expressões passadas como argumento para projeção.
@@ -213,6 +264,9 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 	 *            Expressões
 	 */
 	protected void validateExpressions(Expression<?>... args) {
+		if (args == null) {
+			throw new OSQLQueryException("Argumentos inválidos na expressão do select");
+		}
 		for (Expression<?> arg : args) {
 			if (arg instanceof EntityPath<?>) {
 				List<JoinExpression> joins = getMetadata().getJoins();
@@ -361,6 +415,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 			query.allowDuplicateObjects(allowDuplicateObjects);
 			query.nextAliasColumnName(configuration.getNextAliasColumnName());
 			query.ignoreCompanyId(this.ignoreCompanyId);
+			query.ignoreTenantId(this.ignoreTenantId);
 
 			/*
 			 * Converte os parâmetros no formato de expressão para o formato da
@@ -714,5 +769,11 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 		this.ignoreCompanyId = ignoreCompanyId;
 		return this;		
 	}
+	
+	public AbstractOSQLQuery<Q> ignoreTenantId(boolean ignoreTenantId) {
+		this.ignoreTenantId = ignoreTenantId;
+		return this;		
+	}
 
+	
 }

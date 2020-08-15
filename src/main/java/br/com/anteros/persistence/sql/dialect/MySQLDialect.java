@@ -322,11 +322,11 @@ public class MySQLDialect extends DatabaseDialect {
 		
 
 		if (errorCode==1451) {
-			return new SQLSessionException("Não é possível REMOVER o registro pois existem outros registros dependendo dele. ", ex, sql); 	
+			return new SQLSessionException("Não é possível REMOVER o registro pois existem outros registros dependendo dele. Restrição "+extractConstraintName(ex), ex, sql); 	
 		}
 		
 		if (errorCode==1452) {
-			return new SQLSessionException("Não é possível ADICIONAR/EDITAR o registro pois umas das chaves relacionadas não existe. ", ex, sql); 	
+			return new SQLSessionException("Não é possível ADICIONAR/EDITAR o registro pois umas das chaves relacionadas não existe. Restrição "+extractConstraintName(ex), ex, sql); 	
 		}
 		
 		if (errorCode==1406) {
@@ -436,6 +436,17 @@ public class MySQLDialect extends DatabaseDialect {
 			return new ColumnDatabaseType("DATETIME", false, Types.TIMESTAMP);
 		} else {
 			return new ColumnDatabaseType("TIME", false, Types.TIME);
+		}
+	}
+
+	@Override
+	public String extractConstraintName(SQLException sqle) {
+		final int sqlState = Integer.parseInt( extractSqlState( sqle ) );
+		switch ( sqlState ) {
+		case 23000:
+			return extractUsingTemplate( "CONSTRAINT `", "`", sqle.getMessage() );
+		default:
+			return "";
 		}
 	}
 }

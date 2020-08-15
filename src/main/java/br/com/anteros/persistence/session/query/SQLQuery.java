@@ -198,4 +198,6 @@ public interface SQLQuery {
 
 	public SQLQuery ignoreCompanyId(boolean ignoreCompanyId);
 
+	public SQLQuery ignoreTenantId(boolean ignoreTenantId);
+
 }

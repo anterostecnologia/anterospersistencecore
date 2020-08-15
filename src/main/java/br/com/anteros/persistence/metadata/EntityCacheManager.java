@@ -1571,7 +1571,7 @@ public class EntityCacheManager {
 		descriptionField.setTargetClass(entityCache.getEntityClass());
 		descriptionField.setCascadeTypes(new CascadeType[] { CascadeType.ALL });
 		descriptionField.setComment(fieldConfiguration.getComment());
-
+		
 		/*
 		 * Adiciona os indices
 		 */
@@ -1642,7 +1642,8 @@ public class EntityCacheManager {
 			descriptionColumn.setEnumType(fieldConfiguration.getEnumeratedType());
 		}
 
-		if (fieldConfiguration.isAnnotationPresent(MapKeyTemporal.class)) {
+		if (fieldConfiguration.isAnnotationPresent(MapKeyTemporal.class) ||
+				fieldConfiguration.isAnnotationPresent(Temporal.class)	) {
 			descriptionColumn.setTemporalType(fieldConfiguration.getTemporalType());
 		}
 

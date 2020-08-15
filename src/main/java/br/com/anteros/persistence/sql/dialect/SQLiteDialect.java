@@ -239,4 +239,9 @@ public class SQLiteDialect extends DatabaseDialect {
 	public String getIndexHint(Map<String, String> indexes) {
 		return "";
 	}
+
+	@Override
+	public String extractConstraintName(SQLException ex) {
+		return "";
+	}
 }

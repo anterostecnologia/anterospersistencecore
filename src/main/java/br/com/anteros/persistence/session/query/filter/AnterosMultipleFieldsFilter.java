@@ -60,14 +60,14 @@ public class AnterosMultipleFieldsFilter<T> {
 	private Predicate predicate;
 	private Integer paramNumber;
 	private String fieldsToForceLazy;
-	private boolean readOnly=false;
+	private boolean readOnly = false;
 
 	public AnterosMultipleFieldsFilter(EntityPathBase<T> entityPath, Predicate predicate) {
 		super();
 		this.entityPath = entityPath;
 		this.predicate = predicate;
 	}
-	
+
 	public AnterosMultipleFieldsFilter(EntityPathBase<T> entityPath) {
 		super();
 		this.entityPath = entityPath;
@@ -111,7 +111,7 @@ public class AnterosMultipleFieldsFilter<T> {
 		this.fieldsSort = fieldsSort;
 		return this;
 	}
-	
+
 	public EntityPathBase<T> getEntityPath() {
 		if (entityPath == null) {
 			this.entityPath = new DynamicEntityPath(resultClass, "P");
@@ -120,22 +120,23 @@ public class AnterosMultipleFieldsFilter<T> {
 	}
 
 	protected void buildQuery() {
-
-		if (ObjectUtils.isEmpty(value)) {
-			throw new SQLSessionException("Valor inválido para o filtro com múltiplos campos.");
-		}
-
-		if (ObjectUtils.isEmpty(fields)) {
-			throw new SQLSessionException("Valor inválido para os campos do filtro.");
+		
+		if (ObjectUtils.isEmpty(value) && ObjectUtils.isEmpty(fields) && predicate==null) {
+			throw new SQLSessionException("Informe os campos e valores para o filtro ou um predicado para consultar  a entidade "
+					+ session.getEntityCacheManager().getEntityCache(resultClass).getEntityClass().getName());	
 		}
 
 		EntityCache[] entityCaches = session.getEntityCacheManager().getEntitiesBySuperClassIncluding(resultClass);
 
-		String[] values = StringUtils.tokenizeToStringArray(value, ",");
+		String[] arrFields = null;
+		String[] values = null;
+		if (!ObjectUtils.isEmpty(value) && !ObjectUtils.isEmpty(fields)) {
+			values = StringUtils.tokenizeToStringArray(value, ",");
 
-		String[] arrFields = StringUtils.tokenizeToStringArray(fields, ",");
-		if (arrFields == null) {
-			arrFields = new String[] { fields };
+			arrFields = StringUtils.tokenizeToStringArray(fields, ",");
+			if (arrFields == null) {
+				arrFields = new String[] { fields };
+			}
 		}
 
 		if (entityPath == null) {
@@ -151,9 +152,11 @@ public class AnterosMultipleFieldsFilter<T> {
 		Map<Param<?>, Object> parameters = new LinkedHashMap<Param<?>, Object>();
 		this.paramNumber = 0;
 
-		for (String field : arrFields) {
-			String[] fieldArr = StringUtils.tokenizeToStringArray(field, ".");
-			processField(entityPath, entityCaches, fieldArr, values, parameters, builder);
+		if (arrFields != null && values != null) {
+			for (String field : arrFields) {
+				String[] fieldArr = StringUtils.tokenizeToStringArray(field, ".");
+				processField(entityPath, entityCaches, fieldArr, values, parameters, builder);
+			}
 		}
 
 		if (this.predicate != null) {
@@ -300,8 +303,7 @@ public class AnterosMultipleFieldsFilter<T> {
 						query.orderBy(predicateField.desc());
 					}
 				} else if (ReflectionUtils.isExtendsClass(Float.class, descriptionField.getField().getType())) {
-					NumberPath<Float> predicateField = entityPath.createNumber(descriptionField.getName(),
-							Float.class);
+					NumberPath<Float> predicateField = entityPath.createNumber(descriptionField.getName(), Float.class);
 					if ("asc".equals(order)) {
 						query.orderBy(predicateField.asc());
 					} else {
@@ -324,8 +326,7 @@ public class AnterosMultipleFieldsFilter<T> {
 						query.orderBy(predicateField.desc());
 					}
 				} else {
-					NumberPath<Long> predicateField = entityPath.createNumber(descriptionField.getName(),
-							Long.class);
+					NumberPath<Long> predicateField = entityPath.createNumber(descriptionField.getName(), Long.class);
 					if ("asc".equals(order)) {
 						query.orderBy(predicateField.asc());
 					} else {
@@ -343,8 +344,7 @@ public class AnterosMultipleFieldsFilter<T> {
 
 				}
 			} else if (descriptionField.isTemporalDateTime()) {
-				DateTimePath<Date> predicateField = entityPath.createDateTime(descriptionField.getName(),
-						Date.class);
+				DateTimePath<Date> predicateField = entityPath.createDateTime(descriptionField.getName(), Date.class);
 				if ("asc".equals(order)) {
 					query.orderBy(predicateField.asc());
 				} else {
@@ -370,7 +370,7 @@ public class AnterosMultipleFieldsFilter<T> {
 
 			if (descriptionField.isSimple()) {
 				BooleanBuilder builderAND = new BooleanBuilder();
-				
+
 				BooleanExpression predicate = null;
 
 				String[] andValues = StringUtils.tokenizeToStringArray(vl, "&");
@@ -384,7 +384,6 @@ public class AnterosMultipleFieldsFilter<T> {
 						value2 = v[1];
 					}
 
-					
 					if (ReflectionUtils.isEnum(descriptionField.getField().getType())) {
 						EnumPath predicateField = entityPath.createEnum(descriptionField.getName(), Enum.class);
 						paramNumber++;
@@ -548,15 +547,13 @@ public class AnterosMultipleFieldsFilter<T> {
 						}
 
 					}
-					
-					
 
 					if (ReflectionUtils.isExtendsClass(Date.class, descriptionField.getField().getType())) {
 						if (isDate(value1)) {
 							if (!StringUtils.isEmpty(value1) && !StringUtils.isEmpty(value2)) {
 								if (descriptionField.isTemporalDate()) {
-									DatePath<Date> predicateField = entityPath
-											.createDate(descriptionField.getName(), Date.class);
+									DatePath<Date> predicateField = entityPath.createDate(descriptionField.getName(),
+											Date.class);
 
 									Date dt1 = getDate(value1);
 									paramNumber++;
@@ -573,8 +570,8 @@ public class AnterosMultipleFieldsFilter<T> {
 							} else {
 								Date dt = getDate(value1);
 								if (descriptionField.isTemporalDate()) {
-									DatePath<Date> predicateField = entityPath
-											.createDate(descriptionField.getName(), Date.class);
+									DatePath<Date> predicateField = entityPath.createDate(descriptionField.getName(),
+											Date.class);
 									paramNumber++;
 									DateParam dtParam = new DateParam("P" + paramNumber);
 									parameters.put(dtParam, dt);
@@ -602,8 +599,8 @@ public class AnterosMultipleFieldsFilter<T> {
 									predicate = Expressions.predicate(Ops.BETWEEN, predicateField, dtTimeParam1,
 											dtTimeParam2);
 								} else if (descriptionField.isTemporalTime()) {
-									TimePath<Date> predicateField = entityPath
-											.createTime(descriptionField.getName(), Date.class);
+									TimePath<Date> predicateField = entityPath.createTime(descriptionField.getName(),
+											Date.class);
 
 									Date dt1 = getDateTime(value1);
 									Calendar calendar = Calendar.getInstance();
@@ -635,8 +632,8 @@ public class AnterosMultipleFieldsFilter<T> {
 									parameters.put(dtTimeParam, dt);
 									predicate = Expressions.predicate(Ops.EQ, predicateField, dtTimeParam);
 								} else if (descriptionField.isTemporalTime()) {
-									TimePath<Date> predicateField = entityPath
-											.createTime(descriptionField.getName(), Date.class);
+									TimePath<Date> predicateField = entityPath.createTime(descriptionField.getName(),
+											Date.class);
 
 									Calendar calendar = Calendar.getInstance();
 									calendar.set(Calendar.HOUR, dt.getHours());
@@ -651,8 +648,8 @@ public class AnterosMultipleFieldsFilter<T> {
 							}
 						}
 					}
-					
-					if (predicate!=null) {
+
+					if (predicate != null) {
 						builderAND.and(predicate);
 					}
 				}
@@ -691,8 +688,7 @@ public class AnterosMultipleFieldsFilter<T> {
 						Double.class);
 				return query.list(predicateField);
 			} else if (ReflectionUtils.isExtendsClass(Float.class, descriptionFields[0].getField().getType())) {
-				NumberPath<Float> predicateField = entityPath.createNumber(descriptionFields[0].getName(),
-						Float.class);
+				NumberPath<Float> predicateField = entityPath.createNumber(descriptionFields[0].getName(), Float.class);
 				return query.list(predicateField);
 			} else if (ReflectionUtils.isExtendsClass(BigDecimal.class, descriptionFields[0].getField().getType())) {
 				NumberPath<BigDecimal> predicateField = entityPath.createNumber(descriptionFields[0].getName(),
@@ -703,8 +699,7 @@ public class AnterosMultipleFieldsFilter<T> {
 						BigInteger.class);
 				return query.list(predicateField);
 			} else {
-				NumberPath<Long> predicateField = entityPath.createNumber(descriptionFields[0].getName(),
-						Long.class);
+				NumberPath<Long> predicateField = entityPath.createNumber(descriptionFields[0].getName(), Long.class);
 				return query.list(predicateField);
 			}
 		} else if (ReflectionUtils.isExtendsClass(Date.class, descriptionFields[0].getField().getType())) {
@@ -716,8 +711,7 @@ public class AnterosMultipleFieldsFilter<T> {
 				return query.list(predicateField);
 			}
 		} else if (descriptionFields[0].isTemporalDateTime()) {
-			DateTimePath<Date> predicateField = entityPath.createDateTime(descriptionFields[0].getName(),
-					Date.class);
+			DateTimePath<Date> predicateField = entityPath.createDateTime(descriptionFields[0].getName(), Date.class);
 			return query.list(predicateField);
 		} else if (descriptionFields[0].isTemporalTime()) {
 			TimePath<Date> predicateField = entityPath.createTime(descriptionFields[0].getName(), Date.class);
@@ -777,10 +771,10 @@ public class AnterosMultipleFieldsFilter<T> {
 			}
 		}
 	}
-	
+
 	public static boolean isBoolean(String value) {
-		return "true".equals(value) || "false".equals(value) || "sim".equalsIgnoreCase(value) || "não".equalsIgnoreCase(value)
-				|| "S".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value);
+		return "true".equals(value) || "false".equals(value) || "sim".equalsIgnoreCase(value)
+				|| "não".equalsIgnoreCase(value) || "S".equalsIgnoreCase(value) || "N".equalsIgnoreCase(value);
 	}
 
 	public static Date getDate(String inDate) {

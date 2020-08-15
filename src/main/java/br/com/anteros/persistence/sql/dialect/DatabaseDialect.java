@@ -521,7 +521,7 @@ public abstract class DatabaseDialect {
 		schemaWriter.write(getCreateSequenceString() + " ");
 		schemaWriter.write(sequenceGeneratorSchema.getName());
 		if (sequenceGeneratorSchema.getAllocationSize() != 1) {
-			schemaWriter.write(" INCREMENT BY " + sequenceGeneratorSchema.getAllocationSize());
+			schemaWriter.write(" INCREMENT BY " + (sequenceGeneratorSchema.getAllocationSize()==0?1:sequenceGeneratorSchema.getAllocationSize()));
 		}
 		schemaWriter.write(" START WITH " + sequenceGeneratorSchema.getInitialValue());
 		return schemaWriter;
@@ -1718,9 +1718,7 @@ public abstract class DatabaseDialect {
 		return errorCode;
 	}
 
-	public String extractConstraintName(SQLException ex) {
-		return null;
-	}
+	public abstract String extractConstraintName(SQLException ex);
 
 	protected String extractUsingTemplate(String templateStart, String templateEnd, String message) {
 		int templateStartPosition = message.indexOf(templateStart);
@@ -1762,6 +1760,7 @@ public abstract class DatabaseDialect {
 	public abstract String getIndexHint(Map<String, String> indexes);
 
 	public abstract QueryFlag.Position getIndexHintPosition();
+	
 
 	public boolean bindLimitParametersFirst() {
 		return false;
@@ -1777,4 +1776,5 @@ public abstract class DatabaseDialect {
 
 	// public abstract List<ProcedureMetadata> getNativeFunctions() throws
 	// Exception;
+	
 }
