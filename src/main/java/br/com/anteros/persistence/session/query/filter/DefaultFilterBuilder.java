@@ -21,6 +21,7 @@ public class DefaultFilterBuilder extends BaseVisitor {
 	private List<NamedParameter> params = new ArrayList<NamedParameter>();
 	private SQLSession session;
 	private Class<?> resultClass;
+	private String alias;
 
 	public StringBuffer getResult() {
 		return result;
@@ -85,8 +86,10 @@ public class DefaultFilterBuilder extends BaseVisitor {
 		if (descriptionField==null) {
 			throw new FilterException("Não foi encontrada campo "+column.getName()+" na entidade gerenciada "+resultClass.getSimpleName());
 		}
-		
-		result.append(descriptionField.getSimpleColumn().getColumnName());
+		if (StringUtils.isNotEmpty(alias))
+			result.append(alias+"."+descriptionField.getSimpleColumn().getColumnName());
+		else 
+			result.append(descriptionField.getSimpleColumn().getColumnName());
 	}
 
 	public void visit(final OperationExpression exp) throws FilterException {
@@ -179,8 +182,13 @@ public class DefaultFilterBuilder extends BaseVisitor {
 	public void visit(final Nullable nullable) throws FilterException {
 		acceptOrVisitValue(nullable.getValue());
 	}
-
+	
 	public String toSql(Filter filter, SQLSession session, Class<?> resultClass) throws FilterException {
+		return toSql("TBL",filter,session,resultClass);
+	}
+
+	public String toSql(String alias, Filter filter, SQLSession session, Class<?> resultClass) throws FilterException {
+		this.alias = alias;
 		this.session = session;
 		this.resultClass = resultClass;
 		filter.runVisitors();
@@ -188,8 +196,13 @@ public class DefaultFilterBuilder extends BaseVisitor {
 		final String sqlQuery = this.getResult().toString();
 		return sqlQuery;
 	}
-
+	
 	public String toSortSql(Filter filter, SQLSession session, Class<?> resultClass) throws FilterException {
+		return toSortSql("TBL", filter, session, resultClass);
+	}
+
+	public String toSortSql(String alias, Filter filter, SQLSession session, Class<?> resultClass) throws FilterException {
+		this.alias = alias;
 		this.session = session;
 		this.resultClass = resultClass;
 		String result = "";

@@ -425,7 +425,7 @@ public abstract class AbstractOSQLQuery<Q extends AbstractOSQLQuery<Q>> extends 
 				query.setParameters(getParameters());
 
 		} catch (Exception e) {
-			throw new OSQLQueryException("Não foi possível criar a query. ", e);
+			throw new OSQLQueryException(e.getMessage(),e);
 		}
 
 		List<? extends Expression<?>> projection = getMetadata().getProjection();

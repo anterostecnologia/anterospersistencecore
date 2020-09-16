@@ -192,7 +192,7 @@ public class EntityCacheManager {
 					if (configuration != null) {
 						for (Object listener : entityListeners.keySet()) {
 							Class<?> entity = entityListeners.get(listener);
-							if (entity.equals(sourceClazz)) {
+							if (entity.equals(sourceClazz) || ReflectionUtils.isExtendsClass(entity, sourceClazz)) {
 								configuration.entityListeners(listener);
 							}
 						}

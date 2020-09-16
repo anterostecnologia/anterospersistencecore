@@ -48,7 +48,6 @@ public class UpdateCommandSQL extends CommandSQL {
 	public CommandReturn execute() throws Exception {
 		boolean threwAnException = false;
 		try {
-			session.notifyListeners(EventType.PreUpdate, oldObject, targetObject);
 			/*
 			 * Executa o SQL
 			 */
@@ -138,6 +137,9 @@ public class UpdateCommandSQL extends CommandSQL {
 				} catch (SQLException ex) {
 					threwAnException = true;
 					throw session.getDialect().convertSQLException(ex, "", sql);
+				} catch (Exception ex1) {
+					threwAnException = true;
+					throw ex1;
 				}
 			}
 			setEntityManaged();

@@ -57,7 +57,6 @@ public class InsertCommandSQL extends CommandSQL {
 	public CommandReturn execute() throws Exception {
 		boolean threwAnException = false;
 		try {
-			session.notifyListeners(EventType.PrePersist, null, this.targetObject);
 			/*
 			 * Troca os parâmetros que aguardam o identificador de outro objeto pelo valor
 			 * do identificador gerado
@@ -165,6 +164,9 @@ public class InsertCommandSQL extends CommandSQL {
 				} catch (SQLException ex) {
 					threwAnException = true;
 					throw session.getDialect().convertSQLException(ex, "", sql);
+				} catch (Exception ex1) {
+					threwAnException = true;
+					throw ex1;
 				}
 			}
 			setEntityManaged();

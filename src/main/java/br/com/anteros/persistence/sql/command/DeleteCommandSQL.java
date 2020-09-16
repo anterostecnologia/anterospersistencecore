@@ -43,8 +43,7 @@ public class DeleteCommandSQL extends CommandSQL {
 	@Override
 	public CommandReturn execute() throws Exception {
 		boolean threwAnException = false;
-		try {
-			session.notifyListeners(EventType.PreRemove, null, this.targetObject);
+		try {						
 			/*
 			 * Troca os parâmetros que aguardam o identificador de outro objeto pelo valor
 			 * do identificador gerado
@@ -111,6 +110,9 @@ public class DeleteCommandSQL extends CommandSQL {
 				} catch (SQLException ex) {
 					threwAnException = true;
 					throw session.getDialect().convertSQLException(ex, "", sql);
+				} catch (Exception ex1) {
+					threwAnException = true;
+					throw ex1;
 				}
 			}
 		} finally {
