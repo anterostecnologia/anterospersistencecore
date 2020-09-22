@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.0.85</version>
+	<version>1.0.86</version>
 
 	<properties>
 		<java.versao>1.8</java.versao>
@@ -58,17 +58,17 @@
 		<dependency>
 			<groupId>br.com.anteros</groupId>
 			<artifactId>Anteros-Core</artifactId>
-			<version>[1.0.0,)</version>
+			<version>[1.2.6,)</version>
 		</dependency>
 		<dependency>
 			<groupId>br.com.anteros</groupId>
 			<artifactId>Anteros-Cloud-Integration</artifactId>
-			<version>[1.0.0,)</version>
+			<version>[1.0.8,)</version>
 		</dependency>
 		<dependency>
 			<groupId>br.com.anteros</groupId>
 			<artifactId>Anteros-Bean-Validation-Api</artifactId>
-			<version>[1.0.0,)</version>
+			<version>[1.0.3,)</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

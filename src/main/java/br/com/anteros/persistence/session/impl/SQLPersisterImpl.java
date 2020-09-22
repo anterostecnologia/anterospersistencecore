@@ -167,6 +167,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		return result;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private MergeResult mergeIfNeed(Object newEntity) throws Exception {
 		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(newEntity.getClass());
 
@@ -186,8 +187,6 @@ public class SQLPersisterImpl implements SQLPersister {
 						.find(new FindParameters().identifier(session.getIdentifier(newEntity)).lockOptions(
 								entityCache.isVersioned() ? LockOptions.OPTIMISTIC_FORCE_INCREMENT : LockOptions.NONE));
 				entityCache.mergeValues(actualEntity, newEntity);
-				
-				EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(actualEntity);
 				
 
 				return MergeResult.of(oldEntity, actualEntity);
