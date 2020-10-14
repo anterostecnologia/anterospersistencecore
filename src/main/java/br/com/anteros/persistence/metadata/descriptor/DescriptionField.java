@@ -236,13 +236,13 @@ public class DescriptionField {
 
 	public Object getObjectValue(Object object) throws Exception {
 		Method method = ReflectionUtils.getGetterAccessor(entityCache.getEntityClass(), field);
-		
+
 		try {
 			return entityCache.getMethodAccess().invoke(object, method.getName());
 		} catch (NullPointerException e) {
 			return null;
 		}
-		
+
 //		if (propertyAccessor != null) {
 //			return propertyAccessor.get(object);
 //		} else {
@@ -313,7 +313,8 @@ public class DescriptionField {
 				return new java.sql.Date(date.getTime());
 		} else if (temporalType == TemporalType.DATE_TIME) {
 			String dateTimePattern = !(this.getSimpleColumn().getDateTimePattern()).equals("")
-					? this.getSimpleColumn().getDateTimePattern() : DatabaseDialect.DATETIME_PATTERN;
+					? this.getSimpleColumn().getDateTimePattern()
+					: DatabaseDialect.DATETIME_PATTERN;
 			Date date = new SimpleDateFormat(dateTimePattern).parse(value);
 			if (date != null)
 				return new java.sql.Date(date.getTime());
@@ -326,11 +327,13 @@ public class DescriptionField {
 			TemporalType temporalType = this.getSimpleColumn().getTemporalType();
 			if (temporalType == TemporalType.DATE) {
 				String datePattern = !(this.getSimpleColumn().getDatePattern()).equals("")
-						? this.getSimpleColumn().getDatePattern() : DatabaseDialect.DATE_PATTERN;
+						? this.getSimpleColumn().getDatePattern()
+						: DatabaseDialect.DATE_PATTERN;
 				return new SimpleDateFormat(datePattern).parse(value);
 			} else if (temporalType == TemporalType.DATE_TIME) {
 				String dateTimePattern = !("".equals(this.getSimpleColumn().getDateTimePattern()))
-						? this.getSimpleColumn().getDateTimePattern() : DatabaseDialect.DATETIME_PATTERN;
+						? this.getSimpleColumn().getDateTimePattern()
+						: DatabaseDialect.DATETIME_PATTERN;
 				return new SimpleDateFormat(dateTimePattern).parse(value);
 			}
 		}
@@ -578,7 +581,21 @@ public class DescriptionField {
 	}
 
 	public FieldEntityValue getFieldEntityValue(SQLSession session, Object object) throws Exception {
+		return getFieldEntityValue(session, object, false);
+	}
+
+	public FieldEntityValue getFieldEntityValue(SQLSession session, Object object, boolean forceInitialize)
+			throws Exception {
 		Object fieldValue = this.getObjectValue(object);
+		if (forceInitialize) {
+			if (session.isProxyObject(fieldValue)) {
+				if (!session.proxyIsInitialized(fieldValue)) {
+					if (fieldValue instanceof Collection) {
+						((Collection<?>) fieldValue).size();
+					}
+				}
+			}
+		}
 		return getFieldEntityValue(session, object, fieldValue);
 	}
 
@@ -1154,18 +1171,17 @@ public class DescriptionField {
 	}
 
 	public boolean isTenant() {
-		if (getSimpleColumn()!=null) {
+		if (getSimpleColumn() != null) {
 			return getSimpleColumn().isTenant();
 		}
 		return false;
 	}
 
 	public boolean isCompany() {
-		if (getSimpleColumn()!=null) {
+		if (getSimpleColumn() != null) {
 			return getSimpleColumn().isCompany();
 		}
 		return false;
 	}
-
 
 }

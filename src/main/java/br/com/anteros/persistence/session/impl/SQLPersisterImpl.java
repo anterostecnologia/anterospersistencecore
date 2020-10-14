@@ -188,6 +188,12 @@ public class SQLPersisterImpl implements SQLPersister {
 								entityCache.isVersioned() ? LockOptions.OPTIMISTIC_FORCE_INCREMENT : LockOptions.NONE));
 				entityCache.mergeValues(actualEntity, newEntity);
 				
+				EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(oldEntity);
+				
+				if (entityManaged!=null) {
+					entityManaged.updateLastValues(session, oldEntity);
+				}	
+				
 
 				return MergeResult.of(oldEntity, actualEntity);
 			}
@@ -649,13 +655,13 @@ public class SQLPersisterImpl implements SQLPersister {
 
 		}
 
-		updateRelationshipsOnCollectionFields(newObject, entityCache, result, entityManaged,
+		updateRelationshipsOnCollectionFields(oldObject, newObject, entityCache, result, entityManaged,
 				session.getIdentifier(newObject).getDatabaseColumns());
 
 		return result;
 	}
 
-	protected void updateRelationshipsOnCollectionFields(Object targetObject, EntityCache entityCache,
+	protected void updateRelationshipsOnCollectionFields(Object oldObject, Object targetObject, EntityCache entityCache,
 			List<PersisterCommand> result, EntityManaged entityManaged, Map<String, Object> primaryKeyOwner)
 			throws IllegalAccessException, Exception {
 		FieldEntityValue[] sourceList = null;
@@ -681,8 +687,7 @@ public class SQLPersisterImpl implements SQLPersister {
 						continue;
 					}
 
-					lastFieldEntityValue = entityCache.getLastFieldEntityValue(session, targetObject,
-							descriptionField.getName());
+					lastFieldEntityValue = descriptionField.getFieldEntityValue(session, oldObject, true);
 					newFieldEntityValue = descriptionField.getFieldEntityValue(session, targetObject);
 					sourceList = null;
 					targetList = null;
