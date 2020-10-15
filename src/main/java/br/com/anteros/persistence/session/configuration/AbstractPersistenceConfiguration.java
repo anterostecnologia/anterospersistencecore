@@ -44,6 +44,9 @@ import br.com.anteros.persistence.metadata.configuration.PersistenceModelConfigu
 import br.com.anteros.persistence.session.SQLSessionFactory;
 import br.com.anteros.persistence.session.configuration.exception.AnterosConfigurationException;
 import br.com.anteros.persistence.sql.dialect.DatabaseDialect;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.ScanResult;
 
 public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfiguration implements PersistenceConfiguration {
 
@@ -222,8 +225,25 @@ public abstract class AbstractPersistenceConfiguration extends AnterosBasicConfi
 				getSessionFactoryConfiguration().getPackageToScanEntity().setPackageName(
 						getSessionFactoryConfiguration().getPackageToScanEntity().getPackageName() + ", " + SECURITY_PACKAGE);
 			String[] packages = StringUtils.tokenizeToStringArray(getSessionFactoryConfiguration().getPackageToScanEntity().getPackageName(), ", ;");
-			List<Class<?>> scanClasses = ClassPathScanner.scanClasses(new ClassFilter().packages(packages).annotation(Entity.class).annotation(Converter.class)
-					.annotation(EnumValues.class).packageName(CONVERTERS_PACKAGE));
+			List<Class<?>> scanClasses = new ArrayList<Class<?>>();
+			
+			try (ScanResult scanResult = new ClassGraph().enableAllInfo().acceptPackages(packages).acceptPackages(CONVERTERS_PACKAGE)
+		            .scan()) {
+				
+				ClassInfoList filtered = scanResult.getAllClasses()
+			            .filter(classInfo -> {			            	
+			            	boolean result = (classInfo.hasAnnotation(Entity.class.getName())
+				                    || classInfo.hasAnnotation(EnumValues.class.getName())
+				                    || classInfo.hasAnnotation(Converter.class.getName()));
+			            	
+			                return result;
+			               
+			               });
+			            
+				scanClasses = filtered.loadClasses();					
+			}		
+			
+			
 			if (LOG.isDebugEnabled()) {
 				for (Class<?> cl : scanClasses) {
 					LOG.debug("Encontrado classe scaneada " + cl.getName());
