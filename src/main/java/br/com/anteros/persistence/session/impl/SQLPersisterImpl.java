@@ -1224,6 +1224,9 @@ public class SQLPersisterImpl implements SQLPersister {
 								remove(session, value);
 							}
 						}
+					} else if (descriptionField.isJoinTable()) {
+						result.addAll(this.getSQLJoinTableCommands(null, SQLStatementType.DELETE_ALL, descriptionField, null, null, primaryKeyOwner));					
+						
 					} else
 						result.add(new DeleteCommandSQL(session,
 								generateSql(tableName, SQLStatementType.DELETE, keyChildParameters), keyChildParameters,
