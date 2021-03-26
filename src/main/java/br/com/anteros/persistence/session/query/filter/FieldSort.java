@@ -14,11 +14,19 @@ public class FieldSort {
 	}
 
 	public String getField() {
-		return field;
+		String parts[]=field.split("[ ]+");
+		return parts[0];
 	}
 
 	public void setField(String field) {
 		this.field = field;
+	}
+	
+	public String getOrder() {
+		String parts[]=field.split("[ ]+");
+		if (parts.length>1)
+			return parts[1];
+		return "ASC";
 	}
 	
 

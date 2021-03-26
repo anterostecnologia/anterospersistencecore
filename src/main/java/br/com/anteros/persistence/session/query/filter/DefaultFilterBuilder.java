@@ -223,7 +223,7 @@ public class DefaultFilterBuilder extends BaseVisitor {
 				throw new FilterException("Não foi encontrada campo "+field.getField()+" na entidade gerenciada "+resultClass.getSimpleName());
 			}
 
-			result += descriptionField.getSimpleColumn().getColumnName();
+			result += descriptionField.getSimpleColumn().getColumnName()+" "+field.getOrder();
 		}
 		return result;
 	}
