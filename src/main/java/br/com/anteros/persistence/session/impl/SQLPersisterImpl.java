@@ -186,16 +186,14 @@ public class SQLPersisterImpl implements SQLPersister {
 				Object actualEntity = session
 						.find(new FindParameters().identifier(session.getIdentifier(newEntity)).lockOptions(
 								entityCache.isVersioned() ? LockOptions.OPTIMISTIC_FORCE_INCREMENT : LockOptions.NONE));
-				entityCache.mergeValues(actualEntity, newEntity);
-				
-				EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(oldEntity);
-				
-				if (entityManaged!=null) {
-					entityManaged.updateLastValues(session, oldEntity);
-				}	
-				
-
-				return MergeResult.of(oldEntity, actualEntity);
+				if (actualEntity != null && newEntity != null) {
+					entityCache.mergeValues(actualEntity, newEntity);					
+					EntityManaged entityManaged = session.getPersistenceContext().getEntityManaged(oldEntity);					
+					if (entityManaged!=null) {
+						entityManaged.updateLastValues(session, oldEntity);
+					}				
+					return MergeResult.of(oldEntity, actualEntity);
+				}
 			}
 		}
 		return MergeResult.of(null, newEntity);
@@ -228,7 +226,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		}
 		if ((entityManaged != null) && (EntityStatus.DELETED.equals(entityManaged.getStatus())))
 			session.flush();
-		
+
 		session.notifyListeners(EventType.PreRemove, null, newObject);
 
 		List<PersisterCommand> commands = getCommandsToDeleteObject(newObject, entityCache);
@@ -1225,8 +1223,9 @@ public class SQLPersisterImpl implements SQLPersister {
 							}
 						}
 					} else if (descriptionField.isJoinTable()) {
-						result.addAll(this.getSQLJoinTableCommands(null, SQLStatementType.DELETE_ALL, descriptionField, null, null, primaryKeyOwner));					
-						
+						result.addAll(this.getSQLJoinTableCommands(null, SQLStatementType.DELETE_ALL, descriptionField,
+								null, null, primaryKeyOwner));
+
 					} else
 						result.add(new DeleteCommandSQL(session,
 								generateSql(tableName, SQLStatementType.DELETE, keyChildParameters), keyChildParameters,
