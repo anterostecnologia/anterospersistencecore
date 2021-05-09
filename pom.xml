@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.0.96</version>
+	<version>1.0.97</version>
 
 	<properties>
 		<java.versao>1.8</java.versao>
@@ -200,9 +200,6 @@
 									<goals>
 										<goal>jar</goal>
 									</goals>
-									<configuration>
-										<doclint>none</doclint>
-									</configuration>
 								</execution>
 							</executions>
 						</plugin>
@@ -266,9 +263,6 @@
 									<goals>
 										<goal>jar</goal>
 									</goals>
-									<configuration>
-										<doclint>none</doclint>
-									</configuration>
 								</execution>
 							</executions>
 						</plugin>
@@ -304,7 +298,6 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-compiler-plugin</artifactId>
-							<version>3.1</version>
 							<configuration>
 								<target>${java.versao}</target>
 								<source>${java.versao}</source>
@@ -331,9 +324,6 @@
 									<goals>
 										<goal>jar</goal>
 									</goals>
-									<configuration>
-										<doclint>none</doclint>
-									</configuration>
 								</execution>
 							</executions>
 						</plugin>
