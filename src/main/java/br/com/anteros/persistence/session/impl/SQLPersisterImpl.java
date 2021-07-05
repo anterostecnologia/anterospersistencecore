@@ -888,7 +888,7 @@ public class SQLPersisterImpl implements SQLPersister {
 		 * delete somente se Cascade=DELETE_ORPHAN
 		 */
 		if (sourceList != null) {
-			List<Object> objectsToSaveRemove = new ArrayList<Object>();
+			List<Object> objectsToRemove = new ArrayList<Object>();
 			for (FieldEntityValue sourceValue : sourceList) {
 				boolean found = false;
 				if (targetList != null) {
@@ -916,7 +916,7 @@ public class SQLPersisterImpl implements SQLPersister {
 								|| Arrays.asList(descriptionField.getCascadeTypes()).contains(CascadeType.DELETE)
 								|| Arrays.asList(descriptionField.getCascadeTypes())
 										.contains(CascadeType.DELETE_ORPHAN))) {
-							objectsToSaveRemove.add(sourceValue.getSource());
+							objectsToRemove.add(sourceValue.getSource());
 						}
 					} else if (descriptionField.isJoinTable()) {
 						result.addAll(getSQLJoinTableCommands(sourceValue.getSource(), SQLStatementType.DELETE,
@@ -925,8 +925,8 @@ public class SQLPersisterImpl implements SQLPersister {
 				}
 			}
 
-			if (!objectsToSaveRemove.isEmpty()) {
-				Collections.sort(objectsToSaveRemove, new Comparator<Object>() {
+			if (!objectsToRemove.isEmpty()) {
+				Collections.sort(objectsToRemove, new Comparator<Object>() {
 					public int compare(Object obj1, Object obj2) {
 						if (obj1 == null || obj2 == null)
 							return 0;
@@ -949,10 +949,9 @@ public class SQLPersisterImpl implements SQLPersister {
 					}
 				});
 
-				for (Object obj : objectsToSaveRemove) {
-					save(session, obj, result);
-					session.getCommandQueue().addAll(result);
-					result.clear();
+				session.getCommandQueue().addAll(result);
+				result.clear();
+				for (Object obj : objectsToRemove) {
 					remove(session, obj);
 				}
 			}
