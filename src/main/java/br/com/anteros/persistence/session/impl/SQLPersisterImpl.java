@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import br.com.anteros.core.utils.JpegUtils;
 import org.apache.tika.Tika;
 
 import br.com.anteros.core.log.Logger;
@@ -1127,6 +1128,10 @@ public class SQLPersisterImpl implements SQLPersister {
 													if (session.isEnableImageCompression()
 															&& MimeTypes.MIME_IMAGE_PNG.equals(mimeType)) {
 														data = PNGUtils.compressPNG(data);
+													}
+													if (session.isEnableImageCompression()
+															&& MimeTypes.MIME_IMAGE_JPEG.equals(mimeType)) {
+														data = JpegUtils.compressJPEG(data,0.2f);
 													}
 													String folderName = "";
 													if (session.getTenantId() != null) {
