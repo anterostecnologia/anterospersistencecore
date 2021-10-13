@@ -181,11 +181,11 @@ public class SQLPersisterImpl implements SQLPersister {
 					session.getIdentifier(newEntity).getDatabaseColumns())) {
 				
 				Object oldEntity = session
-						.find(new FindParameters().identifier(session.getIdentifier(newEntity)).readOnly(true).lockOptions(
+						.find(new FindParameters().identifier(session.getIdentifier(newEntity)).ignoreCompanyId(true).ignoreTenantId(true).readOnly(true).lockOptions(
 								entityCache.isVersioned() ? LockOptions.OPTIMISTIC_FORCE_INCREMENT : LockOptions.NONE));
 				
 				Object actualEntity = session
-						.find(new FindParameters().identifier(session.getIdentifier(newEntity)).lockOptions(
+						.find(new FindParameters().identifier(session.getIdentifier(newEntity)).ignoreCompanyId(true).ignoreTenantId(true).lockOptions(
 								entityCache.isVersioned() ? LockOptions.OPTIMISTIC_FORCE_INCREMENT : LockOptions.NONE));
 				if (actualEntity != null && newEntity != null) {
 					entityCache.mergeValues(actualEntity, newEntity);					

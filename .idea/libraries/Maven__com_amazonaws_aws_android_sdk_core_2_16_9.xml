@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.amazonaws:aws-android-sdk-core:2.16.9">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/amazonaws/aws-android-sdk-core/2.16.9/aws-android-sdk-core-2.16.9.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/amazonaws/aws-android-sdk-core/2.16.9/aws-android-sdk-core-2.16.9-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/amazonaws/aws-android-sdk-core/2.16.9/aws-android-sdk-core-2.16.9-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
