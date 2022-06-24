@@ -486,9 +486,11 @@ public class DescriptionField {
 	}
 
 	public boolean isRequired() {
-		for (DescriptionColumn column : columns) {
-			if (column.isRequired())
-				return true;
+		if (!this.isAnyCollectionOrMap()) {
+			for (DescriptionColumn column : columns) {
+				if (column.isRequired())
+					return true;
+			}
 		}
 		return false;
 	}

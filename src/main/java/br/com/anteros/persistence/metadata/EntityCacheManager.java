@@ -2683,7 +2683,8 @@ public class EntityCacheManager {
 	 */
 	public EntityCache getEntityCacheByClassName(String className) {
 		for (EntityCache entityCache : entities.values()) {
-			if (className.equalsIgnoreCase(entityCache.getEntityClass().getSimpleName()))
+			if (className.equalsIgnoreCase(entityCache.getEntityClass().getSimpleName()) ||
+					className.equalsIgnoreCase(entityCache.getEntityClass().getName()))
 				return entityCache;
 		}
 		return null;

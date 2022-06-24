@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.anteros</groupId>
 	<artifactId>Anteros-Persistence-Core</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.7</version>
 
 	<properties>
 		<java.versao>1.8</java.versao>
@@ -88,7 +88,7 @@
 		<dependency>
 			<groupId>io.github.classgraph</groupId>
 			<artifactId>classgraph</artifactId>
-			<version>4.8.90</version>
+			<version>4.8.141</version>
 		</dependency>
 	</dependencies>
 

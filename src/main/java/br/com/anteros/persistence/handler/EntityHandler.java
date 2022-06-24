@@ -749,6 +749,13 @@ public class EntityHandler implements ScrollableResultSetHandler {
 						existsExpression = false;
 					}
 				}
+				if (!process){
+					CheckForceResult checkForceResult = checkForceFetchTypeByField(descriptionField.getField().getName(), FetchType.LAZY);
+					if (FetchType.EAGER.equals(checkForceResult.getFetchType())){
+						process = true;
+						existsExpression = false;
+					}
+				}
 			}
 		}
 

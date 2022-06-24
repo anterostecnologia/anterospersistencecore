@@ -468,8 +468,12 @@ public class SQLAnalyser implements Visitor<Void, Void> {
 	 */
 	protected EntityCache getEntityCacheByClass(Class<?> sourceClass) {
 		EntityCache result = this.configuration.getEntityCacheManager().getEntityCache(sourceClass);
-		if (result == null)
-			throw new SQLSerializerException("A classe " + sourceClass + " não foi encontrada na lista de entidades gerenciadas.");
+		if (result == null) {
+			result = this.configuration.getEntityCacheManager().getEntityCacheByClassName(sourceClass.getName());
+			if (result == null) {
+				throw new SQLSerializerException("A classe " + sourceClass + " não foi encontrada na lista de entidades gerenciadas.");
+			}
+	    }
 		return result;
 	}
 

@@ -40,11 +40,17 @@ public class DefaultFilterBuilder extends BaseVisitor {
 	private String getVariableName(final Object obj, final String defaultName) {
 		if (obj instanceof FieldExpression) {
 			FieldExpression column = (FieldExpression) obj;
-			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
-			if (entityCache==null) {
+			EntityCache[] entityCaches = session.getEntityCacheManager().getEntitiesBySuperClassIncluding(resultClass);
+			if (entityCaches==null) {
 				throw new SQLSessionException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
 			}
-			DescriptionField descriptionField = entityCache.getDescriptionField(column.getName());
+			DescriptionField descriptionField=null;
+			for (EntityCache entityCache : entityCaches) {
+				descriptionField = entityCache.getDescriptionField(column.getName());
+				if (descriptionField!=null){
+					break;
+				}
+			}
 			
 			if (descriptionField==null) {
 				throw new SQLSessionException("Não foi encontrada campo "+column.getName()+" na entidade gerenciada "+resultClass.getSimpleName());
@@ -77,11 +83,17 @@ public class DefaultFilterBuilder extends BaseVisitor {
 	}
 
 	public void visit(final FieldExpression column) {
-		EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
-		if (entityCache==null) {
-			throw new FilterException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
+		EntityCache[] entityCaches = session.getEntityCacheManager().getEntitiesBySuperClassIncluding(resultClass);
+		if (entityCaches==null) {
+			throw new SQLSessionException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
 		}
-		DescriptionField descriptionField = entityCache.getDescriptionField(column.getName());
+		DescriptionField descriptionField=null;
+		for (EntityCache entityCache : entityCaches) {
+			descriptionField = entityCache.getDescriptionField(column.getName());
+			if (descriptionField!=null){
+				break;
+			}
+		}
 		
 		if (descriptionField==null) {
 			throw new FilterException("Não foi encontrada campo "+column.getName()+" na entidade gerenciada "+resultClass.getSimpleName());
@@ -211,14 +223,20 @@ public class DefaultFilterBuilder extends BaseVisitor {
 			if (appendDelimiter)
 				result += ", ";
 			appendDelimiter = true;
-			
-			
-			EntityCache entityCache = session.getEntityCacheManager().getEntityCache(resultClass);
-			if (entityCache==null) {
-				throw new FilterException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
+
+
+			EntityCache[] entityCaches = session.getEntityCacheManager().getEntitiesBySuperClassIncluding(resultClass);
+			if (entityCaches==null) {
+				throw new SQLSessionException("Não foi encontrada entidade sendo gerenciada da classe "+resultClass.getSimpleName());
 			}
-			DescriptionField descriptionField = entityCache.getDescriptionField(field.getField());
-			
+			DescriptionField descriptionField=null;
+			for (EntityCache entityCache : entityCaches) {
+				descriptionField = entityCache.getDescriptionField(field.getField());
+				if (descriptionField!=null){
+					break;
+				}
+			}
+
 			if (descriptionField==null) {
 				throw new FilterException("Não foi encontrada campo "+field.getField()+" na entidade gerenciada "+resultClass.getSimpleName());
 			}
