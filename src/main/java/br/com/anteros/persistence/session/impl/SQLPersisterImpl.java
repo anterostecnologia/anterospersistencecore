@@ -585,7 +585,7 @@ public class SQLPersisterImpl implements SQLPersister {
 												}
 											}
 											namedParameters.put(columnModified.getColumnName(),
-													new ExternalFileNamedParameter(columnModified.getColumnName(),
+													new ExternalFileNamedParameter(columnModified.getColumnName(),fieldModified,targetObject,
 															new ExternalFileSaveCommand(session, folderName, fileName,
 																	data, mimeType)));
 										}
@@ -1156,7 +1156,7 @@ public class SQLPersisterImpl implements SQLPersister {
 														}
 													}
 													namedParameters.add(new ExternalFileNamedParameter(
-															columnModified.getColumnName(), saveCommand,
+															columnModified.getColumnName(), fieldModified,newObject, saveCommand,
 															removeCommand));
 												}
 											}

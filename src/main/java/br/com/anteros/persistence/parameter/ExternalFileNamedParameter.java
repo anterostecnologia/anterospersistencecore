@@ -12,8 +12,12 @@
  *******************************************************************************/
 package br.com.anteros.persistence.parameter;
 
+import br.com.anteros.persistence.dsl.osql.util.ReflectionUtils;
+import br.com.anteros.persistence.metadata.descriptor.DescriptionField;
 import br.com.anteros.persistence.sql.command.CommandReturn;
 import br.com.anteros.persistence.sql.command.PersisterCommand;
+
+import java.lang.reflect.Field;
 
 /**
  * 
@@ -25,11 +29,15 @@ public class ExternalFileNamedParameter extends NamedParameter {
 	protected String name;
 	protected PersisterCommand[] commands;
 	protected Object value = null;
+	protected Object target = null;
+	protected DescriptionField field;
 
-	public ExternalFileNamedParameter(String name, PersisterCommand... commands) {
+	public ExternalFileNamedParameter(String name, DescriptionField field, Object target, PersisterCommand... commands) {
 		super(name);
 		this.name = name;
 		this.commands = commands;
+		this.field = field;
+		this.target = target;
 	}
 
 	public void setName(String name) {
@@ -44,6 +52,9 @@ public class ExternalFileNamedParameter extends NamedParameter {
 						CommandReturn ret = command.execute();
 						if (ret != null) {
 							value = ret.getSql();
+							if (target!=null){
+								field.setObjectValue(target,value);
+							}
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
