@@ -16,7 +16,10 @@ public class ExternalFileRemoveCommand implements PersisterCommand {
 	
 	@Override
 	public CommandReturn execute() throws Exception {
-		session.getExternalFileManager().removeFile(folderName, fileName);		
+		try {
+			session.getExternalFileManager().removeFile(folderName, fileName);
+		} catch (Exception e) {
+		}
 		return null;
 	}
 
